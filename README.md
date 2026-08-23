@@ -104,5 +104,6 @@ git push -u origin feature/nome-da-sua-tarefa
 | Nome | Função | GitHub |
 |------|--------|--------|
 | João Pedro Beckman | Responsável pelo projeto | [@BECKMAN700](https://github.com/BECKMAN700) |
+| Giordano Bruno de Moura Fragoso Santos | Desenvoledor | [@GiordanOBrun](https://github.com/GiordanOBru) |
 
 ---
