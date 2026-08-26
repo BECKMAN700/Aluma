@@ -1,109 +1,150 @@
-# # Aluma
+# Aluma
 
-> Uma plataforma de tutoria com Inteligência Artificial para escolas — um professor disponível 24 horas por dia, que guia cada aluno de forma individual.
+Tutoria com Inteligência Artificial vinculada à turma real da escola.
 
----
+Seus alunos já usam IA para copiar resposta. O Aluma é a IA que a escola controla — e que se
+recusa a dar a resposta. Ele mostra ao aluno **o que** estudar e **como** estudar, pergunta de
+volta, dá exemplos e o obriga a chegar sozinho. Para o professor, transforma isso em um mapa de
+onde a turma travou.
 
-## 📖 Sobre o projeto
+O nome vem de *aluno* + *lumina* (luz): iluminar o caminho, não andar por ele.
 
-O **Aluma** é uma plataforma educacional que usa Inteligência Artificial para acompanhar cada estudante de forma personalizada. A proposta é funcionar como um tutor sempre disponível, que orienta o aluno no seu próprio ritmo, identifica dúvidas e dificuldades, e oferece um conjunto de ferramentas para apoiar o aprendizado dentro e fora da sala de aula.
+## Contexto acadêmico
 
-O nome **Aluma** une as ideias de *aluno* e *luz* (do latim *lumina*) — a proposta de iluminar o caminho do conhecimento de cada estudante.
+Projeto do curso de Ciência da Computação da Universidade Federal do Tocantins — Campus Palmas,
+desenvolvido ao longo de um semestre em duas disciplinas:
 
----
+- **Desenvolvimento Webmobile** — implementação do aplicativo. A stack é definida pela ementa.
+- **Projeto de Sistemas** — modelagem e viabilidade, com participação na competição Sebrae Supernova.
 
-## 🛠️ Tecnologias
+## Status
 
-> Preencha com as tecnologias que o projeto realmente usa.
+Em definição. A stack está fechada e o repositório configurado (branch protegida, CODEOWNERS,
+fluxo de Pull Request). O código da aplicação ainda não foi iniciado.
 
-- **Linguagem:** 
-- **Framework:** 
-- **Banco de dados:**
-- **IA:**
+Decisões, riscos e pendências ficam em [`PROJECT-CONTEXT.md`](PROJECT-CONTEXT.md) — é a fonte da
+verdade do projeto. Antes de propor mudança de rumo, consulte lá.
 
----
+## O que a V1 entrega
 
-## 🚀 Como rodar o projeto
+| # | Funcionalidade |
+|---|---|
+| 1 | Login por e-mail institucional, com papéis de aluno, professor e administrador |
+| 2 | Professor cadastra turma, alunos e o conteúdo da matéria |
+| 3 | Trilha do aluno: tópicos com status de não iniciado, em andamento ou dominado |
+| 4 | Chat de tutoria socrática sobre um tópico |
+| 5 | Exercícios com correção e explicação do erro |
+| 6 | Painel do professor com o mapa de onde a turma está travando |
 
-> Ajuste os comandos conforme a tecnologia definida.
+Recorte da V1: uma disciplina e uma série.
 
-### Pré-requisitos
+**Fora da V1**, no roadmap: gamificação, notificações, relatório para coordenação, painel do
+responsável, correção de redação, resumos e flashcards, modo offline. Chat entre alunos está fora
+permanentemente.
 
-Antes de começar, você precisa ter instalado na sua máquina:
+## Arquitetura
 
-- Git
-- 
+```
+[App Expo — aluno]        [App Expo — professor]
+         \                        /
+          →  API REST (contrato tipado)  ←
+                       |
+               +-------+-------+
+               |               |
+          Banco de dados   Serviço de IA
+```
 
-### Passo a passo
+Duas regras definem o desenho:
+
+1. **A chave da API de IA nunca fica no app.** Toda chamada de IA passa pelo servidor. Chave no
+   app é chave pública, e chave pública é conta zerada por terceiros.
+2. **O app não decide regra de negócio.** Quem pode ver o quê é decidido no servidor, sempre.
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| App (web e mobile, mesmo código) | React Native + Expo |
+| Linguagem | TypeScript |
+| Navegação | Expo Router |
+| API | REST, com contrato tipado e documentado |
+| Testes e CI | Lint e testes a cada push, via GitHub Actions |
+| IA | Provedor em camada trocável, começando pelo plano gratuito |
+
+**Distribuição:** aplicação universal — roda no navegador e no celular a partir do mesmo código.
+Web primeiro; publicação em loja fica para depois.
+
+**Alvo:** celular modesto em rede instável. Tela pequena primeiro, payload leve, o app precisa
+abrir em 3G.
+
+## Como rodar
+
+Pré-requisitos: [Node.js](https://nodejs.org) LTS (20 ou superior), Git e, para testar em
+aparelho real, o [Expo Go](https://expo.dev/go) instalado no celular.
 
 ```bash
-# 1. Clone o repositório
 git clone https://github.com/BECKMAN700/aluma.git
-
-# 2. Entre na pasta do projeto
 cd aluma
+npm install
+npx expo start
 ```
 
----
+O Expo exibe um QR Code no terminal: leia com o Expo Go para abrir no celular, ou tecle `w` para
+abrir no navegador.
 
-## 📁 Estrutura de pastas
+## Fluxo de trabalho
 
-```
-aluma/
-├── README.md          → este arquivo
-└── .github/           → configurações e regras do repositório
-```
-
----
-
-## 🤝 Como contribuir
-
-Este projeto é feito em equipe. Para manter tudo organizado e evitar problemas, **siga sempre estas regras**:
-
-### ⚠️ Regra de ouro: ninguém trabalha direto na branch `main`
-
-A branch `main` é a versão oficial e estável do projeto. Ela é protegida e **só recebe alterações aprovadas**. Todo trabalho é feito em uma branch separada.
-
-### Fluxo de trabalho (passo a passo)
+**Ninguém trabalha direto na `main`.** Ela é a versão estável e protegida — só entra código
+revisado e aprovado por Pull Request.
 
 ```bash
-# 1. Antes de começar, atualize seu projeto com a versão mais recente
 git checkout main
 git pull
 
-# 2. Crie uma branch nova para a sua tarefa
-git checkout -b feature/nome-da-sua-tarefa
-
-# 3. Faça suas alterações, depois salve-as
+git checkout -b feature/nome-da-tarefa
+# ... suas alterações ...
 git add .
-git commit -m "Descreva de forma curta o que você fez"
+git commit -m "adiciona tela de login"
 
-# 4. Envie sua branch para o GitHub
-git push -u origin feature/nome-da-sua-tarefa
-
-# 5. Abra um Pull Request pelo site do GitHub
-#    e aguarde a revisão e aprovação antes do merge
+git push -u origin feature/nome-da-tarefa
+# abra o Pull Request no GitHub e aguarde a revisão
 ```
 
-### Padrão para nomear branches
+Nomes de branch: `feature/...` para funcionalidade nova, `correcao/...` para conserto de erro,
+`docs/...` para documentação.
 
-- `feature/...` → para novas funcionalidades (ex: `feature/login`)
-- `correcao/...` → para correção de erros (ex: `correcao/bug-cadastro`)
+Commits em português, no imperativo e curtos: `corrige validação do e-mail`.
 
-### Boas práticas
+O trabalho é dividido em **fatias verticais por funcionalidade, não por camada** — assim ninguém
+fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronograma, no Trello.
 
-- Escreva mensagens de commit curtas e claras, explicando o que foi feito.
-- Sempre dê `git pull` na `main` antes de começar a trabalhar.
-- Use as **Issues** do GitHub para dividir e acompanhar as tarefas.
-- Nenhum Pull Request entra na `main` sem aprovação do responsável pelo projeto.
+## Convenções de código
 
----
+- Componentes em `src/components/`, telas em `src/app/`, chamadas de API isoladas em `src/services/`.
+- Nomes de código em inglês; texto de interface em português.
+- Nada de `any` em TypeScript sem um comentário justificando.
 
-## 👥 Equipe
+## Regras invioláveis
+
+O público do Aluma é formado por menores de idade, e a LGPD se aplica com rigor. Nada abaixo é
+negociável:
+
+1. Ninguém trabalha direto na `main`. Tudo por branch e Pull Request revisado.
+2. Chave de API, senha ou segredo nunca entram no código, no commit, na URL ou no log.
+3. Toda entrada de usuário é hostil até prova em contrário: valide no servidor.
+4. Em erro ou dúvida sobre permissão, negue e pare. Nunca "deixa passar por enquanto".
+5. Nada de dado falso ou mock no caminho de produção. O seed é isolado e sinalizado.
+6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
+7. Nenhum dado de aluno cruza a fronteira da sua turma ou escola.
+8. Coleta mínima: sem CPF, sem foto. Exclusão sob pedido.
+
+## Equipe
 
 | Nome | Função | GitHub |
-|------|--------|--------|
-| João Pedro Beckman | Responsável pelo projeto | [@BECKMAN700](https://github.com/BECKMAN700) |
-| Giordano Bruno de Moura Fragoso Santos | Desenvoledor | [@GiordanOBrun](https://github.com/GiordanOBru) |
-
----
+|---|---|---|
+| João Pedro Beckman | Responsável pelo projeto, decisão final | [@BECKMAN700](https://github.com/BECKMAN700) |
+| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | [@GiordanOBru](https://github.com/GiordanOBru) |
+| Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) |
+| Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) |
+| Iago | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) |
+| Thales Rafael | Desenvolvedor | [@thalesrafael10](https://github.com/thalesrafael10) |
