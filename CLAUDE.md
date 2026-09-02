@@ -47,14 +47,27 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 
 ## Convenções
 
-- Componentes em `src/components/`, telas em `src/app/`, chamadas de API isoladas em `src/services/`.
+- Estrutura na raiz, sem `src/` — é o padrão do expo-router e é o que o projeto usa:
+  telas em `app/`, componentes em `components/`, chamadas de API isoladas em `services/`,
+  tema e constantes em `constants/`, hooks em `hooks/`, tipos do domínio em `types/`.
+- Import sempre pelo alias `@/`, que aponta para a raiz (`tsconfig.json`):
+  `@/components/card`, nunca `../../components/card`.
 - Nada de `any` em TypeScript sem comentário justificando.
 - Texto de interface em português, nomes de código em inglês.
 - Commit em português, imperativo, curto: `adiciona tela de login`.
 
 ## Equipe
 
-- João Pedro Beckman (@BECKMAN700) — responsável, decisão final
-- Giordano Bruno de Moura Fragoso Santos (@GiordanOBru) — desenvolvedor
+Duas disciplinas, times parcialmente sobrepostos. Ver `PROJECT-CONTEXT.md` §11.
+
+| Nome | GitHub | Disciplina |
+|---|---|---|
+| João Pedro Beckman — responsável, decisão final | @BECKMAN700 | Web/Mobile + Projeto de Sistemas |
+| Giordano Bruno de Moura Fragoso Santos | @GiordanOBru | Web/Mobile + Projeto de Sistemas |
+| Thales Rafael | @thalesrafael10 | Web/Mobile + Projeto de Sistemas |
+| Antonio Carlos | @Acgsop | Web/Mobile |
+| Iagor | @iagorlrnc | Web/Mobile |
+| Flávio | @flaviohen16 | Projeto de Sistemas |
+| Gustavo Bringel | @GustavoBringel | Projeto de Sistemas |
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
