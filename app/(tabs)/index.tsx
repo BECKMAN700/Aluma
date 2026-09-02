@@ -13,7 +13,7 @@ export default function HomeScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Aprenda no seu ritmo • Desenvolva o pensamento crítico
+          Aprenda no seu ritmo • Desenvolva o pensamento análitico
         </Text>
       </View>
     </View>
