@@ -173,14 +173,18 @@ Isso é barato, cabe no fim de semana, e é a diferença entre "achamos que" e "
 
 ## 11. Equipe
 
-| Nome | Função | GitHub |
-|---|---|---|
-| João Pedro Beckman | Responsável pelo projeto, decisão final | @BECKMAN700 |
-| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | @GiordanOBru |
-| Flávio | Desenvolvedor | @flaviohen16 |
-| Gustavo Bringel | Desenvolvedor | @GustavoBringel |
-| Iago | Desenvolvedor | @iagorlrnc |
-| Thales Rafael | Desenvolvedor | @thalesrafael10 |
+A equipe não é a mesma nas duas disciplinas. Quem está nas duas carrega tanto o
+código quanto os artefatos da Supernova; quem está só em uma responde por aquela frente.
+
+| Nome | Função | GitHub | Web/Mobile | Projeto de Sistemas |
+|---|---|---|---|---|
+| João Pedro Beckman | Responsável pelo projeto, decisão final | @BECKMAN700 | sim | sim |
+| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | @GiordanOBru | sim | sim |
+| Thales Rafael | Desenvolvedor | @thalesrafael10 | sim | sim |
+| Antonio Carlos | Desenvolvedor | @Acgsop | sim | não |
+| Iagor | Desenvolvedor | @iagorlrnc | sim | não |
+| Flávio | Desenvolvedor | @flaviohen16 | não | sim |
+| Gustavo Bringel | Desenvolvedor | @GustavoBringel | não | sim |
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
