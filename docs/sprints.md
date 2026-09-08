@@ -133,16 +133,25 @@ esta é a tarefa de maior prioridade do projeto inteiro — acima de qualquer it
 
 ## 7. Regras de trabalho
 
-**Ninguém commita direto na `main`.** Sem exceção, inclusive o responsável pelo projeto.
+O projeto usa **Git Flow com duas branches de longa duração**: a `develop` integra o trabalho do
+dia a dia, e a `main` só recebe versão entregue e apresentável, vinda da `develop`.
+
+**Ninguém commita direto em nenhuma das duas.** Sem exceção, inclusive o responsável pelo projeto.
 
 Fluxo para qualquer alteração:
 
-1. Atualizar a `main` local: `git checkout main && git pull`
+1. Atualizar a `develop` local: `git checkout develop && git pull`
 2. Criar uma branch a partir dela: `git checkout -b tipo/descricao-curta`
 3. Trabalhar, commitar, e subir: `git push -u origin tipo/descricao-curta`
-4. Abrir o Pull Request no GitHub
+4. Abrir o Pull Request no GitHub, **com base na `develop`**
 5. Esperar revisão de outro membro
 6. Mergear só depois de aprovado
+7. **Apagar a branch** logo após o merge
+
+O passo 7 não é limpeza cosmética. O PR #11 conflitou justamente porque a branch continuou viva e
+recebendo commits depois de já ter sido mergeada por squash no PR #7 — o squash cria na `develop`
+um commit que não existe no histórico da branch, e as duas histórias divergem. Branch mergeada é
+branch encerrada.
 
 Padrão de mensagem de commit — prefixo, dois-pontos, verbo no imperativo, em português e
 curto:
