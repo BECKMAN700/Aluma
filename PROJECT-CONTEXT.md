@@ -120,7 +120,7 @@ Duas regras que definem tudo:
 
 ## 7. Regras invioláveis
 
-1. Ninguém trabalha direto na `main`. Tudo por branch + PR revisado. (já no README)
+1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch + PR revisado. (já no README)
 2. Chave de API, senha ou segredo **nunca** no código, no commit, na URL ou no log.
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: **negue e pare**. Nunca "deixa passar por enquanto".
