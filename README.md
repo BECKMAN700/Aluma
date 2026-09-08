@@ -140,11 +140,15 @@ negociável:
 
 ## Equipe
 
-| Nome | Função | GitHub |
-|---|---|---|
-| João Pedro Beckman | Responsável pelo projeto, decisão final | [@BECKMAN700](https://github.com/BECKMAN700) |
-| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | [@GiordanOBru](https://github.com/GiordanOBru) |
-| Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) |
-| Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) |
-| Iago | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) |
-| Thales Rafael | Desenvolvedor | [@thalesrafael10](https://github.com/thalesrafael10) |
+A equipe não é a mesma nas duas disciplinas. Quem está nas duas carrega tanto o código
+quanto os artefatos da Supernova; quem está só em uma responde por aquela frente.
+
+| Nome | Função | GitHub | Web/Mobile | Projeto de Sistemas |
+|---|---|---|---|---|
+| João Pedro Beckman | Responsável pelo projeto, decisão final | [@BECKMAN700](https://github.com/BECKMAN700) | sim | sim |
+| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | [@GiordanOBru](https://github.com/GiordanOBru) | sim | sim |
+| Thales Rafael | Desenvolvedor | [@thalesrafael10](https://github.com/thalesrafael10) | sim | sim |
+| Antonio Carlos | Desenvolvedor | [@Acgsop](https://github.com/Acgsop) | sim | não |
+| Iagor | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) | sim | não |
+| Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) | não | sim |
+| Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) | não | sim |

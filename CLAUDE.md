@@ -2,7 +2,7 @@
 
 Plataforma de tutoria com IA vinculada à turma real da escola. Projeto acadêmico da UFT,
 duas disciplinas: Projeto de Sistemas (competição Sebrae Supernova) e Desenvolvimento Web/Mobile.
-Equipe de dois, prazo de semestre.
+Equipe de sete, cinco em cada disciplina, prazo de semestre.
 
 O contexto completo — problema, escopo, decisões, riscos e calendário — está em
 @PROJECT-CONTEXT.md. Ele é a fonte da verdade: antes de propor mudança de rumo, consulte lá.
