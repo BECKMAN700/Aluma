@@ -62,8 +62,8 @@ A ementa de Desenvolvimento Webmobile (UFT/Palmas, Prof. Jackson Gomes) define o
 | Estado remoto e cache | definido no encontro 13 | Ementa |
 | Testes + CI | lint e testes a cada push, GitHub Actions | Ementa, encontros 15–16 |
 | API | REST, contrato tipado documentado | Ementa, encontro 9 |
-| Backend | 🔶 **pendência** — ver seção 9 | — |
-| IA | provedor com camada trocável, começando por camada gratuita | Decisão da equipe |
+| Backend | **Python + FastAPI**, hospedado no Render (Web Service gratuito) | Decisão da equipe — ver §6 e §9 |
+| IA | **Google Gemini 2.5 Flash** (AI Studio), camada gratuita, ~1.500 req/dia | Decisão da equipe — ver §6 |
 
 **Distribuição:** aplicação universal — roda no navegador e no celular a partir do mesmo código. Build instalável via EAS é possível, mas <cite index="13-1">a ementa deixa claro que build em nuvem não é requisito para aprovação quando houver limitação de conta ou plataforma</cite>. Logo: **web primeiro, loja fica para depois.**
 
@@ -117,6 +117,11 @@ Duas regras que definem tudo:
 | Divisão do trabalho | Fatias verticais por funcionalidade, não por camada | Ninguém fica bloqueado esperando o outro |
 | Decisão final | João Pedro Beckman | Confirmado |
 | Modo de trabalho com a IA assistente | **Ensinar, não entregar código pronto** | Escolha da equipe |
+| Backend | **Python + FastAPI**, em `backend/` no mesmo repositório (monorepo) | A equipe constrói o próprio, sem esperar resposta do professor (ADR da equipe, 12/09/2026) |
+| Hospedagem do backend | **Render**, Web Service gratuito, deploy direto do GitHub | Único com free tier permanente e sem cartão em 2026. Custo: cold start de 30-50s após ~15 min de inatividade — aceitável para uso acadêmico |
+| Provedor de IA | **Google Gemini** (`gemini-2.5-flash`), via `google-generativeai` (Python), com streaming | Tier gratuito permanente (não é trial), ~1.500 req/dia, sem cartão. Custo: no tier gratuito, os prompts podem ser usados pela Google para treinar modelos — ver risco de LGPD na §8 |
+| Camada de abstração para IA (LangChain) | **Não usar por ora** (YAGNI) | Reavaliar só se o projeto passar a precisar de RAG sobre o material da disciplina |
+| Protocolo de streaming | Backend implementa o **Data Stream Protocol do AI SDK** | Permite o app (Expo/React Native) consumir a resposta token a token sem depender das bibliotecas JS do AI SDK |
 
 ## 7. Regras invioláveis
 
@@ -140,13 +145,20 @@ Duas regras que definem tudo:
 | Domínio `aluma.com` e `aluma.com.br` indisponíveis | Baixa | Não bloqueia nada agora. Resolver antes de qualquer registro de marca |
 | Conteúdo pedagógico sem validação de especialista | Média | Ancorar em BNCC + material do próprio professor da escola. Buscar validação com um licenciado |
 | IA alucinar em conteúdo escolar | Média | Restringir ao material do professor, botão de reportar, revisão do professor |
+| Tier gratuito do Gemini pode usar os prompts para treinar modelos da Google | **Média/Alta** — o público é menor de idade (regra inviolável 8) | Documentar a limitação; revisar antes de qualquer uso com turma real ou dado sensível de aluno. Ligado à pendência de exclusão de dados registrada em memória (`rf08-lgpd-exclusao-dados-adiado`) |
+| Cold start do Render (30-50s após inatividade) | Baixa para uso acadêmico | Sinalizar na UI (estado de carregamento) em vez de deixar o aluno com tela travada — item da Sprint #4 em `docs/sprints.md` |
 
 ## 9. Pendências
 
 **Para o professor de Desenvolvimento Webmobile:**
 
-1. A API REST que o projeto vai consumir é **fornecida pelo senhor** ou cada equipe constrói a sua? A ementa diz "disponível ou provida para o projeto" e isso muda o plano inteiro.
-2. Se a equipe construir: há restrição de linguagem/framework no servidor?
+1. ~~A API REST que o projeto vai consumir é fornecida pelo senhor ou cada equipe constrói a sua?~~
+   **Resolvida pela equipe em 12/09/2026, independente da resposta do professor:** vamos
+   construir a nossa própria (Python + FastAPI, IA via Google Gemini, hospedagem no Render —
+   ver §4 e §6). A pergunta ao professor continua valendo para efeito de avaliação/comparação,
+   mas não bloqueia mais o plano de sprints.
+2. Se a equipe construir: há restrição de linguagem/framework no servidor? (Vale confirmar,
+   já que a escolha de Python/FastAPI foi decisão nossa, não resposta do professor.)
 3. Onde a versão web deve ser publicada? Há infraestrutura da UFT ou usamos serviço gratuito?
 
 **Para o professor de Projeto de Sistemas:**
@@ -190,14 +202,26 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
 ## 12. Calendário
 
+> 🔄 **Atualizado em 12/09/2026** com o plano de ensino oficial de Projeto de Sistemas
+> 2026-2 (Prof. Edeilson Milhomem). As datas de pitch (09/10–22/10) e banca (26/10–16/11) da
+> versão anterior deste documento pareciam superadas por esse plano de ensino, mais recente e
+> específico — foram substituídas pelas datas abaixo. Se havia um motivo para manter as datas
+> antigas, vale a equipe confirmar antes da próxima revisão.
+
 | Data | Marco |
 |---|---|
 | 26/08 | Supernova — evento de boas-vindas |
-| 28/08 a 08/10 | Supernova — módulos, da ideação ao pitch |
 | Encontro 2 da disciplina | Descoberta: problema, personas, backlog, repositório configurado |
 | Encontro 7 | MVP navegável com dados locais |
-| 09/10 a 22/10 | Supernova — entrega do pitch + Business Model Canvas |
-| Encontro 13 | Integração com API real |
-| 26/10 a 16/11 | Supernova — avaliação pela banca |
+| 24/ago–13/set | Sprint #1 → Release 1 (definição de projeto/equipe, BMC, escopo) |
+| 14/set–27/set | Sprint #2 → Release 2 |
+| Encontro 13 | Integração com API real (alinha com a Sprint #3, ver `docs/sprints.md`) |
+| 28/set–18/out | Sprint #3 → Release 3 |
+| 19/out–01/nov | Sprint #4 → Release 4 |
+| 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais |
+| 23/11 e 30/11 | Banca de apresentação final — parte técnica |
 | Encontro 16 | Entrega final: demo, distribuição, documentação, retrospectiva |
-| 17/11 a 23/11 | Supernova — resultados |
+| 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa |
+
+O detalhamento sprint a sprint — o que cada uma entrega e quem responde por cada item — está
+em [`docs/sprints.md`](docs/sprints.md).
