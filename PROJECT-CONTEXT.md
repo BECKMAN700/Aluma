@@ -225,3 +225,19 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
 O detalhamento sprint a sprint — o que cada uma entrega e quem responde por cada item — está
 em [`docs/sprints.md`](docs/sprints.md).
+
+## 13. Referências externas
+
+Material oficial da disciplina de Desenvolvimento Webmobile (Prof. Jackson Gomes de Souza,
+UFT/Palmas). Antes de assumir o que a ementa exige ou não exige — versão de ferramenta, formato
+de entrega, restrição de stack — acesse o link e confira; não decida de memória.
+
+| Referência | Link |
+|---|---|
+| Site/material da disciplina | https://jacksongomesbr.github.io/uft-cc-dwm/ |
+| Repositório fonte do material | https://github.com/jacksongomesbr/uft-cc-dwm |
+| App de exemplo do professor ("Mini Mural", cobre os primeiros encontros, em branches por capítulo) | https://github.com/jacksongomesbr/uft-cc-dwm-mini-mural |
+
+O "Mini Mural" é o jeito mais confiável de saber contra qual versão de Expo/React Native/
+TypeScript o professor está ensinando **no momento** — o `package.json` dele mostra a versão de
+referência atual, que pode mudar ao longo do semestre.
