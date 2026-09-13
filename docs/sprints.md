@@ -50,58 +50,61 @@ A decisão final em qualquer impasse é do João Pedro.
 
 ## 3. Cronograma
 
-**As datas das sprints estão a definir.** O motivo é estrutural, não desorganização: o
-projeto responde a duas frentes com calendários próprios e independentes. Em Desenvolvimento
-Web/Mobile (Prof. Jackson Gomes) o ritmo é ditado pelos encontros e pelas entregas que o
-professor pedir. Em Projeto de Sistemas o ritmo é o da competição Sebrae Supernova. As duas
-avançam em paralelo e nem sempre puxam para o mesmo lado.
+O projeto responde a duas frentes com calendários próprios. Em Desenvolvimento Web/Mobile
+(Prof. Jackson Gomes) o ritmo é ditado pelos encontros e pelas entregas que o professor pedir,
+ainda sem data fixa divulgada. Em Projeto de Sistemas (Prof. Edeilson Milhomem) o plano de
+ensino já fixa 4 sprints com data e release definidas — é essa tabela que passa a valer como
+referência de calendário para as duas frentes, já que o código é o mesmo nas duas:
 
-Fixar data de sprint antes de saber o que cada frente vai cobrar produziria um cronograma
-falso. As sprints ficam, então, ordenadas por dependência e não por data. Os marcos externos
-já conhecidos estão registrados no [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §12 e são a
-referência para o sequenciamento.
+| Sprint | Início | Fim | Release |
+|---|---|---|---|
+| #1 | 24/ago | 13/set | Release 1 |
+| #2 | 14/set | 27/set | Release 2 |
+| #3 | 28/set | 18/out | Release 3 |
+| #4 | 19/out | 01/nov | Release 4 |
 
-## 4. Sprint 0 — concluída
+Depois da Sprint #4 vem uma fase fora das 4 sprints: refinamento do produto (09 e 16/nov),
+banca de apresentação técnica (23 e 30/nov) e o Demo Day / pitch final (07/dez).
 
-Fundação do repositório e do projeto.
+Os marcos da Supernova ligados a esse calendário estão registrados no
+[`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §12.
 
-| Entrega | Responsável | Status |
-|---|---|---|
-| Inicialização do projeto Expo com TypeScript | João Pedro | Concluído — PR #4 |
+## 4. Sprint #1 (24/ago–13/set) — concluída → Release 1
+
+Fundação do repositório e saída do template de demonstração. Cobre o que antes estava
+dividido internamente em "Sprint 0" e "Sprint 1" — as duas terminam dentro da janela oficial
+da Sprint #1.
+
+| Entrega | Responsável | Arquivo | Status |
+|---|---|---|---|
+| Inicialização do projeto Expo com TypeScript | João Pedro | — | Concluído — PR #4 |
+| Limpeza do template do Expo | João Pedro | `app/`, `components/` | Concluído — PR #5 |
+| Interfaces do domínio | Giordano | `types/aluma.ts` | Concluído — PR #8 |
+| Cores e tema do Aluma | Antonio Carlos | `constants/theme.ts` | Concluído — PR #10 |
+| Dados de exemplo | Thales | `data/mock.ts` | Concluído — PR #9 |
+| Tela de boas-vindas | Iagor | `app/(tabs)/index.tsx` | Concluído — PR #7, #11 |
 
 Stack fixada: React Native + Expo SDK 54, TypeScript, expo-router. Nenhuma dessas escolhas
 foi preferência da equipe — todas vêm da ementa da disciplina, o que tem a vantagem de
 eliminar a discussão.
 
-## 5. Sprint 1 — em andamento
-
-Objetivo: sair do template de demonstração e ter as peças básicas do domínio no lugar. Os
-quatro itens em aberto são independentes entre si e podem correr em paralelo.
-
-| Responsável | Entrega | Arquivo | Status |
-|---|---|---|---|
-| João Pedro | Limpeza do template do Expo | `app/`, `components/` | Concluído — PR #5 |
-| Giordano | Interfaces do domínio | `types/aluma.ts` | Não iniciado |
-| Antonio Carlos | Cores e tema do Aluma | `constants/theme.ts` | Não iniciado |
-| Thales | Dados de exemplo | `data/mock.ts` | Não iniciado |
-| Iagor | Tela de boas-vindas | `app/(tabs)/index.tsx` | Não iniciado |
-
 Notas de execução:
 
 - A limpeza removeu `explore.tsx`, `modal.tsx`, `hello-wave.tsx` e `parallax-scroll-view.tsx`,
   além das referências a eles nos dois `_layout.tsx`.
-- O `app/(tabs)/index.tsx` foi deixado deliberadamente mínimo — `View` e `Text` puros, sem
-  estilo e sem tema. Isso é o ponto de partida do Iagor, não uma tela pela metade.
-- O `constants/theme.ts` **já existe**, veio do template. A tarefa do Antonio Carlos é
-  substituir a paleta padrão do Expo pelas cores do Aluma, não criar o arquivo do zero.
+- O `constants/theme.ts` já existia, vindo do template; a tarefa foi substituir a paleta
+  padrão do Expo pelas cores do Aluma, não criar o arquivo do zero.
 - O `data/mock.ts` é material de desenvolvimento e demonstração. Pela regra 5 do projeto,
   ele fica isolado e sinalizado, e nunca entra no caminho de produção.
 
-## 6. Sprint 2 — planejada
+**Release 1** = o app abre já com a identidade do Aluma: tema, tipos do domínio e dados de
+exemplo no lugar, tela inicial no lugar do template padrão do Expo.
 
-Duas trilhas em paralelo: uma de código, outra de campo.
+## 5. Sprint #2 (14/set–27/set) — Release 2
 
-### 6.1 Código
+Três trilhas em paralelo: código de interface, início do backend, e validação de campo.
+
+### 5.1 Código — interface
 
 | Entrega | Descrição | Responsável |
 |---|---|---|
@@ -110,15 +113,27 @@ Duas trilhas em paralelo: uma de código, outra de campo.
 | Telas consumindo `mock.ts` | Telas lendo do mock em vez de conteúdo fixo no código | A definir |
 | Tela de chat do tutor | Interface da conversa, com estado local apenas — sem IA e sem API nesta etapa | A definir |
 
-O chat desta sprint é casca: só a interface e o estado em memória. A integração com IA passa
-obrigatoriamente pelo servidor, porque a chave de API nunca fica no app — e o backend ainda é
-pendência aberta (`PROJECT-CONTEXT.md` §9).
+O chat desta sprint é casca: só a interface e o estado em memória. A ligação com a IA de
+verdade só acontece na Sprint #3, depois que o backend existir.
 
-### 6.2 Validação de campo — **CRÍTICA**
+### 5.2 Código — início do backend (ADR: Python + FastAPI + Gemini + Render)
+
+A decisão de a equipe construir o próprio backend — em vez de esperar resposta do professor —
+está registrada em [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §6. Aqui entram só as
+tarefas; o porquê de cada escolha está lá.
+
+| Entrega | Descrição | Responsável |
+|---|---|---|
+| Estrutura mínima do backend | Pasta `backend/` na raiz do repositório, FastAPI com uma rota `POST /api/chat` | A definir |
+| Chave da IA | Gerar `GEMINI_API_KEY` em aistudio.google.com; variável de ambiente local, nunca commitada (regra inviolável 2) | A definir |
+| System prompt socrático | Prompt fixo que impede resposta direta e força perguntas-guia (regra inviolável 6) | A definir |
+
+### 5.3 Validação de campo — **CRÍTICA**
 
 Este é o principal gargalo para a pontuação na Supernova. Hoje a validação do projeto é
 **zero**: nenhuma conversa com aluno, professor ou diretor. A banca avalia exatamente isso, e
-nenhuma quantidade de código compensa a ausência dessa evidência.
+nenhuma quantidade de código compensa a ausência dessa evidência. Já devia ter começado desde
+a Sprint #1 — entra aqui como prioridade máxima da sprint.
 
 | Meta | Quantidade | Status |
 |---|---|---|
@@ -131,7 +146,38 @@ com primo, com vizinho. A diferença que produz é entre dizer "achamos que" e d
 "perguntamos para 34 pessoas e 71% disseram". Enquanto os números acima estiverem em zero,
 esta é a tarefa de maior prioridade do projeto inteiro — acima de qualquer item de código.
 
-## 7. Regras de trabalho
+**Release 2** = navegação real entre telas + casca do chat + backend rodando local com o
+Gemini de verdade (ainda sem deploy) + primeiras evidências de validação de campo.
+
+## 6. Sprint #3 (28/set–18/out) — Release 3
+
+Foco: sair do "backend local" para "app conversando com o Gemini de verdade, hospedado".
+
+| Entrega | Descrição | Responsável |
+|---|---|---|
+| Streaming no backend | Resposta formatada segundo o Data Stream Protocol do AI SDK, para o app consumir token a token sem depender das libs JS do AI SDK | A definir |
+| Teste local completo | Backend em `localhost` chamando o Gemini de verdade, validado **antes** do deploy — não depurar hospedagem e lógica de IA ao mesmo tempo | A definir |
+| Deploy no Render | Web Service gratuito, deploy direto do GitHub, `GEMINI_API_KEY` configurada no painel do Render — nunca no código | A definir |
+| `services/` no app | Camada de chamada à API (hoje só "planejada" no `docs/arquitetura.md`), consumindo o streaming do backend | A definir |
+| Chat ligado à IA real | Tela de chat da Sprint #2 passa a usar `services/` em vez do estado mockado | A definir |
+
+**Release 3** = tela de chat do app conversando de verdade com o tutor socrático, via backend
+hospedado no Render.
+
+## 7. Sprint #4 (19/out–01/nov) — Release 4
+
+Foco: robustez e preparação para a fase de apresentação, que começa logo depois (09/nov).
+
+| Entrega | Descrição | Responsável |
+|---|---|---|
+| Testes ponta a ponta | App (web e Expo Go) conversando com o backend real no Render, incluindo o cenário de cold start | A definir |
+| UX do cold start | Estado de carregamento e feedback ao aluno durante os 30-50s de "acordar" o Render, em vez de tela travada | A definir |
+| Checklist de segurança | Confirmar que `GEMINI_API_KEY` não aparece em nenhum bundle, log ou commit do app (regra inviolável 2) | A definir |
+
+**Release 4** fecha as 4 sprints. A partir de 09/nov começa o refinamento do produto e a
+preparação da apresentação final — já fora deste ciclo de 4 sprints.
+
+## 8. Regras de trabalho
 
 O projeto usa **Git Flow com duas branches de longa duração**: a `develop` integra o trabalho do
 dia a dia, e a `main` só recebe versão entregue e apresentável, vinda da `develop`.
