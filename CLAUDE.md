@@ -2,7 +2,7 @@
 
 Plataforma de tutoria com IA vinculada à turma real da escola. Projeto acadêmico da UFT,
 duas disciplinas: Projeto de Sistemas (competição Sebrae Supernova) e Desenvolvimento Web/Mobile.
-Equipe de dois, prazo de semestre.
+Equipe de sete, cinco em cada disciplina, prazo de semestre.
 
 O contexto completo — problema, escopo, decisões, riscos e calendário — está em
 @PROJECT-CONTEXT.md. Ele é a fonte da verdade: antes de propor mudança de rumo, consulte lá.
@@ -26,7 +26,7 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 
 ## Regras invioláveis
 
-1. Ninguém trabalha direto na `main`. Tudo por branch + PR revisado.
+1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch + PR revisado.
 2. Chave de API, senha ou segredo nunca no código, no commit, na URL ou no log.
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: negue e pare. Nunca "deixa passar por enquanto".

@@ -19,8 +19,13 @@ desenvolvido ao longo de um semestre em duas disciplinas:
 
 ## Status
 
-Em definição. A stack está fechada e o repositório configurado (branch protegida, CODEOWNERS,
-fluxo de Pull Request). O código da aplicação ainda não foi iniciado.
+Sprint 1, em andamento. A stack está fechada, o repositório configurado (branch protegida,
+CODEOWNERS, fluxo de Pull Request) e o aplicativo Expo já roda: o template de demonstração foi
+removido, os tipos do domínio existem em `types/aluma.ts` e a tela de boas-vindas, o tema e os
+dados de exemplo estão em revisão. A integração com API e com IA ainda não começou — depende de
+uma pendência aberta descrita no `PROJECT-CONTEXT.md` §9.
+
+O acompanhamento sprint a sprint fica em [`docs/sprints.md`](docs/sprints.md).
 
 Decisões, riscos e pendências ficam em [`PROJECT-CONTEXT.md`](PROJECT-CONTEXT.md) — é a fonte da
 verdade do projeto. Antes de propor mudança de rumo, consulte lá.
@@ -94,11 +99,17 @@ abrir no navegador.
 
 ## Fluxo de trabalho
 
-**Ninguém trabalha direto na `main`.** Ela é a versão estável e protegida — só entra código
-revisado e aprovado por Pull Request.
+O projeto usa **Git Flow com duas branches de longa duração**:
+
+- **`develop`** — onde o trabalho do dia a dia se integra. É daqui que você sai e é para cá que
+  o seu Pull Request aponta.
+- **`main`** — só recebe versão entregue e apresentável, vinda da `develop`.
+
+**Ninguém trabalha direto em nenhuma das duas.** Sem exceção, inclusive o responsável pelo
+projeto. Só entra código revisado e aprovado por Pull Request.
 
 ```bash
-git checkout main
+git checkout develop
 git pull
 
 git checkout -b feature/nome-da-tarefa
@@ -107,11 +118,14 @@ git add .
 git commit -m "adiciona tela de login"
 
 git push -u origin feature/nome-da-tarefa
-# abra o Pull Request no GitHub e aguarde a revisão
+# abra o Pull Request no GitHub, com base na develop, e aguarde a revisão
 ```
 
-Nomes de branch: `feature/...` para funcionalidade nova, `correcao/...` para conserto de erro,
-`docs/...` para documentação.
+Nomes de branch: `feature/...` para funcionalidade nova, `fix/...` para conserto de erro,
+`docs/...` para documentação, `chore/...` para manutenção e configuração.
+
+**Depois que o seu PR for mergeado, apague a branch.** O botão aparece no próprio PR. Continuar
+commitando numa branch já mergeada gera conflito — foi o que aconteceu no PR #11.
 
 Commits em português, no imperativo e curtos: `corrige validação do e-mail`.
 
@@ -120,7 +134,11 @@ fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronogra
 
 ## Convenções de código
 
-- Componentes em `src/components/`, telas em `src/app/`, chamadas de API isoladas em `src/services/`.
+- Estrutura na raiz, sem `src/` — é o padrão do expo-router e é o que o projeto usa: telas em
+  `app/`, componentes em `components/`, chamadas de API isoladas em `services/`, tema e
+  constantes em `constants/`, hooks em `hooks/`, tipos do domínio em `types/`.
+- Import sempre pelo alias `@/`, que aponta para a raiz: `@/components/card`, nunca
+  `../../components/card`.
 - Nomes de código em inglês; texto de interface em português.
 - Nada de `any` em TypeScript sem um comentário justificando.
 
@@ -129,7 +147,7 @@ fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronogra
 O público do Aluma é formado por menores de idade, e a LGPD se aplica com rigor. Nada abaixo é
 negociável:
 
-1. Ninguém trabalha direto na `main`. Tudo por branch e Pull Request revisado.
+1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch e Pull Request revisado.
 2. Chave de API, senha ou segredo nunca entram no código, no commit, na URL ou no log.
 3. Toda entrada de usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão, negue e pare. Nunca "deixa passar por enquanto".
@@ -140,11 +158,15 @@ negociável:
 
 ## Equipe
 
-| Nome | Função | GitHub |
-|---|---|---|
-| João Pedro Beckman | Responsável pelo projeto, decisão final | [@BECKMAN700](https://github.com/BECKMAN700) |
-| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | [@GiordanOBru](https://github.com/GiordanOBru) |
-| Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) |
-| Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) |
-| Iago | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) |
-| Thales Rafael | Desenvolvedor | [@thalesrafael10](https://github.com/thalesrafael10) |
+A equipe não é a mesma nas duas disciplinas. Quem está nas duas carrega tanto o código
+quanto os artefatos da Supernova; quem está só em uma responde por aquela frente.
+
+| Nome | Função | GitHub | Web/Mobile | Projeto de Sistemas |
+|---|---|---|---|---|
+| João Pedro Beckman | Responsável pelo projeto, decisão final | [@BECKMAN700](https://github.com/BECKMAN700) | sim | sim |
+| Giordano Bruno de Moura Fragoso Santos | Desenvolvedor | [@GiordanOBru](https://github.com/GiordanOBru) | sim | sim |
+| Thales Rafael | Desenvolvedor | [@thalesrafael10](https://github.com/thalesrafael10) | sim | sim |
+| Antonio Carlos | Desenvolvedor | [@Acgsop](https://github.com/Acgsop) | sim | não |
+| Iagor | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) | sim | não |
+| Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) | não | sim |
+| Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) | não | sim |
