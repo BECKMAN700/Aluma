@@ -100,35 +100,79 @@ Notas de execução:
 **Release 1** = o app abre já com a identidade do Aluma: tema, tipos do domínio e dados de
 exemplo no lugar, tela inicial no lugar do template padrão do Expo.
 
+**Retrospectiva (15/09):** o professor não aceitou a Release 1 como release. Uma release é
+uma versão **estável e funcional**, e a nossa só tinha organização: uma tela estática sem
+interação, e `data/mock.ts` e `types/aluma.ts` sem nenhum arquivo que os importe. O erro veio
+do planejamento: a release foi definida por lista de tarefas, não pelo que o usuário consegue
+fazer. **Regra a partir daqui:** toda release é definida por um *roteiro de demonstração*, ou
+seja, passos que o professor executa sozinho, numa URL pública, e que funcionam. Se o roteiro
+não passa inteiro, não é release.
+
 ## 5. Sprint #2 (14/set–27/set) — Release 2
 
-Três trilhas em paralelo: código de interface, início do backend, e validação de campo.
+Decisão da equipe (15/09): a Release 2 entrega **o chat com o tutor socrático usando IA de
+verdade, publicado**. Isso puxa o deploy, que antes estava na Sprint #3, para esta sprint,
+porque backend rodando só em `localhost` o professor não consegue testar.
 
-### 5.1 Código — interface
+Trade-off aceito: mostramos o diferencial do produto já na Release 2, mas a sprint concentra
+muita coisa nova (FastAPI, Gemini, Render, deploy web). Para caber em duas semanas, **fica de
+fora** tudo o que não é necessário para o roteiro abaixo: login, turma, histórico salvo,
+streaming, trilha, exercícios e painel do professor.
+
+### 5.1 Roteiro de demonstração (critério de aceite da Release 2)
+
+1. O professor abre a URL pública do app no navegador do celular, sem instalar nada.
+2. Na tela inicial, toca em **Conversar com o tutor** e chega na tela de chat.
+3. Se o servidor estiver "dormindo" (cold start do Render), a tela mostra que o tutor está
+   acordando e que isso pode levar até um minuto. A tela não trava.
+4. Pergunta *"Quanto é x em 3x + 5 = 20?"*. O tutor **não** responde `x = 5`: responde com
+   uma pergunta-guia (ex.: *"O que você pode fazer dos dois lados para isolar o 3x?"*).
+5. Insiste: *"Só me dá a resposta."* O tutor continua recusando e guiando.
+6. Pergunta algo fora de estudo (*"Me indica um filme"*). O tutor recusa com educação e
+   traz a conversa de volta para o estudo.
+7. Com o backend fora do ar, o app mostra um erro claro. Nunca inventa resposta.
+
+### 5.2 Backend (ADR: Python + FastAPI + Gemini + Render)
+
+O porquê de cada escolha está em [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §6. Aqui entram
+só as tarefas.
 
 | Entrega | Descrição | Responsável |
 |---|---|---|
-| Navegação entre telas | Fluxo real de navegação usando expo-router | A definir |
-| Componente `Card` reutilizável | Peça visual base, usada pelas telas de listagem | A definir |
-| Telas consumindo `mock.ts` | Telas lendo do mock em vez de conteúdo fixo no código | A definir |
-| Tela de chat do tutor | Interface da conversa, com estado local apenas — sem IA e sem API nesta etapa | A definir |
+| Estrutura mínima | Pasta `backend/`, FastAPI, rotas `POST /api/chat` e `GET /health` | Giordano |
+| System prompt socrático | Nunca entrega a resposta, guia por perguntas, recusa assunto fora de estudo (regra 6) | Thales |
+| Validação no servidor | Mensagem obrigatória, tamanho máximo, histórico enviado limitado às últimas N mensagens; entrada inválida vira `422`, não chamada à IA (regra 3) | Flávio |
+| Proteção da cota | A URL é pública: sem limite de requisições por IP, qualquer pessoa gasta as ~1.500 req/dia do Gemini. CORS liberado só para o domínio do app | Gustavo |
+| Chave da IA | `GEMINI_API_KEY` só em variável de ambiente: `.env` local (no `.gitignore`) e painel do Render. Nunca no código, no app ou no log (regra 2) | Giordano |
+| Log sem conversa | Registrar status, tempo e erro, mas **não** o texto das mensagens: o usuário é menor de idade (regra 8) | Giordano |
+| Deploy no Render | Web Service gratuito, deploy a partir do GitHub | Thales |
 
-O chat desta sprint é casca: só a interface e o estado em memória. A ligação com a IA de
-verdade só acontece na Sprint #3, depois que o backend existir.
+Resposta **inteira**, sem streaming, nesta release. Streaming é melhoria da Release 3. Assim a
+Release 2 tem uma peça a menos que pode quebrar.
 
-### 5.2 Código — início do backend (ADR: Python + FastAPI + Gemini + Render)
-
-A decisão de a equipe construir o próprio backend — em vez de esperar resposta do professor —
-está registrada em [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §6. Aqui entram só as
-tarefas; o porquê de cada escolha está lá.
+### 5.3 App
 
 | Entrega | Descrição | Responsável |
 |---|---|---|
-| Estrutura mínima do backend | Pasta `backend/` na raiz do repositório, FastAPI com uma rota `POST /api/chat` | A definir |
-| Chave da IA | Gerar `GEMINI_API_KEY` em aistudio.google.com; variável de ambiente local, nunca commitada (regra inviolável 2) | A definir |
-| System prompt socrático | Prompt fixo que impede resposta direta e força perguntas-guia (regra inviolável 6) | A definir |
+| Navegação | Tela inicial → tela de chat, com expo-router | Iagor |
+| Tela de chat | Lista de mensagens, campo de texto, botão enviar, estado "tutor pensando" | Iagor |
+| `services/chat.ts` | Única camada que conhece a URL do backend, lida de `EXPO_PUBLIC_API_URL` (URL não é segredo; chave é) | Antonio |
+| Estados de espera e erro | Cold start (passo 3 do roteiro) e backend fora (passo 7) | Antonio |
+| Aviso de privacidade | Texto curto no chat: "não escreva seu nome nem dados pessoais". O tier gratuito do Gemini pode usar os prompts para treino (risco em PROJECT-CONTEXT §8) | Antonio |
+| Verificação de disponibilidade | O app consulta `GET /health` antes de abrir o chat e detecta servidor dormindo, alimentando o aviso do passo 3 | João |
+| Publicação web | `npx expo export -p web` publicado em host estático gratuito (host a definir, pendência 3 do professor) | João |
 
-### 5.3 Validação de campo — **CRÍTICA**
+### 5.4 Qualidade mínima para chamar de release
+
+| Entrega | Descrição | Responsável |
+|---|---|---|
+| Lint no CI | GitHub Actions rodando `npm run lint` em todo PR para a `develop` | Thales |
+| Teste do backend | `pytest` para a validação de entrada e para o limite de requisições. Testa o que não depende da IA | Flávio |
+| Bateria anti-cola | Lista fixa de ~10 perguntas-armadilha (pedido direto, insistência, "é pra prova", fora de assunto) rodada contra o backend publicado antes de fechar a release, com o resultado anexado ao PR | Gustavo |
+| GitHub Release | Release publicada (não só tag), com o roteiro 5.1, a URL e o que ficou de fora | João |
+| Revisão dos PRs | Ler, questionar e aprovar o código dos outros antes do merge na `develop` | João |
+
+### 5.5 Validação de campo — **CRÍTICA**
 
 Este é o principal gargalo para a pontuação na Supernova. Hoje a validação do projeto é
 **zero**: nenhuma conversa com aluno, professor ou diretor. A banca avalia exatamente isso, e
@@ -146,23 +190,124 @@ com primo, com vizinho. A diferença que produz é entre dizer "achamos que" e d
 "perguntamos para 34 pessoas e 71% disseram". Enquanto os números acima estiverem em zero,
 esta é a tarefa de maior prioridade do projeto inteiro — acima de qualquer item de código.
 
-**Release 2** = navegação real entre telas + casca do chat + backend rodando local com o
-Gemini de verdade (ainda sem deploy) + primeiras evidências de validação de campo.
+O Flávio e o Gustavo **coordenam** esta frente: montam o formulário, organizam as conversas e
+analisam o resultado. Mas a coleta é de todos: **cada membro traz pelo menos 1 conversa ou 5
+respostas de formulário**. Assim ninguém fica só com a parte sem código, e ninguém fica sem
+contato com usuário real — que é o que a banca da Supernova pergunta.
 
-## 6. Sprint #3 (28/set–18/out) — Release 3
+### 5.6 Divisão do trabalho, peso e dependências
 
-Foco: sair do "backend local" para "app conversando com o Gemini de verdade, hospedado".
+A nota das duas disciplinas é **individual**. Por isso a divisão não foi feita por "quem já
+mexeu nisso", e sim equilibrando dificuldade e garantindo que **todo mundo entrega código
+próprio**, que consegue defender na banca. O peso abaixo é estimativa da equipe, de 1 (pequeno)
+a 4 (difícil), só para comparar carga entre pessoas.
+
+| Pessoa | Disciplina | Tarefas | Peso |
+|---|---|---|---|
+| Giordano | as duas | Estrutura do backend + Gemini + chave (4), log sem conversa (1) | 5 |
+| Flávio | Proj. Sistemas | Validação da entrada (2), teste do backend (2), coordenar validação de campo (1) | 5 |
+| Gustavo | Proj. Sistemas | Limite de requisições + CORS (2), bateria anti-cola (2), coordenar validação de campo (1) | 5 |
+| Thales | as duas | System prompt (2), deploy no Render (2), lint no CI (1) | 5 |
+| Antonio | Web/Mobile | `services/chat.ts` (2), estados de espera e erro (2), aviso de privacidade (1) | 5 |
+| Iagor | Web/Mobile | Tela de chat (3), navegação (1) | 4 |
+| João | as duas | Verificação de disponibilidade do backend (2), publicação web (2), GitHub Release (1), revisão geral dos PRs (2) | 7 |
+
+O Iagor fica com 4 porque a tela de chat é o item mais pesado do app.
+
+O Flávio e o Gustavo estão só em Projeto de Sistemas e não cursam Web/Mobile, então entram no
+**backend**, que não depende do conteúdo daquela disciplina. Suposição a confirmar: os dois
+conseguem aprender Python básico nos primeiros dias da sprint.
+
+**Dependências e marcos internos:**
+
+- **18/09 — esqueleto do backend no ar (Giordano).** `GET /health` respondendo e `POST /api/chat`
+  devolvendo algo fixo, ainda sem IA. Sem isso, Flávio e Gustavo ficam bloqueados.
+- **Arquivos separados dentro de `backend/`** para quatro pessoas não brigarem pelo mesmo código:
+  validação em `validation.py` (Flávio), limite em `rate_limit.py` (Gustavo), prompt em
+  `prompt.py` (Thales).
+- **Thales e Gustavo andam em dupla:** a bateria anti-cola testa o system prompt. Se a bateria
+  achar furo, os dois voltam juntos ao prompt.
+- **Iagor e Antonio combinam o contrato no primeiro dia:** a tela chama `enviarMensagem(texto)`
+  e recebe a resposta ou um erro. Sem esse acerto, um espera o outro.
+
+### 5.7 Como a sprint é pontuada (ficha do Prof. Edeilson)
+
+A ficha de avaliação de Projeto de Sistemas define a nota assim:
+
+| Bloco | Pontos | Como é avaliado |
+|---|---|---|
+| Presença na apresentação da release | 10 | Individual. Faltou, perdeu |
+| Produto da sprint | 40 | Igual para o time: valor entregue (15), qualidade técnica (15), decisões de projeto (5), release publicada (5) |
+| Contribuição individual | 50 | PR relevante (15), code review (10), impacto (15), engajamento (10) |
+
+**Duas exigências travam os 50 pontos individuais.** Sem elas a nota cai, por regra de
+formulário, mesmo com trabalho feito:
+
+1. **No mínimo 1 PR relevante por pessoa por sprint.** Vale funcionalidade, refatoração
+   significativa, correção crítica, teste estrutural ou melhoria arquitetural. Não vale ajuste
+   de comentário, indentação ou CSS pequeno. Quem não tem PR relevante fica com teto de
+   14 pontos (0 em PR, máx. 8 de impacto, máx. 6 de engajamento), mesmo com 3 reviews profundos.
+2. **No mínimo 1 code review registrado por pessoa por sprint.** Precisa apontar problema
+   técnico concreto, sugerir melhoria com justificativa e ter ao menos 3 linhas técnicas.
+   "LGTM", "Ok" e "Aprovado" valem zero.
+
+**Matriz de review obrigatório** (quem revisa quem). Cada pessoa é a revisora responsável de um
+PR, e o João revisa todos por cima, como responsável pela entrega:
+
+| PR | Autor | Revisor obrigatório |
+|---|---|---|
+| Estrutura do backend + Gemini | Giordano | Flávio |
+| Validação da entrada | Flávio | Gustavo |
+| Limite de requisições + CORS | Gustavo | Thales |
+| System prompt + deploy | Thales | Giordano |
+| Verificação de disponibilidade + CI + web | João | Iagor |
+| Tela de chat + navegação | Iagor | Antonio |
+| `services/chat.ts` + estados de espera/erro | Antonio | Iagor |
+
+**Engajamento (10 pontos) exige no mínimo 3 evidências registradas** por pessoa. São elas:
+
+- reunião do grupo com participação registrada — anotar em `docs/reunioes.md`, com data e quem esteve;
+- tarefa concluída no board (Trello);
+- resposta técnica ao PR de um colega;
+- ter sido responsável por uma issue finalizada.
+
+Por isso, a partir desta sprint: **cada tarefa vira uma Issue no GitHub**, com responsável
+definido, e o PR que a resolve escreve `closes #N` na descrição. Sem esse rastro, o bloco de
+engajamento vai a zero por falta de evidência, não por falta de trabalho.
+
+**O que a ficha cobra do produto e onde já está coberto:**
+
+| Critério da ficha | Onde cumprimos |
+|---|---|
+| Objetivo da sprint alcançado | Roteiro 5.1 passando inteiro |
+| Funcionalidades planejadas entregues | Tabelas 5.2 e 5.3 |
+| Release gerada e publicada (5 pts) | GitHub Release da seção 5.4, com URL e notas |
+| Qualidade técnica: arquitetura, código, testes (15 pts) | Lint no CI, pytest do backend, bateria anti-cola (5.4) |
+| Decisões de projeto: trade-offs justificados (5 pts) | Trade-offs registrados no topo da seção 5 e no `PROJECT-CONTEXT.md` §6 |
+
+Obs.: a ficha é de Projeto de Sistemas, então vale para João, Giordano, Thales, Flávio e
+Gustavo. Antonio e Iagor são avaliados em Web/Mobile, mas seguem a mesma prática de PR, review
+e issue — é o mesmo repositório e o mesmo custo.
+
+**Release 2** = qualquer pessoa abre a URL, conversa com o tutor socrático de verdade e passa
+pelos 7 passos do roteiro 5.1. Mais as primeiras evidências de validação de campo.
+
+## 6. Sprint #3 (28/set–18/out) — Release 3 🔶 a confirmar
+
+Deploy e chat com IA já saíram na Release 2. Proposta: a Sprint #3 dá **direção** ao aluno,
+que é a outra metade da dor central ("não sei o que estudar").
+
+Roteiro proposto: *"Abro o app, vejo os tópicos de Matemática do 9º ano, escolho um, e o tutor
+conversa comigo sobre esse tópico. A resposta aparece aos poucos, sem esperar a mensagem
+inteira."*
 
 | Entrega | Descrição | Responsável |
 |---|---|---|
-| Streaming no backend | Resposta formatada segundo o Data Stream Protocol do AI SDK, para o app consumir token a token sem depender das libs JS do AI SDK | A definir |
-| Teste local completo | Backend em `localhost` chamando o Gemini de verdade, validado **antes** do deploy — não depurar hospedagem e lógica de IA ao mesmo tempo | A definir |
-| Deploy no Render | Web Service gratuito, deploy direto do GitHub, `GEMINI_API_KEY` configurada no painel do Render — nunca no código | A definir |
-| `services/` no app | Camada de chamada à API (hoje só "planejada" no `docs/arquitetura.md`), consumindo o streaming do backend | A definir |
-| Chat ligado à IA real | Tela de chat da Sprint #2 passa a usar `services/` em vez do estado mockado | A definir |
+| Streaming no backend | Resposta no Data Stream Protocol do AI SDK, consumida token a token pelo app | A definir |
+| Trilha de tópicos | Lista de tópicos com status (não iniciado / em andamento / dominado), requisito 3 da V1 | A definir |
+| Chat ligado ao tópico | O tópico escolhido entra no contexto do system prompt | A definir |
 
-**Release 3** = tela de chat do app conversando de verdade com o tutor socrático, via backend
-hospedado no Render.
+**Release 3** = roteiro acima passando inteiro na URL pública.
 
 ## 7. Sprint #4 (19/out–01/nov) — Release 4
 
@@ -171,7 +316,6 @@ Foco: robustez e preparação para a fase de apresentação, que começa logo de
 | Entrega | Descrição | Responsável |
 |---|---|---|
 | Testes ponta a ponta | App (web e Expo Go) conversando com o backend real no Render, incluindo o cenário de cold start | A definir |
-| UX do cold start | Estado de carregamento e feedback ao aluno durante os 30-50s de "acordar" o Render, em vez de tela travada | A definir |
 | Checklist de segurança | Confirmar que `GEMINI_API_KEY` não aparece em nenhum bundle, log ou commit do app (regra inviolável 2) | A definir |
 
 **Release 4** fecha as 4 sprints. A partir de 09/nov começa o refinamento do produto e a
