@@ -119,6 +119,30 @@ muita coisa nova (FastAPI, Gemini, Render, deploy web). Para caber em duas seman
 fora** tudo o que não é necessário para o roteiro abaixo: login, turma, histórico salvo,
 streaming, trilha, exercícios e painel do professor.
 
+### 5.0 Onde está cada coisa
+
+A sprint fecha em 27/09, e a **apresentação da release é segunda, 28/09**, na aula de Projeto
+de Sistemas. Presença vale 10 pontos individuais.
+
+- **Guia individual de cada integrante:** `docs/guias/sprint-2-<nome>.md`, com passo a passo,
+  prazos e um prompt base para usar com IA.
+- **Issues:** marco [Release 2](https://github.com/BECKMAN700/Aluma/milestones) no GitHub, uma
+  por tarefa, com responsável. O PR que resolve escreve `closes #N`.
+- **Regras de layout:** [`layout-flexbox.md`](layout-flexbox.md).
+- **Atas de reunião:** [`reunioes.md`](reunioes.md).
+
+| Dia | Backend | App | Publicação e processo |
+|---|---|---|---|
+| sáb 19 – dom 20 | Giordano começa o esqueleto | Iagor: navegação | — |
+| seg 21 | Giordano fecha o esqueleto | Iagor: tela de chat | Thales: lint no CI |
+| ter 22 | **Esqueleto na `develop`** — destrava 3 pessoas | Iagor: tela de chat | Thales: lint no CI |
+| qua 23 | Flávio: validação · Gustavo: limite · Thales: prompt | Antonio: refatoração da tela inicial | — |
+| qui 24 | — | Antonio: `services/chat.ts` | João: verificação de disponibilidade |
+| sex 25 | Thales: deploy · Flávio: testes · Gustavo: conversas | Antonio: estados de espera e erro | João: publicação web |
+| sáb 26 | Gustavo: bateria anti-cola | Iagor: balões · Antonio: aviso | **Teste do roteiro inteiro, time todo** |
+| dom 27 | Correções | Correções | João: Release e ficha |
+| seg 28 | **Apresentação** | | |
+
 ### 5.1 Roteiro de demonstração (critério de aceite da Release 2)
 
 1. O professor abre a URL pública do app no navegador do celular, sem instalar nada.
@@ -228,8 +252,9 @@ conseguem aprender Python básico nos primeiros dias da sprint.
 
 **Dependências e marcos internos:**
 
-- **18/09 — esqueleto do backend no ar (Giordano).** `GET /health` respondendo e `POST /api/chat`
-  devolvendo algo fixo, ainda sem IA. Sem isso, Flávio e Gustavo ficam bloqueados.
+- **terça 22/09 — esqueleto do backend no ar (Giordano).** `GET /health` respondendo e
+  `POST /api/chat` devolvendo algo fixo, ainda sem IA. Sem isso, Flávio, Gustavo e Thales ficam
+  bloqueados. (Data original era 18/09, remarcada em 19/09 quando o planejamento foi concluído.)
 - **Arquivos separados dentro de `backend/`** para quatro pessoas não brigarem pelo mesmo código:
   validação em `validation.py` (Flávio), limite em `rate_limit.py` (Gustavo), prompt em
   `prompt.py` (Thales).
