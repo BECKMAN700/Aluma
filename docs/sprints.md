@@ -176,7 +176,7 @@ Release 2 tem uma peça a menos que pode quebrar.
 | Bateria anti-cola | Lista fixa de ~10 perguntas-armadilha (pedido direto, insistência, "é pra prova", fora de assunto) rodada contra o backend publicado antes de fechar a release, com o resultado anexado ao PR | Gustavo |
 | GitHub Release | Release publicada (não só tag), com o roteiro 5.1, a URL e o que ficou de fora | João |
 | `docs/layout-flexbox.md` | Uma página com as regras de layout do projeto: sem altura fixa, `flexShrink: 1` em texto dentro de `row`, `absolute` só para decoração. É o critério objetivo do review de tela | João |
-| Revisão dos PRs | Ler, questionar e aprovar o código dos outros antes do merge na `develop` | João |
+| Revisão dos PRs de segurança e infra | Áreas listadas no `.github/CODEOWNERS`: limite de requisições, configuração de CI e o plano da sprint. O resto fica com o revisor da matriz (§5.7) | João |
 
 ### 5.5 Validação de campo — **CRÍTICA**
 
@@ -216,7 +216,7 @@ a 4 (difícil), só para comparar carga entre pessoas.
 | Thales | as duas | System prompt (2), deploy no Render (2), lint no CI (1) | 5 |
 | Antonio | Web/Mobile | `services/chat.ts` (2), estados de espera e erro (2), aviso de privacidade (1), refatoração da tela inicial para flexbox (3) | 8 |
 | Iagor | Web/Mobile | Tela de chat com layout flexbox (3), balões com `alignSelf` (2), navegação (1) | 6 |
-| João | as duas | Verificação de disponibilidade do backend (2), publicação web (2), `docs/layout-flexbox.md` (1), GitHub Release (1), revisão geral dos PRs (2) | 8 |
+| João | as duas | Verificação de disponibilidade do backend (2), publicação web (2), `docs/layout-flexbox.md` (1), GitHub Release (1), revisão dos PRs de segurança e infra (1) | 7 |
 
 Antonio e Iagor carregam a frente de layout, que é o que a disciplina de Web/Mobile avalia.
 A refatoração da tela inicial é "refatoração significativa documentada", um dos critérios de
@@ -259,8 +259,8 @@ formulário, mesmo com trabalho feito:
    técnico concreto, sugerir melhoria com justificativa e ter ao menos 3 linhas técnicas.
    "LGTM", "Ok" e "Aprovado" valem zero.
 
-**Matriz de review obrigatório** (quem revisa quem). Cada pessoa é a revisora responsável de um
-PR, e o João revisa todos por cima, como responsável pela entrega:
+**Matriz de review obrigatório** (quem revisa quem). Cada pessoa é a revisora responsável de
+exatamente um PR — um review profundo por sprint é o que a ficha exige, não sete:
 
 | PR | Autor | Revisor obrigatório |
 |---|---|---|
@@ -272,6 +272,10 @@ PR, e o João revisa todos por cima, como responsável pela entrega:
 | Tela de chat + balões + navegação | Iagor | Antonio |
 | `services/chat.ts` + estados de espera/erro | Antonio | Iagor |
 | Refatoração da tela inicial para flexbox | Antonio | João |
+
+O `.github/CODEOWNERS` pede o João como revisor apenas nas áreas de risco (limite de
+requisições, configuração de CI e este plano). Antes ele era dono de todo o repositório, o que
+o transformaria em gargalo com 7 PRs chegando juntos no fim da sprint.
 
 **Engajamento (10 pontos) exige no mínimo 3 evidências registradas** por pessoa. São elas:
 
