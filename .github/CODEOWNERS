@@ -1,1 +1,10 @@
-* @BECKMAN700
+# Dono por área de risco, não pelo repositório inteiro.
+#
+# A revisão obrigatória de cada PR é a da matriz cruzada em docs/sprints.md §5.7 — cada
+# integrante revisa um PR. As linhas abaixo pedem o responsável pelo projeto só onde um
+# erro custa caro: segurança, infraestrutura e o próprio plano da sprint. Assim ninguém
+# fica esperando uma pessoa só no fim da sprint.
+
+/.github/               @BECKMAN700
+/backend/rate_limit.py  @BECKMAN700
+/docs/sprints.md        @BECKMAN700

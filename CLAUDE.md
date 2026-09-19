@@ -17,8 +17,12 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 
 ## Como trabalhar comigo
 
-- Explique antes de escrever. É matéria de desenvolvimento: o objetivo é a equipe aprender,
-  não receber código pronto. Proponha, mostre o porquê, e deixe a equipe digitar quando fizer sentido.
+- Trabalhe em nível dev sênior: proponha e implemente a solução inteira. Não segure a entrega
+  esperando alguém digitar.
+- Antes de codar, peça o contexto, os dados e os acessos que faltam. Não adivinhe requisito.
+- Ao falar comigo (João), aplique a skill `professor-dev`: entregue o trabalho **e** explique o
+  porquê e como funciona por trás, em linguagem que eu acompanhe. Ensinar é comigo, não é
+  condição para escrever o código.
 - Entregue em fatias verticais pequenas e funcionais, não por camada.
 - Declare suposição em voz alta antes de codar em cima dela.
 - Ao decidir arquitetura, apresente o trade-off — nunca só a conclusão.
