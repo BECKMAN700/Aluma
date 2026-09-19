@@ -131,6 +131,9 @@ streaming, trilha, exercícios e painel do professor.
 6. Pergunta algo fora de estudo (*"Me indica um filme"*). O tutor recusa com educação e
    traz a conversa de volta para o estudo.
 7. Com o backend fora do ar, o app mostra um erro claro. Nunca inventa resposta.
+8. O mesmo roteiro repetido com a janela do navegador estreitada a 320px de largura, e no
+   celular com o teclado aberto: nada é cortado, nada sai da tela e não aparece rolagem
+   lateral. O layout se ajusta sozinho, sem altura nem largura fixa no código.
 
 ### 5.2 Backend (ADR: Python + FastAPI + Gemini + Render)
 
@@ -155,7 +158,9 @@ Release 2 tem uma peça a menos que pode quebrar.
 | Entrega | Descrição | Responsável |
 |---|---|---|
 | Navegação | Tela inicial → tela de chat, com expo-router | Iagor |
-| Tela de chat | Lista de mensagens, campo de texto, botão enviar, estado "tutor pensando" | Iagor |
+| Tela de chat | Lista de mensagens, campo de texto, botão enviar, estado "tutor pensando". Layout em flexbox: container `column`, lista com `flex: 1`, barra de digitar em `row` com altura natural. Nenhuma altura fixa | Iagor |
+| Balões de mensagem | `alignSelf: 'flex-end'` para o aluno e `'flex-start'` para o tutor, `maxWidth: '80%'`, texto com `flexShrink: 1` para não vazar da tela | Iagor |
+| Refatoração da tela inicial | Trocar os 14 `position: absolute` e as 98 estrelas com coordenadas fixas por layout em flexbox. Remove o `as any` das linhas 122-123, que hoje viola a convenção de TypeScript do projeto | Antonio |
 | `services/chat.ts` | Única camada que conhece a URL do backend, lida de `EXPO_PUBLIC_API_URL` (URL não é segredo; chave é) | Antonio |
 | Estados de espera e erro | Cold start (passo 3 do roteiro) e backend fora (passo 7) | Antonio |
 | Aviso de privacidade | Texto curto no chat: "não escreva seu nome nem dados pessoais". O tier gratuito do Gemini pode usar os prompts para treino (risco em PROJECT-CONTEXT §8) | Antonio |
@@ -170,6 +175,7 @@ Release 2 tem uma peça a menos que pode quebrar.
 | Teste do backend | `pytest` para a validação de entrada e para o limite de requisições. Testa o que não depende da IA | Flávio |
 | Bateria anti-cola | Lista fixa de ~10 perguntas-armadilha (pedido direto, insistência, "é pra prova", fora de assunto) rodada contra o backend publicado antes de fechar a release, com o resultado anexado ao PR | Gustavo |
 | GitHub Release | Release publicada (não só tag), com o roteiro 5.1, a URL e o que ficou de fora | João |
+| `docs/layout-flexbox.md` | Uma página com as regras de layout do projeto: sem altura fixa, `flexShrink: 1` em texto dentro de `row`, `absolute` só para decoração. É o critério objetivo do review de tela | João |
 | Revisão dos PRs | Ler, questionar e aprovar o código dos outros antes do merge na `develop` | João |
 
 ### 5.5 Validação de campo — **CRÍTICA**
@@ -208,11 +214,13 @@ a 4 (difícil), só para comparar carga entre pessoas.
 | Flávio | Proj. Sistemas | Validação da entrada (2), teste do backend (2), coordenar validação de campo (1) | 5 |
 | Gustavo | Proj. Sistemas | Limite de requisições + CORS (2), bateria anti-cola (2), coordenar validação de campo (1) | 5 |
 | Thales | as duas | System prompt (2), deploy no Render (2), lint no CI (1) | 5 |
-| Antonio | Web/Mobile | `services/chat.ts` (2), estados de espera e erro (2), aviso de privacidade (1) | 5 |
-| Iagor | Web/Mobile | Tela de chat (3), navegação (1) | 4 |
-| João | as duas | Verificação de disponibilidade do backend (2), publicação web (2), GitHub Release (1), revisão geral dos PRs (2) | 7 |
+| Antonio | Web/Mobile | `services/chat.ts` (2), estados de espera e erro (2), aviso de privacidade (1), refatoração da tela inicial para flexbox (3) | 8 |
+| Iagor | Web/Mobile | Tela de chat com layout flexbox (3), balões com `alignSelf` (2), navegação (1) | 6 |
+| João | as duas | Verificação de disponibilidade do backend (2), publicação web (2), `docs/layout-flexbox.md` (1), GitHub Release (1), revisão geral dos PRs (2) | 8 |
 
-O Iagor fica com 4 porque a tela de chat é o item mais pesado do app.
+Antonio e Iagor carregam a frente de layout, que é o que a disciplina de Web/Mobile avalia.
+A refatoração da tela inicial é "refatoração significativa documentada", um dos critérios de
+PR relevante da ficha — o Antonio passa a ter o PR mais forte do app.
 
 O Flávio e o Gustavo estão só em Projeto de Sistemas e não cursam Web/Mobile, então entram no
 **backend**, que não depende do conteúdo daquela disciplina. Suposição a confirmar: os dois
@@ -261,8 +269,9 @@ PR, e o João revisa todos por cima, como responsável pela entrega:
 | Limite de requisições + CORS | Gustavo | Thales |
 | System prompt + deploy | Thales | Giordano |
 | Verificação de disponibilidade + CI + web | João | Iagor |
-| Tela de chat + navegação | Iagor | Antonio |
+| Tela de chat + balões + navegação | Iagor | Antonio |
 | `services/chat.ts` + estados de espera/erro | Antonio | Iagor |
+| Refatoração da tela inicial para flexbox | Antonio | João |
 
 **Engajamento (10 pontos) exige no mínimo 3 evidências registradas** por pessoa. São elas:
 
