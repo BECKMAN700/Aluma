@@ -153,7 +153,7 @@ O que olhar:
 
 ```
 Contexto: trabalho no backend de um tutor educacional chamado Aluma, em FastAPI, usando
-o Gemini (gemini-2.5-flash) pela biblioteca google-genai. O publico e aluno de 9º ano,
+o Gemini (gemini-3.5-flash-lite) pela biblioteca google-genai. O publico e aluno de 9º ano,
 em Matematica. O produto tem uma regra inegociavel: a IA NUNCA entrega a resposta pronta
 do exercicio, porque isso e ao mesmo tempo o metodo pedagogico e a defesa contra cola.
 

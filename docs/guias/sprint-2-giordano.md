@@ -99,7 +99,7 @@ No `.env.example`, que **vai** para o Git, escreva só `GEMINI_API_KEY=`.
 o servidor está acordado sem gastar cota do Gemini.
 
 `POST /api/chat` recebe o corpo do contrato acima. Na Issue #1 pode devolver texto fixo. Na
-Issue #2 passa a chamar o Gemini de verdade, com o modelo `gemini-2.5-flash`.
+Issue #2 passa a chamar o Gemini de verdade, com o modelo `gemini-3.5-flash-lite`.
 
 Use `pydantic` (já vem com o FastAPI) para declarar o formato do corpo. Isso te dá validação de
 tipo de graça, e é onde o Flávio vai encaixar as regras dele depois.
@@ -160,7 +160,7 @@ tutor educacional chamado Aluma. Ele usa IA para guiar alunos do 9º ano em Mate
 sem nunca entregar a resposta pronta.
 
 Stack obrigatória: Python 3, FastAPI, biblioteca google-genai (NAO a google-generativeai,
-que foi descontinuada), modelo gemini-2.5-flash, hospedagem futura no Render.
+que foi descontinuada), modelo gemini-3.5-flash-lite, hospedagem futura no Render.
 
 Minha tarefa nesta sprint: criar o esqueleto do backend com duas rotas.
 
