@@ -147,7 +147,7 @@ juntos na quinta e na sexta, você vira o gargalo bem na hora em que precisa pub
 3. **Decidir sobre proteger a branch `develop`**, exigindo 1 aprovação para mergear. Hoje a
    regra 1 do projeto é só combinado: qualquer um pode mergear sem revisão.
 4. **Corrigir o `PROJECT-CONTEXT.md`:** ele cita a biblioteca `google-generativeai`, que o
-   Google descontinuou. A correta é `google-genai`.
+   Google descontinuou. A correta é `google-genai`. **Feito em 21/09**, junto com a troca do modelo.
 
 ## Prompt base para usar com a sua IA
 
