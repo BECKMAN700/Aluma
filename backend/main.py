@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
 import os
@@ -11,6 +12,22 @@ from gemini import chat_com_gemini
 load_dotenv()
 
 app = FastAPI(title="Aluma Backend")
+
+# Lista separada por vírgulas, por exemplo:
+# CORS_ORIGINS=https://aluma.exemplo.com,http://localhost:8081
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:8081").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 # Modelos Pydantic para validação do corpo da requisição
 class Mensagem(BaseModel):
