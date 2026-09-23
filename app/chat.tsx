@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -8,22 +7,14 @@ export default function ChatScreen() {
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: 'Chat com o Tutor',
-          headerShown: true,
-        }}
-      />
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          Tela de Chat do Aluma
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.icon }]}>
-          Conectando com o tutor educacional...
-        </Text>
-      </View>
-    </>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.text }]}>
+        Tela de Chat do Aluma
+      </Text>
+      <Text style={[styles.subtitle, { color: theme.icon }]}>
+        Conectando com o tutor educacional...
+      </Text>
+    </View>
   );
 }
 
