@@ -63,7 +63,7 @@ A ementa de Desenvolvimento Webmobile (UFT/Palmas, Prof. Jackson Gomes) define o
 | Testes + CI | lint e testes a cada push, GitHub Actions | Ementa, encontros 15–16 |
 | API | REST, contrato tipado documentado | Ementa, encontro 9 |
 | Backend | **Python + FastAPI**, hospedado no Render (Web Service gratuito) | Decisão da equipe — ver §6 e §9 |
-| IA | **Google Gemini 2.5 Flash** (AI Studio), camada gratuita, ~1.500 req/dia | Decisão da equipe — ver §6 |
+| IA | **Google Gemini 3.5 Flash Lite** (AI Studio), camada gratuita, ~1.500 req/dia | Decisão da equipe — ver §6 |
 
 **Distribuição:** aplicação universal — roda no navegador e no celular a partir do mesmo código. Build instalável via EAS é possível, mas <cite index="13-1">a ementa deixa claro que build em nuvem não é requisito para aprovação quando houver limitação de conta ou plataforma</cite>. Logo: **web primeiro, loja fica para depois.**
 
@@ -119,7 +119,7 @@ Duas regras que definem tudo:
 | Modo de trabalho com a IA assistente | **Ensinar, não entregar código pronto** | Escolha da equipe |
 | Backend | **Python + FastAPI**, em `backend/` no mesmo repositório (monorepo) | A equipe constrói o próprio, sem esperar resposta do professor (ADR da equipe, 12/09/2026) |
 | Hospedagem do backend | **Render**, Web Service gratuito, deploy direto do GitHub | Único com free tier permanente e sem cartão em 2026. Custo: cold start de 30-50s após ~15 min de inatividade — aceitável para uso acadêmico |
-| Provedor de IA | **Google Gemini** (`gemini-2.5-flash`), via `google-generativeai` (Python), com streaming | Tier gratuito permanente (não é trial), ~1.500 req/dia, sem cartão. Custo: no tier gratuito, os prompts podem ser usados pela Google para treinar modelos — ver risco de LGPD na §8 |
+| Provedor de IA | **Google Gemini** (`gemini-3.5-flash-lite`), via `google-genai` (Python), com streaming | Tier gratuito permanente (não é trial), ~1.500 req/dia, sem cartão. Modelo trocado em 21/09/2026: a linha 2.5 foi descontinuada para contas novas (404 ao chamar, inclusive no `flash-lite`), e o `gemini-3.6-flash` indicado pelo próprio Google como substituto respondeu em 41s e depois falhou por alta demanda — o `3.5-flash-lite` responde a mesma pergunta do roteiro em 2,3s. Versão fixa em vez do alias `gemini-flash-lite-latest` para a bateria anti-cola não mudar de alvo sozinha. Custo: no tier gratuito, os prompts podem ser usados pela Google para treinar modelos — ver risco de LGPD na §8 |
 | Camada de abstração para IA (LangChain) | **Não usar por ora** (YAGNI) | Reavaliar só se o projeto passar a precisar de RAG sobre o material da disciplina |
 | Protocolo de streaming | Backend implementa o **Data Stream Protocol do AI SDK** | Permite o app (Expo/React Native) consumir a resposta token a token sem depender das bibliotecas JS do AI SDK |
 
