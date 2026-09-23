@@ -1,4 +1,6 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Colors } from '@/constants/theme';
 
 // estrelas
 const GALAXY_STARS = [
@@ -102,6 +104,8 @@ const GALAXY_STARS = [
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.screen}>
       {/* circulos */}
@@ -188,6 +192,16 @@ export default function HomeScreen() {
             <Text style={styles.pillarSub}>Desenvolva a lógica pura</Text>
           </View>
         </View>
+
+        {/* Botão para navegar até o Chat - Issue A */}
+        <Pressable
+          style={styles.chatButton}
+          onPress={() => router.push('/chat')}
+          accessibilityRole="button"
+          accessibilityLabel="Conversar com o tutor"
+        >
+          <Text style={styles.chatButtonText}>Conversar com o tutor</Text>
+        </Pressable>
       </View>
 
       {/* rodape */}
@@ -391,6 +405,27 @@ const styles = StyleSheet.create({
   pillarSub: {
     fontSize: 11,
     color: '#94A3B8',
+  },
+  chatButton: {
+    marginTop: 18,
+    width: '100%',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.light.tint,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.light.tint,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  chatButtonText: {
+    color: '#000208',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   footer: {
     flexDirection: 'row',
