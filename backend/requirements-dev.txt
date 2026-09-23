@@ -1,0 +1,5 @@
+# Dependências de desenvolvimento e teste.
+# Não vão para o servidor do Render: lá roda só o requirements.txt.
+-r requirements.txt
+
+pytest==9.1.1
