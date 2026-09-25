@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { Colors } from '@/constants/theme';
 
 // estrelas
@@ -104,8 +104,6 @@ const GALAXY_STARS = [
 ];
 
 export default function HomeScreen() {
-  const router = useRouter();
-
   return (
     <View style={styles.screen}>
       {/* circulos */}
