@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from backend.rate_limit import check_rate_limit
+from rate_limit import check_rate_limit
 from gemini import TutorIndisponivel, chat_com_gemini
 
 # Carrega as variáveis de ambiente do .env
@@ -77,7 +77,7 @@ def health_check():
 
 
 @app.post("/api/chat", dependencies=[Depends(check_rate_limit)])
-async def chat_endpoint(payload: ChatRequest):
+def chat(payload: ChatRequest):
     """
     Rota de chat com o tutor. Recebe mensagem e histórico,
     retorna a resposta do Gemini ou erro se falhar.

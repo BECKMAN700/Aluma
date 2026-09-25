@@ -3,7 +3,7 @@ import pytest
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
-from backend.rate_limit import check_rate_limit, ip_request_history
+from rate_limit import check_rate_limit, ip_request_history
 
 # Cria uma aplicação FastAPI de teste isolada (sem chamar a API do Gemini)
 app_test = FastAPI()
@@ -71,11 +71,13 @@ def test_rate_limit_fallback_to_client_host():
 def test_rate_limit_daily_limit():
     client = TestClient(app_test)
     
-    # Simula 500 requisições já registradas no dia para o IP "127.0.0.1"
+    # Simula 500 requisições já registradas no dia para o IP 200.1.1.1.
+    # O IP vai explícito no cabeçalho: sem ele, o TestClient se apresenta
+    # como "testclient", e o histórico preenchido seria de outro IP.
     now = time.time()
-    ip_request_history["127.0.0.1"] = [now - 1000] * 500
-    
+    ip_request_history["200.1.1.1"] = [now - 1000] * 500
+
     # A próxima requisição deve falhar no limite diário
-    response = client.post("/api/chat")
+    response = client.post("/api/chat", headers={"X-Forwarded-For": "200.1.1.1"})
     assert response.status_code == 429
     assert response.json() == {"erro": "muitas perguntas seguidas, aguarde um pouco"}
