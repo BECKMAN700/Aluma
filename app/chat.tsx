@@ -10,7 +10,15 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '@/constants/theme';
+import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+// Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
+const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {
+  checando: 'Conectando ao tutor…',
+  acordando: 'Acordando o tutor, isso pode levar até um minuto.',
+  indisponivel: 'O tutor está fora do ar agora. Tente de novo mais tarde.',
+};
 
 interface Message {
   id: string;
@@ -21,6 +29,8 @@ interface Message {
 export default function ChatScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const backendStatus = useBackendStatus();
+  const isBackendReady = backendStatus === 'pronto';
 
   // TEMPORARIO: remover ao integrar com services/chat.ts
   const [messages, setMessages] = useState<Message[]>([
@@ -34,7 +44,7 @@ export default function ChatScreen() {
 
   const handleSendMessage = () => {
     const trimmedText = inputText.trim();
-    if (!trimmedText) return;
+    if (!trimmedText || !isBackendReady) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -60,6 +70,14 @@ export default function ChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {backendStatus !== 'pronto' && (
+          <Text
+            style={[styles.statusBanner, { color: theme.text, borderBottomColor: theme.icon }]}
+            accessibilityLiveRegion="polite"
+          >
+            {BACKEND_STATUS_MESSAGE[backendStatus]}
+          </Text>
+        )}
         <FlatList
           style={styles.messageList}
           contentContainerStyle={styles.messageListContent}
@@ -117,10 +135,16 @@ export default function ChatScreen() {
             multiline={false}
           />
           <Pressable
-            style={[styles.sendButton, { backgroundColor: theme.tint }]}
+            style={[
+              styles.sendButton,
+              { backgroundColor: theme.tint },
+              !isBackendReady && styles.sendButtonDisabled,
+            ]}
             onPress={handleSendMessage}
+            disabled={!isBackendReady}
             accessibilityRole="button"
             accessibilityLabel="Enviar mensagem"
+            accessibilityState={{ disabled: !isBackendReady }}
           >
             <Text style={[styles.sendButtonText, { color: Colors.light.text }]}>
               Enviar
@@ -136,6 +160,17 @@ const styles = StyleSheet.create({
   wrapper: {
     // Regra 1: Nenhuma altura fixa. Ocupa 100% da tela disponível pelo flexbox do pai.
     flex: 1,
+  },
+  statusBanner: {
+    // Altura natural, como a barra de digitar: a lista abaixo absorve o resto.
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 14,
+    textAlign: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
   },
   container: {
     // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
