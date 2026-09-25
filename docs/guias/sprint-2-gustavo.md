@@ -45,7 +45,7 @@ Seu trabalho é impedir isso. São duas defesas diferentes:
 
 ### Defesa 1 — limite de requisições por IP
 
-Regra sugerida: **20 pedidos por minuto e 300 por dia, por IP**. Passou disso, responde
+Regra sugerida: **30 pedidos por minuto e 500 por dia, por IP**. Passou disso, responde
 `429` com `{"erro": "muitas perguntas seguidas, aguarde um pouco"}`.
 
 Esses números não são chute: precisam caber uma turma inteira usando ao mesmo tempo e a sua
@@ -70,8 +70,10 @@ da plataforma. Se você ler o IP do jeito óbvio (`request.client.host`), **todo
 o mesmo IP** e o limite vira inútil ou bloqueia a turma inteira de uma vez.
 
 O IP verdadeiro vem no cabeçalho `X-Forwarded-For`, na forma de uma lista separada por vírgula.
-O primeiro item é o usuário. Teste isso depois do deploy, não antes: em `localhost` o cabeçalho
-não existe.
+Cada proxy insere o IP do cliente no **final** da lista. Por isso, lemos a lista da direita para
+a esquerda e usamos `PROXIES_CONFIAVEIS` para informar quantos proxies confiáveis existem. O
+primeiro item pode ter sido forjado pelo cliente. Teste isso depois do deploy, não antes: em
+`localhost` o cabeçalho não existe.
 
 ### Defesa 2 — CORS
 
@@ -178,7 +180,7 @@ backend de um tutor educacional chamado Aluma. Stack: FastAPI, hospedado no Rend
 
 Minha tarefa: proteger o servidor, no arquivo backend/rate_limit.py.
 
-1) Limite de requisicoes por IP: 20 por minuto e 300 por dia. Passou disso, responder
+1) Limite de requisicoes por IP: 30 por minuto e 500 por dia. Passou disso, responder
    429 com {"erro": "muitas perguntas seguidas, aguarde um pouco"}.
    Quero a versao simples, com dicionario em memoria, sem instalar biblioteca, para eu
    entender o que escrevi. Me explique a limitacao dessa abordagem para eu documentar.

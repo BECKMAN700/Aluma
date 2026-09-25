@@ -1,10 +1,13 @@
+import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from rate_limit import check_rate_limit
 from gemini import TutorIndisponivel, chat_com_gemini
 
 # Carrega as variáveis de ambiente do .env
@@ -12,6 +15,21 @@ load_dotenv()
 
 app = FastAPI(title="Aluma Backend")
 
+# Lista separada por vírgulas, por exemplo:
+# CORS_ORIGINS=https://aluma.exemplo.com,http://localhost:8081
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:8081").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 # Modelos Pydantic para validação do corpo da requisição
 class Mensagem(BaseModel):
@@ -44,13 +62,21 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+@app.exception_handler(429)
+async def rate_limit_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=429,
+        content={"erro": "muitas perguntas seguidas, aguarde um pouco"},
+    )
+
+
 @app.get("/health")
 def health_check():
     """Rota para verificar se o servidor está no ar"""
     return {"status": "ok"}
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(check_rate_limit)])
 def chat(payload: ChatRequest):
     """
     Rota de chat com o tutor. Recebe mensagem e histórico,

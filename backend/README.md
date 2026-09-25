@@ -37,8 +37,9 @@ enxergar `backend/` como raiz. Rodando da raiz do repositório, use `--app-dir`:
 uvicorn main:app --app-dir backend --host 0.0.0.0 --port $PORT
 ```
 
-A `GEMINI_API_KEY` vai no painel de *Environment* do Render. Nunca no código, no commit, na URL
-ou no log — é a regra inviolável 2.
+A `GEMINI_API_KEY`, `CORS_ORIGINS` e `PROXIES_CONFIAVEIS` devem ser configurados no painel de
+*Environment* do Render. Nunca coloque a chave no código, no commit, na URL ou no log — é a
+regra inviolável 2.
 
 ## Contrato da API
 
@@ -54,7 +55,7 @@ envia -> {"mensagem": "como resolvo 3x + 5 = 20?",
                         {"autor": "tutor", "texto": "..."}]}
 200   -> {"resposta": "O que você pode fazer dos dois lados para isolar o 3x?"}
 422   -> {"erro": "mensagem vazia"}            (Flávio, issue #39)
-429   -> {"erro": "muitas perguntas seguidas"} (Gustavo, issue #42)
+429   -> {"erro": "muitas perguntas seguidas, aguarde um pouco"} (Gustavo, issue #42)
 503   -> {"erro": "tutor indisponivel"}        (quando o Gemini falhar)
 ```
 
@@ -66,7 +67,7 @@ envia -> {"mensagem": "como resolvo 3x + 5 = 20?",
 | `gemini.py` | Giordano | Conversa com a IA, isolada aqui |
 | `prompt.py` | Thales (#46) | System prompt socrático — ponto de encaixe em `gemini.py` |
 | `validation.py` | Flávio (#39) | Validação da entrada no servidor |
-| `rate_limit.py` | Gustavo (#42) | Limite por IP e CORS |
+| `rate_limit.py` | Gustavo (#42) | Limite por IP |
 
 Arquivo separado por pessoa é de propósito: ninguém edita a mesma linha e o Git não gera conflito.
 
