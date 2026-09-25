@@ -1,4 +1,6 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Link } from 'expo-router';
+import { Colors } from '@/constants/theme';
 
 // estrelas
 const GALAXY_STARS = [
@@ -145,57 +147,74 @@ export default function HomeScreen() {
         <Text style={styles.sparkleGlyphSmall}>✧</Text>
       </View>
 
-      <View style={styles.container}>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>• ALUNO • LUZ •</Text>
-        </View>
-
-        {/* logo */}
-        <View style={styles.avatarGlowContainer}>
-          <Image
-            source={require('../../assets/images/aluma_logo.jpg')}
-            style={styles.avatarImage}
-            resizeMode="cover"
-          />
-        </View>
-
-        {/* título e subtítulo */}
-        <Text style={styles.title}>
-          ALUMA<Text style={styles.titleAccent}> IA</Text>
-        </Text>
-
-        <Text style={styles.subtitle}>
-          O orientador com inteligência artificial que guia seu aprendizado por meio de perguntas. Você constrói o raciocínio e chega às suas próprias conclusões.
-        </Text>
-
-        {/* cards da plataforma */}
-        <View style={styles.pillarsContainer}>
-          <View style={styles.pillarItem}>
-            <Text style={styles.pillarIndex}>[ 01 ]</Text>
-            <Text style={styles.pillarTitle}>Método Socrático</Text>
-            <Text style={styles.pillarSub}>Aprenda por questionamento</Text>
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusText}>• ALUNO • LUZ •</Text>
           </View>
 
-          <View style={styles.pillarItem}>
-            <Text style={styles.pillarIndex}>[ 02 ]</Text>
-            <Text style={styles.pillarTitle}>Sem Respostas Prontas</Text>
-            <Text style={styles.pillarSub}>Foco no aprendizado independente</Text>
+          {/* logo */}
+          <View style={styles.avatarGlowContainer}>
+            <Image
+              source={require('../../assets/images/aluma_logo.jpg')}
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
           </View>
 
-          <View style={styles.pillarItem}>
-            <Text style={styles.pillarIndex}>[ 03 ]</Text>
-            <Text style={styles.pillarTitle}>Pensamento Crítico</Text>
-            <Text style={styles.pillarSub}>Desenvolva a lógica pura</Text>
+          {/* título e subtítulo */}
+          <Text style={styles.title}>
+            ALUMA<Text style={styles.titleAccent}> IA</Text>
+          </Text>
+
+          <Text style={styles.subtitle}>
+            O orientador com inteligência artificial que guia seu aprendizado por meio de perguntas. Você constrói o raciocínio e chega às suas próprias conclusões.
+          </Text>
+
+          {/* cards da plataforma */}
+          <View style={styles.pillarsContainer}>
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarIndex}>[ 01 ]</Text>
+              <Text style={styles.pillarTitle}>Método Socrático</Text>
+              <Text style={styles.pillarSub}>Aprenda por questionamento</Text>
+            </View>
+
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarIndex}>[ 02 ]</Text>
+              <Text style={styles.pillarTitle}>Sem Respostas Prontas</Text>
+              <Text style={styles.pillarSub}>Foco no aprendizado independente</Text>
+            </View>
+
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarIndex}>[ 03 ]</Text>
+              <Text style={styles.pillarTitle}>Pensamento Crítico</Text>
+              <Text style={styles.pillarSub}>Desenvolva a lógica pura</Text>
+            </View>
           </View>
+
+          {/* Botão para navegar até o Chat - Issue A */}
+          <Link href="/chat" asChild>
+            <Pressable
+              style={styles.chatButton}
+              accessibilityRole="button"
+              accessibilityLabel="Conversar com o tutor"
+            >
+              <Text style={styles.chatButtonText}>Conversar com o tutor</Text>
+            </Pressable>
+          </Link>
         </View>
-      </View>
 
-      {/* rodape */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          • ALUMA • SISTEMA EDUCACIONAL •
-        </Text>
-      </View>
+        {/* rodape */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            • ALUMA • SISTEMA EDUCACIONAL •
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -204,13 +223,21 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#000208',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 48,
-    paddingBottom: 28,
     position: 'relative',
     overflow: 'hidden',
+  },
+  scrollArea: {
+    flex: 1,
+    width: '100%',
+    zIndex: 2,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    minHeight: '100%',
+    justifyContent: 'space-between',
   },
 
   /* circulos */
@@ -391,6 +418,27 @@ const styles = StyleSheet.create({
   pillarSub: {
     fontSize: 11,
     color: '#94A3B8',
+  },
+  chatButton: {
+    marginTop: 18,
+    width: '100%',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.light.tint,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.light.tint,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  chatButtonText: {
+    color: '#000208',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   footer: {
     flexDirection: 'row',
