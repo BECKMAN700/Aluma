@@ -61,3 +61,27 @@ export interface Message {
   text: string;
   sentAt: ISODateString;
 }
+
+/**
+ * Contrato de POST /api/chat (backend/main.py e backend/validation.py). Formato próprio
+ * da API, em português — não confundir com `Message` acima, que é o modelo de domínio do app.
+ */
+export type ChatApiAuthor = 'aluno' | 'tutor';
+
+export interface ChatHistoryItem {
+  autor: ChatApiAuthor;
+  texto: string;
+}
+
+export interface ChatRequestBody {
+  mensagem: string;
+  historico: ChatHistoryItem[];
+}
+
+export interface ChatResponse {
+  resposta: string;
+}
+
+export interface ChatErrorResponse {
+  erro: string;
+}
