@@ -101,19 +101,16 @@ export default function HomeScreen() {
           {/* cards da plataforma */}
           <View style={styles.pillarsContainer}>
             <View style={styles.pillarItem}>
-              <Text style={styles.pillarIndex}>[ 01 ]</Text>
               <Text style={styles.pillarTitle}>Método Socrático</Text>
               <Text style={styles.pillarSub}>Aprenda por questionamento</Text>
             </View>
 
             <View style={styles.pillarItem}>
-              <Text style={styles.pillarIndex}>[ 02 ]</Text>
               <Text style={styles.pillarTitle}>Sem Respostas Prontas</Text>
               <Text style={styles.pillarSub}>Foco no aprendizado independente</Text>
             </View>
 
             <View style={styles.pillarItem}>
-              <Text style={styles.pillarIndex}>[ 03 ]</Text>
               <Text style={styles.pillarTitle}>Pensamento Crítico</Text>
               <Text style={styles.pillarSub}>Desenvolva a lógica pura</Text>
             </View>
@@ -323,14 +320,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 8,
     elevation: 3,
-  },
-  pillarIndex: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#38BDF8',
-    fontFamily: 'monospace',
-    letterSpacing: 1,
-    marginBottom: 2,
   },
   pillarTitle: {
     fontSize: 13,

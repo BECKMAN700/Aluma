@@ -27,6 +27,16 @@ export const Colors = {
   },
 } as const;
 
+// Identidade noturna do Aluma: o chat usa as mesmas cores da tela inicial, sem modo claro.
+// Ciano é sempre a voz do tutor e âmbar sempre a ação do aluno; não misturar no mesmo elemento.
+export const Night = {
+  sky: '#000208',
+  guide: '#38BDF8',
+  spark: '#F5A623',
+  starlight: '#E7ECF5',
+  dust: '#7C89A6',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
