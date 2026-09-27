@@ -30,16 +30,24 @@ Documentação interativa das rotas: http://localhost:8000/docs
 
 ## Subir no servidor (Render, issue #47)
 
-Os módulos (`main.py`, `gemini.py`) são importados pelo nome simples, então o processo precisa
-enxergar `backend/` como raiz. Rodando da raiz do repositório, use `--app-dir`:
+O `render.yaml` na raiz do repositório já descreve o serviço (build, start, `rootDir: backend`,
+health check em `/health`). Passo a passo:
 
-```
-uvicorn main:app --app-dir backend --host 0.0.0.0 --port $PORT
-```
+1. No painel do Render: **New > Blueprint**, conecte o repositório `BECKMAN700/Aluma`.
+2. O Render lê o `render.yaml` sozinho e propõe criar o serviço `aluma-backend`. Confirme.
+3. Ele vai pedir os dois valores marcados `sync: false` (não ficam no arquivo, de propósito —
+   regra inviolável 2):
+   - `GEMINI_API_KEY`: pegue em aistudio.google.com
+   - `CORS_ORIGINS`: `http://localhost:8081` serve para testar já; depois que a versão web
+     estiver publicada (issue #49), volte aqui e troque pela URL do Netlify
+4. Deploy automático. Teste `https://<endereco>.onrender.com/health` — precisa responder
+   `{"status": "ok"}`.
+5. Avise a URL no grupo: o app (`EXPO_PUBLIC_API_URL`, issue #49) e a bateria anti-cola
+   (issue #43) dependem dela.
 
-A `GEMINI_API_KEY`, `CORS_ORIGINS` e `PROXIES_CONFIAVEIS` devem ser configurados no painel de
-*Environment* do Render. Nunca coloque a chave no código, no commit, na URL ou no log — é a
-regra inviolável 2.
+Sem Blueprint (criando o Web Service manualmente na UI), os mesmos valores do `render.yaml`
+se aplicam à mão: *Root Directory* `backend`, *Build Command* `pip install -r requirements.txt`,
+*Start Command* `uvicorn main:app --host 0.0.0.0 --port $PORT`.
 
 ## Contrato da API
 
