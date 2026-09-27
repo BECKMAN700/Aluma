@@ -12,6 +12,8 @@ import {
 import { Colors } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { sendMessage } from '@/services/api';
+import type { ChatApiAuthor } from '@/types/aluma';
 
 // Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
 const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {
@@ -22,7 +24,7 @@ const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> =
 
 interface Message {
   id: string;
-  author: 'aluno' | 'tutor';
+  author: ChatApiAuthor;
   text: string;
 }
 
@@ -32,7 +34,6 @@ export default function ChatScreen() {
   const backendStatus = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
 
-  // TEMPORARIO: remover ao integrar com services/chat.ts
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -41,10 +42,12 @@ export default function ChatScreen() {
     },
   ]);
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
-    if (!trimmedText || !isBackendReady) return;
+    if (!trimmedText || !isBackendReady || isSending) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -52,15 +55,29 @@ export default function ChatScreen() {
       text: trimmedText,
     };
 
-    // TEMPORARIO: remover ao integrar com services/chat.ts
-    const temporaryTutorReply: Message = {
-      id: (Date.now() + 1).toString(),
-      author: 'tutor',
-      text: 'Interessante ponto! O que você acha que aconteceria se analisássemos essa questão por outra perspectiva?',
-    };
+    // Histórico é o que veio ANTES desta mensagem; o backend corta os 10 mais recentes.
+    const historico = messages.map((message) => ({ autor: message.author, texto: message.text }));
 
-    setMessages((prevMessages) => [...prevMessages, userMessage, temporaryTutorReply]);
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInputText('');
+    setSendError(null);
+    setIsSending(true);
+
+    const result = await sendMessage(trimmedText, historico);
+
+    if (result.ok) {
+      const tutorReply: Message = {
+        id: (Date.now() + 1).toString(),
+        author: 'tutor',
+        text: result.resposta,
+      };
+      setMessages((prevMessages) => [...prevMessages, tutorReply]);
+    } else {
+      // Nunca uma resposta inventada em caso de falha: só o aviso de erro.
+      setSendError(result.erro);
+    }
+
+    setIsSending(false);
   };
 
   return (
@@ -76,6 +93,14 @@ export default function ChatScreen() {
             accessibilityLiveRegion="polite"
           >
             {BACKEND_STATUS_MESSAGE[backendStatus]}
+          </Text>
+        )}
+        {sendError && (
+          <Text
+            style={[styles.statusBanner, { color: theme.text, borderBottomColor: theme.icon }]}
+            accessibilityLiveRegion="polite"
+          >
+            {sendError}
           </Text>
         )}
         <FlatList
@@ -131,23 +156,26 @@ export default function ChatScreen() {
             placeholder="Digite sua dúvida..."
             placeholderTextColor={theme.icon}
             value={inputText}
-            onChangeText={setInputText}
+            onChangeText={(text) => {
+              setInputText(text);
+              setSendError(null);
+            }}
             multiline={false}
           />
           <Pressable
             style={[
               styles.sendButton,
               { backgroundColor: theme.tint },
-              !isBackendReady && styles.sendButtonDisabled,
+              (!isBackendReady || isSending) && styles.sendButtonDisabled,
             ]}
             onPress={handleSendMessage}
-            disabled={!isBackendReady}
+            disabled={!isBackendReady || isSending}
             accessibilityRole="button"
             accessibilityLabel="Enviar mensagem"
-            accessibilityState={{ disabled: !isBackendReady }}
+            accessibilityState={{ disabled: !isBackendReady || isSending }}
           >
             <Text style={[styles.sendButtonText, { color: Colors.light.text }]}>
-              Enviar
+              {isSending ? 'Enviando…' : 'Enviar'}
             </Text>
           </Pressable>
         </View>
