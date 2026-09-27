@@ -3,12 +3,13 @@ import time
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 from rate_limit import check_rate_limit
 from gemini import TutorIndisponivel, chat_com_gemini
+from validation import ChatRequest
 
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
@@ -30,17 +31,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
-
-# Modelos Pydantic para validação do corpo da requisição
-class Mensagem(BaseModel):
-    autor: str
-    texto: str
-
-
-class ChatRequest(BaseModel):
-    mensagem: str
-    historico: list[Mensagem] = []
-
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -68,6 +58,27 @@ async def rate_limit_exception_handler(request: Request, exc: Exception):
         status_code=429,
         content={"erro": "muitas perguntas seguidas, aguarde um pouco"},
     )
+
+
+# Tipos de erro padrão do Pydantic que não passam por um field_validator nosso
+# (esses já levantam ValueError em português, ver validation.py).
+_ERRO_POR_TIPO_PYDANTIC = {
+    "missing": "faltou um campo obrigatorio na mensagem",
+    "extra_forbidden": "a mensagem enviada tem um campo que o servidor nao reconhece",
+    "string_type": "um dos campos enviados deveria ser texto",
+}
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Quem lê é aluno do 9º ano: nunca o JSON técnico do Pydantic (regra inviolável 3).
+    primeiro_erro = exc.errors()[0]
+    if primeiro_erro["type"] == "value_error":
+        mensagem = primeiro_erro["msg"].removeprefix("Value error, ")
+    else:
+        mensagem = _ERRO_POR_TIPO_PYDANTIC.get(primeiro_erro["type"], "os dados enviados sao invalidos")
+
+    return JSONResponse(status_code=422, content={"erro": mensagem})
 
 
 @app.get("/health")
