@@ -31,7 +31,7 @@ interface Message {
 export default function ChatScreen() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
-  const backendStatus = useBackendStatus();
+  const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
 
   const [messages, setMessages] = useState<Message[]>([
@@ -87,13 +87,20 @@ export default function ChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={[styles.privacyNotice, { color: theme.icon, borderBottomColor: theme.icon }]}>
+          Não escreva seu nome nem outros dados pessoais durante a conversa.
+        </Text>
         {backendStatus !== 'pronto' && (
-          <Text
-            style={[styles.statusBanner, { color: theme.text, borderBottomColor: theme.icon }]}
-            accessibilityLiveRegion="polite"
-          >
-            {BACKEND_STATUS_MESSAGE[backendStatus]}
-          </Text>
+          <View style={[styles.statusBannerRow, { borderBottomColor: theme.icon }]}>
+            <Text style={[styles.statusBannerText, { color: theme.text }]} accessibilityLiveRegion="polite">
+              {BACKEND_STATUS_MESSAGE[backendStatus]}
+            </Text>
+            {backendStatus === 'indisponivel' && (
+              <Pressable onPress={tentarNovamente} accessibilityRole="button">
+                <Text style={[styles.retryText, { color: theme.tint }]}>Tentar de novo</Text>
+              </Pressable>
+            )}
+          </View>
         )}
         {sendError && (
           <Text
@@ -194,6 +201,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 14,
+    textAlign: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  statusBannerRow: {
+    // Mesma altura natural do statusBanner, mas em row pra caber o botão de retry ao lado.
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  statusBannerText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  privacyNotice: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    fontSize: 12,
     textAlign: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },

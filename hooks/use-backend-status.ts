@@ -21,14 +21,19 @@ const DESISTE_DEPOIS_DE_MS = 90_000;
  * Verifica se o servidor está no ar ao abrir a tela e continua tentando
  * enquanto ele acorda. Desistir de uma tentativa não cancela o despertar:
  * a primeira requisição já acordou o servidor.
+ *
+ * Devolve também `tentarNovamente`, que reinicia o ciclo do zero (passo 3 do
+ * roteiro de aceite: servidor fora do ar precisa de um jeito de tentar de novo).
  */
-export function useBackendStatus(): BackendStatus {
+export function useBackendStatus(): [BackendStatus, () => void] {
   const [status, setStatus] = useState<BackendStatus>('checando');
+  const [tentativa, setTentativa] = useState(0);
 
   useEffect(() => {
     // Se a tela fechar no meio, o laço para e não mexe mais no estado.
     let ativo = true;
     const inicio = Date.now();
+    setStatus('checando');
 
     async function verificar() {
       while (ativo) {
@@ -50,7 +55,9 @@ export function useBackendStatus(): BackendStatus {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [tentativa]);
 
-  return status;
+  const tentarNovamente = () => setTentativa((t) => t + 1);
+
+  return [status, tentarNovamente];
 }
