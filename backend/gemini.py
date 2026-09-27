@@ -3,6 +3,8 @@ import os
 from google import genai
 from google.genai import types
 
+from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
+
 # Versão fixa, e não o alias `gemini-flash-lite-latest`: a bateria anti-cola precisa
 # apontar sempre para o mesmo alvo. Decisão registrada em PROJECT-CONTEXT.md §6.
 MODELO = "gemini-3.5-flash-lite"
@@ -54,11 +56,17 @@ def chat_com_gemini(mensagem: str, historico: list) -> str:
         types.Content(role="user", parts=[types.Part.from_text(text=mensagem)])
     )
 
-    # Ponto de encaixe do system prompt socrático (backend/prompt.py, issue #46).
-
     try:
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(model=MODELO, contents=contents)
+        response = client.models.generate_content(
+            model=MODELO,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=TEMPERATURE,
+                max_output_tokens=MAX_OUTPUT_TOKENS,
+            ),
+        )
     except Exception as e:
         _log_indisponivel(type(e).__name__)
         raise TutorIndisponivel() from e
