@@ -97,6 +97,23 @@ npx expo start
 O Expo exibe um QR Code no terminal: leia com o Expo Go para abrir no celular, ou tecle `w` para
 abrir no navegador.
 
+## Publicar a versão web (issue #49)
+
+O `netlify.toml` na raiz já descreve o build (`npx expo export -p web`, publica `dist/`) e a
+`EXPO_PUBLIC_API_URL` do backend publicado — não é segredo, por isso pode ficar no arquivo (a
+chave do Gemini vive só no servidor, nunca no app).
+
+1. Em [app.netlify.com](https://app.netlify.com): **Add new site > Import an existing project**,
+   conecte o GitHub e escolha `BECKMAN700/Aluma`.
+2. O Netlify lê o `netlify.toml` sozinho (branch a publicar: `develop`, ou `main` depois que a
+   `develop` entrar lá). Confirma o deploy.
+3. Teste o link publicado **no celular com dados móveis**, não no Wi-Fi da faculdade — é o
+   cenário real do professor abrindo no dia da apresentação.
+4. Avise o link no grupo.
+
+Se a `GEMINI_API_KEY` do Render mudar de conta ou o backend for redeployado com outra URL,
+atualize `EXPO_PUBLIC_API_URL` no `netlify.toml` e reimplante.
+
 ## Fluxo de trabalho
 
 O projeto usa **Git Flow com duas branches de longa duração**:

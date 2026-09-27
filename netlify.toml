@@ -1,0 +1,12 @@
+[build]
+  command = "npx expo export -p web"
+  publish = "dist"
+
+[build.environment]
+  # Não é segredo (services/api.ts): a chave do Gemini vive só no servidor.
+  EXPO_PUBLIC_API_URL = "https://aluma-backend-ydss.onrender.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/+not-found.html"
+  status = 404
