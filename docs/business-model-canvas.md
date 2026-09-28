@@ -109,7 +109,7 @@ Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Port
 * API REST.
 * Backend em Python + FastAPI.
 * Banco de dados.
-* Serviço de IA baseado no Google Gemini 2.5 Flash.
+* Serviço de IA baseado no Google Gemini 3.5 Flash Lite.
 * Hospedagem do backend no Render.
 * GitHub para código, Issues e Pull Requests.
 * Sentry para monitoramento.
