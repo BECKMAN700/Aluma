@@ -5,9 +5,16 @@ from google.genai import types
 
 from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
 
-# Versão fixa, e não o alias `gemini-flash-lite-latest`: a bateria anti-cola precisa
+# Versões fixas, e não aliases como `gemini-flash-lite-latest`: a bateria anti-cola precisa
 # apontar sempre para o mesmo alvo. Decisão registrada em PROJECT-CONTEXT.md §6.
-MODELO = "gemini-3.5-flash-lite"
+# Os reservas só entram quando o anterior falha: em 28/09/2026 o principal respondeu 503
+# (Google sobrecarregado) por horas seguidas.
+# ponytail: a bateria anti-cola só validou o principal; rodá-la contra os reservas.
+MODELOS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash")
+
+# Com o Google instável, uma chamada chegou a travar 52s. Três tentativas de 15s cabem
+# nos 60s que o app espera antes de desistir (services/api.ts).
+TEMPO_POR_MODELO_MS = 15_000
 
 
 class TutorIndisponivel(Exception):
@@ -35,7 +42,8 @@ def chat_com_gemini(mensagem: str, historico: list) -> str:
     Comunica-se com o Gemini para obter a resposta do tutor.
 
     O histórico é uma lista de dicionários com 'autor' ('aluno' ou 'tutor') e 'texto'.
-    Levanta TutorIndisponivel em qualquer falha, para a rota devolver 503.
+    Tenta os modelos de MODELOS em ordem; levanta TutorIndisponivel só se todos
+    falharem, para a rota devolver 503.
     """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -56,23 +64,26 @@ def chat_com_gemini(mensagem: str, historico: list) -> str:
         types.Content(role="user", parts=[types.Part.from_text(text=mensagem)])
     )
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=MODELO,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                temperature=TEMPERATURE,
-                max_output_tokens=MAX_OUTPUT_TOKENS,
-            ),
-        )
-    except Exception as e:
-        _log_indisponivel(type(e).__name__)
-        raise TutorIndisponivel() from e
+    client = genai.Client(api_key=api_key)
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT,
+        temperature=TEMPERATURE,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
+        http_options=types.HttpOptions(timeout=TEMPO_POR_MODELO_MS),
+    )
 
-    if not response.text:
-        _log_indisponivel("resposta vazia")
-        raise TutorIndisponivel()
+    for modelo in MODELOS:
+        try:
+            response = client.models.generate_content(
+                model=modelo, contents=contents, config=config
+            )
+        except Exception as e:
+            # Tipo e código HTTP bastam para diagnosticar (503 = Google instável,
+            # 429 = cota, 404 = modelo inexistente); a mensagem crua fica de fora.
+            _log_indisponivel(f"{modelo} {type(e).__name__} {getattr(e, 'code', '')}".strip())
+            continue
+        if response.text:
+            return response.text
+        _log_indisponivel(f"{modelo} resposta vazia")
 
-    return response.text
+    raise TutorIndisponivel()
