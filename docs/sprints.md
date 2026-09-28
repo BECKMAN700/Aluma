@@ -189,7 +189,7 @@ Release 2 tem uma peça a menos que pode quebrar.
 | Estados de espera e erro | Cold start (passo 3 do roteiro) e backend fora (passo 7) | Antonio |
 | Aviso de privacidade | Texto curto no chat: "não escreva seu nome nem dados pessoais". O tier gratuito do Gemini pode usar os prompts para treino (risco em PROJECT-CONTEXT §8) | Antonio |
 | Verificação de disponibilidade | O app consulta `GET /health` antes de abrir o chat e detecta servidor dormindo, alimentando o aviso do passo 3 | João |
-| Publicação web | `npx expo export -p web` publicado em host estático gratuito (host a definir, pendência 3 do professor) | João |
+| Publicação web | `npx expo export -p web` publicado no Netlify, plano gratuito (`netlify.toml`) | João |
 
 ### 5.4 Qualidade mínima para chamar de release
 

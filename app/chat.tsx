@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { MessageBubble } from '@/components/balao-mensagem';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Night } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
@@ -148,16 +149,7 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.id}
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
-          renderItem={({ item }) => {
-            const isStudent = item.author === 'aluno';
-            return (
-              <View style={[styles.bubble, isStudent ? styles.studentBubble : styles.tutorBubble]}>
-                <Text style={[styles.bubbleText, isStudent && styles.studentBubbleText]}>
-                  {item.text}
-                </Text>
-              </View>
-            );
-          }}
+          renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
         />
 
         <View style={styles.inputBar}>
@@ -253,42 +245,6 @@ const styles = StyleSheet.create({
     // Regra 4: Espaçamento entre os balões utilizando gap no container em vez de margens individuais.
     padding: 16,
     gap: 14,
-  },
-  bubble: {
-    // Regra 5 e 6: alignSelf individual e maxWidth em porcentagem tipada, sem `as any`.
-    maxWidth: '82%',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 18,
-  },
-  tutorBubble: {
-    // Ciano: a voz do tutor.
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 6,
-    backgroundColor: 'rgba(56, 189, 248, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
-    shadowColor: Night.guide,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-  },
-  studentBubble: {
-    // Âmbar: a sua ação.
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 6,
-    backgroundColor: Night.spark,
-  },
-  bubbleText: {
-    // Regra 2: flexShrink: 1 garante que textos longos não vazem da tela e quebrem linha normalmente.
-    flexShrink: 1,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Night.starlight,
-  },
-  studentBubbleText: {
-    color: Night.sky,
-    fontWeight: '500',
   },
   inputBar: {
     // A barra de digitar NÃO leva flex: altura natural, a FlatList acima absorve o espaço livre.

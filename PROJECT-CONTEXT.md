@@ -116,9 +116,10 @@ Duas regras que definem tudo:
 | Dados de demonstração | Script de seed com turma fictícia, isolado do caminho de produção | Demo não pode ficar vazia |
 | Divisão do trabalho | Fatias verticais por funcionalidade, não por camada | Ninguém fica bloqueado esperando o outro |
 | Decisão final | João Pedro Beckman | Confirmado |
-| Modo de trabalho com a IA assistente | **Ensinar, não entregar código pronto** | Escolha da equipe |
+| Modo de trabalho com a IA assistente | **A IA implementa a solução inteira, em nível sênior, e explica o porquê; quem commita precisa saber explicar o código** | Decisão do João (15/09/2026): a Release 1 foi recusada por não ser funcional e o prazo é curto. A explicação continua obrigatória porque a banca pergunta |
 | Backend | **Python + FastAPI**, em `backend/` no mesmo repositório (monorepo) | A equipe constrói o próprio, sem esperar resposta do professor (ADR da equipe, 12/09/2026) |
 | Hospedagem do backend | **Render**, Web Service gratuito, deploy direto do GitHub | Único com free tier permanente e sem cartão em 2026. Custo: cold start de 30-50s após ~15 min de inatividade — aceitável para uso acadêmico |
+| Hospedagem do app web | **Netlify**, plano gratuito, build `npx expo export -p web` direto do GitHub (`netlify.toml`). Produção publica a `main`; a `develop` e cada PR ganham link de teste próprio | Plano gratuito em créditos (300/mês): só o deploy de produção gasta (15 cada). Previews e o link da `develop` são grátis. Se os créditos acabarem, o site sai do ar até o mês virar. Decidido em 27/09/2026 |
 | Provedor de IA | **Google Gemini** (`gemini-3.5-flash-lite`), via `google-genai` (Python), com streaming | Tier gratuito permanente (não é trial), ~1.500 req/dia, sem cartão. Modelo trocado em 21/09/2026: a linha 2.5 foi descontinuada para contas novas (404 ao chamar, inclusive no `flash-lite`), e o `gemini-3.6-flash` indicado pelo próprio Google como substituto respondeu em 41s e depois falhou por alta demanda — o `3.5-flash-lite` responde a mesma pergunta do roteiro em 2,3s. Versão fixa em vez do alias `gemini-flash-lite-latest` para a bateria anti-cola não mudar de alvo sozinha. Custo: no tier gratuito, os prompts podem ser usados pela Google para treinar modelos — ver risco de LGPD na §8 |
 | Camada de abstração para IA (LangChain) | **Não usar por ora** (YAGNI) | Reavaliar só se o projeto passar a precisar de RAG sobre o material da disciplina |
 | Protocolo de streaming | Backend implementa o **Data Stream Protocol do AI SDK** | Permite o app (Expo/React Native) consumir a resposta token a token sem depender das bibliotecas JS do AI SDK |
@@ -159,7 +160,9 @@ Duas regras que definem tudo:
    mas não bloqueia mais o plano de sprints.
 2. Se a equipe construir: há restrição de linguagem/framework no servidor? (Vale confirmar,
    já que a escolha de Python/FastAPI foi decisão nossa, não resposta do professor.)
-3. Onde a versão web deve ser publicada? Há infraestrutura da UFT ou usamos serviço gratuito?
+3. ~~Onde a versão web deve ser publicada? Há infraestrutura da UFT ou usamos serviço gratuito?~~
+   **Resolvida pela equipe em 27/09/2026:** Netlify, plano gratuito (ver §6). A pergunta ao
+   professor continua valendo caso a UFT ofereça infraestrutura própria.
 
 **Para o professor de Projeto de Sistemas:**
 
