@@ -1,6 +1,6 @@
 # Backend do Aluma
 
-API REST que o app consome. FastAPI + Gemini. O servidor **não guarda conversa**: o histórico
+API REST que o app consome. FastAPI + Claude (principal) com Gemini de reserva. O servidor **não guarda conversa**: o histórico
 chega do app a cada pergunta.
 
 ## Rodar local
@@ -13,7 +13,8 @@ pip install -r requirements-dev.txt
 ```
 
 Crie `backend/.env` a partir do `.env.example` e coloque a sua `GEMINI_API_KEY`
-(pegue em aistudio.google.com). O `.env` está no `.gitignore` e **nunca** vai para o Git.
+(pegue em aistudio.google.com). A `ANTHROPIC_API_KEY` é opcional no local: sem ela o servidor
+pula o Claude e responde só com o Gemini. O `.env` está no `.gitignore` e **nunca** vai para o Git.
 
 ```bash
 uvicorn main:app --reload
@@ -37,6 +38,9 @@ health check em `/health`). Passo a passo:
 2. O Render lê o `render.yaml` sozinho e propõe criar o serviço `aluma-backend`. Confirme.
 3. Ele vai pedir os dois valores marcados `sync: false` (não ficam no arquivo, de propósito —
    regra inviolável 2):
+   - `ANTHROPIC_API_KEY`: chave do workspace `Aluma` no console.anthropic.com. Só o João cria;
+     o workspace tem limite de gasto de US$3/mês e a recarga automática fica desligada.
+     Esgotou o limite, a Anthropic recusa e o Gemini assume
    - `GEMINI_API_KEY`: pegue em aistudio.google.com
    - `CORS_ORIGINS`: `http://localhost:8081` serve para testar já; depois que a versão web
      estiver publicada (issue #49), volte aqui e troque pela URL do Netlify
@@ -64,7 +68,7 @@ envia -> {"mensagem": "como resolvo 3x + 5 = 20?",
 200   -> {"resposta": "O que você pode fazer dos dois lados para isolar o 3x?"}
 422   -> {"erro": "mensagem vazia"}            (Flávio, issue #39)
 429   -> {"erro": "muitas perguntas seguidas, aguarde um pouco"} (Gustavo, issue #42)
-503   -> {"erro": "tutor indisponivel"}        (quando o Gemini falhar)
+503   -> {"erro": "tutor indisponivel"}        (quando o Claude e o Gemini falharem)
 ```
 
 ## Arquivos
@@ -72,8 +76,9 @@ envia -> {"mensagem": "como resolvo 3x + 5 = 20?",
 | Arquivo | Dono | O que faz |
 |---|---|---|
 | `main.py` | Giordano | Rotas e middleware de log |
-| `gemini.py` | Giordano | Conversa com a IA, isolada aqui |
-| `prompt.py` | Thales (#46) | System prompt socrático — ponto de encaixe em `gemini.py` |
+| `claude.py` | João | IA principal (Claude Haiku 4.5); se falhar, a rota chama o `gemini.py` |
+| `gemini.py` | Giordano | IA de reserva, com modelos alternativos e insistência até 40s |
+| `prompt.py` | Thales (#46) | System prompt socrático, o mesmo para as duas IAs |
 | `validation.py` | Flávio (#39) | Validação da entrada no servidor |
 | `rate_limit.py` | Gustavo (#42) | Limite por IP |
 

@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from rate_limit import check_rate_limit
+from claude import chat_com_claude
 from gemini import TutorIndisponivel, chat_com_gemini
 from validation import ChatRequest
 
@@ -91,7 +92,7 @@ def health_check():
 def chat(payload: ChatRequest):
     """
     Rota de chat com o tutor. Recebe mensagem e histórico,
-    retorna a resposta do Gemini ou erro se falhar.
+    retorna a resposta do Claude (ou do Gemini, de reserva) ou erro se os dois falharem.
     """
     try:
         # Converte os objetos Pydantic do histórico para dicionários para facilitar em gemini.py
@@ -99,7 +100,11 @@ def chat(payload: ChatRequest):
             {"autor": msg.autor, "texto": msg.texto} for msg in payload.historico
         ]
 
-        resposta = chat_com_gemini(payload.mensagem, historico_dicts)
+        # Claude primeiro; sem chave, sem crédito ou fora do ar, o Gemini assume.
+        try:
+            resposta = chat_com_claude(payload.mensagem, historico_dicts)
+        except TutorIndisponivel:
+            resposta = chat_com_gemini(payload.mensagem, historico_dicts)
         return {"resposta": resposta}
 
     except TutorIndisponivel:
