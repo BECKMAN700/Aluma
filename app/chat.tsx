@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -9,9 +9,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Colors } from '@/constants/theme';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Night } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { sendMessage } from '@/services/api';
 import type { ChatApiAuthor } from '@/types/aluma';
 
@@ -22,6 +22,16 @@ const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> =
   indisponivel: 'O tutor está fora do ar agora. Tente de novo mais tarde.',
 };
 
+// Poucas e estáticas: é fundo de leitura, não pode competir com o texto.
+const CHAT_STARS = [
+  { top: '12%', left: '86%', size: 2, opacity: 0.5, color: Night.starlight },
+  { top: '28%', left: '5%', size: 1.5, opacity: 0.45, color: Night.guide },
+  { top: '46%', left: '93%', size: 2, opacity: 0.35, color: Night.spark },
+  { top: '61%', left: '10%', size: 1.5, opacity: 0.4, color: Night.starlight },
+  { top: '74%', left: '72%', size: 2, opacity: 0.35, color: Night.guide },
+  { top: '20%', left: '42%', size: 1, opacity: 0.5, color: Night.starlight },
+] as const;
+
 interface Message {
   id: string;
   author: ChatApiAuthor;
@@ -29,10 +39,9 @@ interface Message {
 }
 
 export default function ChatScreen() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
+  const listRef = useRef<FlatList<Message>>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -45,9 +54,14 @@ export default function ChatScreen() {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
+  const canSend = isBackendReady && !isSending;
+
+  // Mensagem nova ou teclado abrindo (a lista encolhe): a última fala continua à vista.
+  const scrollToLatest = () => listRef.current?.scrollToEnd({ animated: true });
+
   const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
-    if (!trimmedText || !isBackendReady || isSending) return;
+    if (!trimmedText || !canSend) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -86,56 +100,59 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.privacyNotice, { color: theme.icon, borderBottomColor: theme.icon }]}>
+      <View style={styles.container}>
+        <View style={styles.stars} pointerEvents="none">
+          {CHAT_STARS.map((star, index) => (
+            <View
+              key={index}
+              style={{
+                position: 'absolute',
+                top: star.top,
+                left: star.left,
+                width: star.size,
+                height: star.size,
+                borderRadius: star.size / 2,
+                backgroundColor: star.color,
+                opacity: star.opacity,
+              }}
+            />
+          ))}
+        </View>
+
+        <Text style={styles.privacyNotice}>
           Não escreva seu nome nem outros dados pessoais durante a conversa.
         </Text>
         {backendStatus !== 'pronto' && (
-          <View style={[styles.statusBannerRow, { borderBottomColor: theme.icon }]}>
-            <Text style={[styles.statusBannerText, { color: theme.text }]} accessibilityLiveRegion="polite">
+          <View style={styles.statusBannerRow}>
+            <Text style={styles.bannerText} accessibilityLiveRegion="polite">
               {BACKEND_STATUS_MESSAGE[backendStatus]}
             </Text>
             {backendStatus === 'indisponivel' && (
               <Pressable onPress={tentarNovamente} accessibilityRole="button">
-                <Text style={[styles.retryText, { color: theme.tint }]}>Tentar de novo</Text>
+                <Text style={styles.retryText}>Tentar de novo</Text>
               </Pressable>
             )}
           </View>
         )}
         {sendError && (
-          <Text
-            style={[styles.statusBanner, { color: theme.text, borderBottomColor: theme.icon }]}
-            accessibilityLiveRegion="polite"
-          >
+          <Text style={[styles.statusBanner, styles.bannerText]} accessibilityLiveRegion="polite">
             {sendError}
           </Text>
         )}
+
         <FlatList
+          ref={listRef}
           style={styles.messageList}
           contentContainerStyle={styles.messageListContent}
           data={messages}
           keyExtractor={(item) => item.id}
+          onContentSizeChange={scrollToLatest}
+          onLayout={scrollToLatest}
           renderItem={({ item }) => {
             const isStudent = item.author === 'aluno';
             return (
-              <View
-                style={[
-                  styles.bubble,
-                  isStudent ? styles.studentBubble : styles.tutorBubble,
-                  {
-                    backgroundColor: isStudent ? theme.tint : theme.background,
-                    borderColor: isStudent ? theme.tint : theme.icon,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.bubbleText,
-                    {
-                      color: isStudent ? Colors.light.text : theme.text,
-                    },
-                  ]}
-                >
+              <View style={[styles.bubble, isStudent ? styles.studentBubble : styles.tutorBubble]}>
+                <Text style={[styles.bubbleText, isStudent && styles.studentBubbleText]}>
                   {item.text}
                 </Text>
               </View>
@@ -143,47 +160,29 @@ export default function ChatScreen() {
           }}
         />
 
-        <View
-          style={[
-            styles.inputBar,
-            {
-              backgroundColor: theme.background,
-              borderTopColor: theme.icon,
-            },
-          ]}
-        >
+        <View style={styles.inputBar}>
           <TextInput
-            style={[
-              styles.input,
-              {
-                color: theme.text,
-                borderColor: theme.icon,
-              },
-            ]}
-            placeholder="Digite sua dúvida..."
-            placeholderTextColor={theme.icon}
+            style={styles.input}
+            placeholder="Escreva sua dúvida"
+            placeholderTextColor={Night.dust}
             value={inputText}
             onChangeText={(text) => {
               setInputText(text);
               setSendError(null);
             }}
+            onSubmitEditing={handleSendMessage}
+            returnKeyType="send"
             multiline={false}
           />
           <Pressable
-            style={[
-              styles.sendButton,
-              { backgroundColor: theme.tint },
-              (!isBackendReady || isSending) && styles.sendButtonDisabled,
-            ]}
+            style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
             onPress={handleSendMessage}
-            disabled={!isBackendReady || isSending}
+            disabled={!canSend}
             accessibilityRole="button"
-            accessibilityLabel="Enviar mensagem"
-            accessibilityState={{ disabled: !isBackendReady || isSending }}
+            accessibilityLabel={isSending ? 'Enviando mensagem' : 'Enviar mensagem'}
+            accessibilityState={{ disabled: !canSend, busy: isSending }}
           >
-            <Text style={[styles.sendButtonText, { color: Colors.light.text }]}>
-              {isSending ? 'Enviando…' : 'Enviar'}
-            </Text>
+            <IconSymbol name="paperplane.fill" size={20} color={Night.sky} />
           </Pressable>
         </View>
       </View>
@@ -196,112 +195,133 @@ const styles = StyleSheet.create({
     // Regra 1: Nenhuma altura fixa. Ocupa 100% da tela disponível pelo flexbox do pai.
     flex: 1,
   },
+  container: {
+    // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
+    flex: 1,
+    backgroundColor: Night.sky,
+  },
+  stars: {
+    // Regra 3: absolute só na decoração, atrás de tudo.
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  privacyNotice: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 12,
+    textAlign: 'center',
+    color: Night.dust,
+  },
   statusBanner: {
     // Altura natural, como a barra de digitar: a lista abaixo absorve o resto.
     paddingHorizontal: 16,
     paddingVertical: 10,
-    fontSize: 14,
     textAlign: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   statusBannerRow: {
     // Mesma altura natural do statusBanner, mas em row pra caber o botão de retry ao lado.
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  statusBannerText: {
+  bannerText: {
+    // Regra 2: texto em row encolhe em vez de vazar.
+    flexShrink: 1,
+    minWidth: 0,
     fontSize: 14,
     textAlign: 'center',
+    color: Night.starlight,
   },
   retryText: {
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
-  },
-  privacyNotice: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    fontSize: 12,
-    textAlign: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  container: {
-    // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
-    flex: 1,
+    color: Night.guide,
   },
   messageList: {
-    // Regra 1: A lista tem flex: 1 para ocupar todo o espaço vertical disponível que sobra,
-    // empurrando naturalmente a barra de digitar para a base.
+    // Regra 1: a lista come o espaço que sobra; com o teclado aberto, ela é quem encolhe.
     flex: 1,
   },
   messageListContent: {
     // Regra 4: Espaçamento entre os balões utilizando gap no container em vez de margens individuais.
     padding: 16,
-    gap: 12,
+    gap: 14,
   },
   bubble: {
-    // Regra 5: alignSelf para posicionar o balão individualmente no eixo cruzado (horizontal).
-    // Regra 6: maxWidth em porcentagem tipada sem `as any`.
-    maxWidth: '80%',
+    // Regra 5 e 6: alignSelf individual e maxWidth em porcentagem tipada, sem `as any`.
+    maxWidth: '82%',
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  studentBubble: {
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
+    paddingVertical: 12,
+    borderRadius: 18,
   },
   tutorBubble: {
+    // Ciano: a voz do tutor.
     alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: 6,
+    backgroundColor: 'rgba(56, 189, 248, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+    shadowColor: Night.guide,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+  },
+  studentBubble: {
+    // Âmbar: a sua ação.
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 6,
+    backgroundColor: Night.spark,
   },
   bubbleText: {
     // Regra 2: flexShrink: 1 garante que textos longos não vazem da tela e quebrem linha normalmente.
     flexShrink: 1,
     fontSize: 15,
     lineHeight: 22,
+    color: Night.starlight,
+  },
+  studentBubbleText: {
+    color: Night.sky,
+    fontWeight: '500',
   },
   inputBar: {
-    // A barra de digitar NÃO leva flex. Ela adota sua altura natural baseada no conteúdo,
-    // enquanto a FlatList acima absorve o espaço livre dinamicamente.
+    // A barra de digitar NÃO leva flex: altura natural, a FlatList acima absorve o espaço livre.
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10, // Regra 4: gap entre o input e o botão.
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   input: {
-    // O TextInput recebe flex: 1 para esticar e preencher todo o espaço horizontal livre da row.
+    // Estica e preenche o espaço horizontal livre da row.
     flex: 1,
+    minWidth: 0,
     borderWidth: 1,
-    borderRadius: 20,
+    borderColor: 'rgba(124, 137, 166, 0.35)',
+    backgroundColor: 'rgba(231, 236, 245, 0.05)',
+    borderRadius: 22,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 15,
+    color: Night.starlight,
   },
   sendButton: {
-    // O botão fica com seu tamanho intrínseco/natural baseado no conteúdo e no padding.
+    // Tamanho fixo por natureza (é um ícone), exceção da regra 1; 44px é o alvo mínimo de toque.
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
+    backgroundColor: Night.spark,
   },
-  sendButtonText: {
-    // Regra 2: Em containers de linha (row), flexShrink evita estouro de largura.
-    flexShrink: 1,
-    fontSize: 15,
-    fontWeight: '600',
+  sendButtonDisabled: {
+    opacity: 0.4,
   },
 });
-
