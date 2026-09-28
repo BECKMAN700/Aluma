@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from gemini import TutorIndisponivel
 from main import app
 from rate_limit import ip_request_history
 
@@ -15,6 +16,14 @@ def reset_ip_history():
     # teste ("testclient"); sem isso o rate limit derrubaria estes testes
     # com 429 antes de chegar na validação.
     ip_request_history.clear()
+
+
+@pytest.fixture(autouse=True)
+def claude_fora():
+    # Com ANTHROPIC_API_KEY no .env, a rota chamaria o Claude de verdade (e gastaria crédito).
+    # Estes testes são de validação: o Claude cai e o Gemini simulado de cada teste responde.
+    with patch("main.chat_com_claude", side_effect=TutorIndisponivel):
+        yield
 
 
 def test_mensagem_vazia_retorna_422():
