@@ -17,8 +17,9 @@ MODELOS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash")
 TEMPO_POR_MODELO_MS = 15_000
 # O 503 do Google vem em ondas: insistir nos modelos até perto dos 60s que o app espera
 # (services/api.ts) acha a janela em que ele responde. Desistir na 1ª rodada levava 5s.
+# A pausa não é menor porque os 503 também podem contar na cota gratuita.
 PRAZO_TOTAL_S = 50
-PAUSA_ENTRE_RODADAS_S = 2
+PAUSA_ENTRE_RODADAS_S = 6
 
 
 class TutorIndisponivel(Exception):
