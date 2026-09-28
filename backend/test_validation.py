@@ -19,7 +19,7 @@ def reset_ip_history():
 
 def test_mensagem_vazia_retorna_422():
     response = client.post("/api/chat", json={"mensagem": ""})
-    assert response.status_code == 200  # QUEBRADO DE PROPOSITO (evidencia da #58)
+    assert response.status_code == 422
     assert "vazia" in response.json()["erro"]
 
 
