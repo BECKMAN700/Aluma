@@ -1,49 +1,66 @@
+import json
 import os
-from unittest.mock import MagicMock, patch
+from functools import partial
+from unittest.mock import patch
 
 import anthropic
-import httpx
+import httpx2  # o cliente HTTP que o SDK anthropic 1.x usa por dentro
 import pytest
 from fastapi.testclient import TestClient
 
-from claude import MODELO, TEMPO_LIMITE_S, chat_com_claude
+from claude import MODELO, chat_com_claude
 from gemini import TutorIndisponivel
 from main import app
-from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
+from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
 from rate_limit import ip_request_history
 
-SOBRECARGA = anthropic.APIStatusError(
-    "Overloaded",
-    response=httpx.Response(529, request=httpx.Request("POST", "https://api.anthropic.com")),
-    body=None,
-)
+
+def anthropic_falso(status, corpo, pedidos):
+    """
+    SDK anthropic de verdade, só com a rede trocada por uma resposta pronta.
+
+    Simular o SDK inteiro escondeu um TypeError em 28/09/2026 (parâmetro que o SDK 1.x
+    não aceita); assim o teste quebra se a chamada não bater com o SDK instalado.
+    """
+
+    def responder(request):
+        pedidos.append(json.loads(request.content))
+        return httpx2.Response(status, json=corpo)
+
+    http = httpx2.Client(transport=httpx2.MockTransport(responder))
+    return partial(anthropic.Anthropic, http_client=http)
 
 
-def resposta(texto):
-    return MagicMock(content=[MagicMock(type="text", text=texto)])
+RESPOSTA_OK = {
+    "id": "msg_teste",
+    "type": "message",
+    "role": "assistant",
+    "model": MODELO,
+    "content": [{"type": "text", "text": "pergunta-guia"}],
+    "stop_reason": "end_turn",
+    "stop_sequence": None,
+    "usage": {"input_tokens": 1, "output_tokens": 1},
+}
 
 
 @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "chave-de-teste"})
-@patch("claude.anthropic.Anthropic")
-def test_envia_o_tutor_socratico_e_descarta_a_saudacao(client_cls):
-    criar = client_cls.return_value.messages.create
-    criar.return_value = resposta("pergunta-guia")
+def test_envia_o_tutor_socratico_e_descarta_a_saudacao():
+    pedidos = []
     historico = [
         {"autor": "tutor", "texto": "Olá! Sou o orientador de estudos do Aluma."},
         {"autor": "aluno", "texto": "me ajuda com 3x + 5 = 20"},
         {"autor": "tutor", "texto": "o que fazer com o +5?"},
     ]
 
-    assert chat_com_claude("tirar dos dois lados?", historico) == "pergunta-guia"
+    with patch("claude.anthropic.Anthropic", anthropic_falso(200, RESPOSTA_OK, pedidos)):
+        assert chat_com_claude("tirar dos dois lados?", historico) == "pergunta-guia"
 
-    assert client_cls.call_args.kwargs["timeout"] == TEMPO_LIMITE_S
-    kwargs = criar.call_args.kwargs
-    assert kwargs["model"] == MODELO
-    assert kwargs["system"] == SYSTEM_PROMPT
-    assert kwargs["temperature"] == TEMPERATURE
-    assert kwargs["max_tokens"] == MAX_OUTPUT_TOKENS
-    assert [m["role"] for m in kwargs["messages"]] == ["user", "assistant", "user"]
-    assert kwargs["messages"][-1]["content"] == "tirar dos dois lados?"
+    enviado = pedidos[0]
+    assert enviado["model"] == MODELO
+    assert enviado["system"] == SYSTEM_PROMPT
+    assert enviado["max_tokens"] == MAX_OUTPUT_TOKENS
+    assert [m["role"] for m in enviado["messages"]] == ["user", "assistant", "user"]
+    assert enviado["messages"][-1]["content"] == "tirar dos dois lados?"
 
 
 def test_sem_chave_vira_tutor_indisponivel(monkeypatch):
@@ -53,11 +70,11 @@ def test_sem_chave_vira_tutor_indisponivel(monkeypatch):
 
 
 @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "chave-de-teste"})
-@patch("claude.anthropic.Anthropic")
-def test_erro_da_anthropic_vira_tutor_indisponivel(client_cls):
-    client_cls.return_value.messages.create.side_effect = SOBRECARGA
-    with pytest.raises(TutorIndisponivel):
-        chat_com_claude("oi", [])
+def test_anthropic_sobrecarregada_vira_tutor_indisponivel():
+    sobrecarga = {"type": "error", "error": {"type": "overloaded_error", "message": "Overloaded"}}
+    with patch("claude.anthropic.Anthropic", anthropic_falso(529, sobrecarga, [])):
+        with pytest.raises(TutorIndisponivel):
+            chat_com_claude("oi", [])
 
 
 @patch("main.chat_com_gemini", return_value="resposta do gemini")

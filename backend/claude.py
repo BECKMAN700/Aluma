@@ -3,7 +3,7 @@ import os
 import anthropic
 
 from gemini import TutorIndisponivel
-from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
+from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
 
 # Versão fixa, pelo mesmo motivo do Gemini: a bateria anti-cola precisa apontar sempre para
 # o mesmo alvo. Claude é o principal desde 28/09/2026, quando o Gemini gratuito caiu em ondas
@@ -44,10 +44,11 @@ def chat_com_claude(mensagem: str, historico: list) -> str:
 
     client = anthropic.Anthropic(api_key=api_key, timeout=TEMPO_LIMITE_S, max_retries=0)
     try:
+        # Sem `temperature`: o SDK anthropic 1.x não aceita mais o parâmetro (TypeError).
+        # Quem segura o tutor socrático é o SYSTEM_PROMPT, validado na bateria anti-cola.
         response = client.messages.create(
             model=MODELO,
             system=SYSTEM_PROMPT,
-            temperature=TEMPERATURE,
             max_tokens=MAX_OUTPUT_TOKENS,
             messages=messages,
         )
