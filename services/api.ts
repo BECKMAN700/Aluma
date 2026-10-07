@@ -1,4 +1,4 @@
-import type { ChatErrorResponse, ChatHistoryItem, ChatRequestBody, ChatResponse } from '@/types/aluma';
+import type { ChatErrorResponse, ChatHistoryItem, ChatRequestBody, ChatResponse } from '@/types/api';
 
 /**
  * Único lugar do app que conhece o endereço do servidor.

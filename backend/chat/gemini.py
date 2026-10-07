@@ -4,7 +4,7 @@ import time
 from google import genai
 from google.genai import types
 
-from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
+from chat.prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, TEMPERATURE
 
 # Versões fixas, e não aliases como `gemini-flash-lite-latest`: a bateria anti-cola precisa
 # apontar sempre para o mesmo alvo. Decisão registrada em PROJECT-CONTEXT.md §6.

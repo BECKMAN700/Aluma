@@ -3,9 +3,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from gemini import TutorIndisponivel
+from chat.gemini import TutorIndisponivel
 from main import app
-from rate_limit import ip_request_history
+from nucleo.rate_limit import ip_request_history
 
 client = TestClient(app)
 
@@ -22,7 +22,7 @@ def reset_ip_history():
 def claude_fora():
     # Com ANTHROPIC_API_KEY no .env, a rota chamaria o Claude de verdade (e gastaria crédito).
     # Estes testes são de validação: o Claude cai e o Gemini simulado de cada teste responde.
-    with patch("main.chat_com_claude", side_effect=TutorIndisponivel):
+    with patch("chat.rotas.chat_com_claude", side_effect=TutorIndisponivel):
         yield
 
 
@@ -56,7 +56,7 @@ def test_autor_invalido_no_historico_retorna_422():
     assert "aluno" in response.json()["erro"]
 
 
-@patch("main.chat_com_gemini", return_value="pergunta-guia, nao a resposta pronta")
+@patch("chat.rotas.chat_com_gemini", return_value="pergunta-guia, nao a resposta pronta")
 def test_mensagem_valida_passa(mock_chat_com_gemini):
     response = client.post("/api/chat", json={"mensagem": "como resolvo essa equacao?"})
     assert response.status_code == 200
@@ -71,7 +71,7 @@ def test_campo_desconhecido_e_rejeitado():
 
 def test_historico_com_mais_de_10_itens_corta_os_mais_antigos():
     historico = [{"autor": "aluno", "texto": f"pergunta {i}"} for i in range(15)]
-    with patch("main.chat_com_gemini", return_value="ok") as mock_chat_com_gemini:
+    with patch("chat.rotas.chat_com_gemini", return_value="ok") as mock_chat_com_gemini:
         response = client.post("/api/chat", json={"mensagem": "oi", "historico": historico})
 
     assert response.status_code == 200

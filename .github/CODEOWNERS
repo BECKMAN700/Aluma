@@ -6,5 +6,5 @@
 # fica esperando uma pessoa só no fim da sprint.
 
 /.github/               @BECKMAN700
-/backend/rate_limit.py  @BECKMAN700
+/backend/nucleo/        @BECKMAN700
 /docs/sprints.md        @BECKMAN700

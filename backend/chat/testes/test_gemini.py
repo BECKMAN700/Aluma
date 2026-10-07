@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.genai import errors
 
-from gemini import MODELOS, PRAZO_TOTAL_S, TEMPO_POR_MODELO_MS, TutorIndisponivel, chat_com_gemini
+from chat.gemini import MODELOS, PRAZO_TOTAL_S, TEMPO_POR_MODELO_MS, TutorIndisponivel, chat_com_gemini
 
 SOBRECARGA = errors.ServerError(
     503, {"error": {"code": 503, "message": "The model is overloaded.", "status": "UNAVAILABLE"}}
@@ -24,7 +24,7 @@ class RelogioFalso:
 
 
 @patch.dict(os.environ, {"GEMINI_API_KEY": "chave-de-teste"})
-@patch("gemini.genai.Client")
+@patch("chat.gemini.genai.Client")
 def test_modelo_reserva_assume_quando_o_principal_da_503(client_cls):
     gerar = client_cls.return_value.models.generate_content
     gerar.side_effect = [SOBRECARGA, MagicMock(text="pergunta-guia")]
@@ -37,8 +37,8 @@ def test_modelo_reserva_assume_quando_o_principal_da_503(client_cls):
 
 
 @patch.dict(os.environ, {"GEMINI_API_KEY": "chave-de-teste"})
-@patch("gemini.time.sleep")
-@patch("gemini.genai.Client")
+@patch("chat.gemini.time.sleep")
+@patch("chat.gemini.genai.Client")
 def test_insiste_em_nova_rodada_quando_todos_falham(client_cls, sleep):
     gerar = client_cls.return_value.models.generate_content
     gerar.side_effect = [SOBRECARGA] * len(MODELOS) + [MagicMock(text="pergunta-guia")]
@@ -50,9 +50,9 @@ def test_insiste_em_nova_rodada_quando_todos_falham(client_cls, sleep):
 
 
 @patch.dict(os.environ, {"GEMINI_API_KEY": "chave-de-teste"})
-@patch("gemini.time.sleep")
-@patch("gemini.time.monotonic", new_callable=lambda: RelogioFalso(passo=5))
-@patch("gemini.genai.Client")
+@patch("chat.gemini.time.sleep")
+@patch("chat.gemini.time.monotonic", new_callable=lambda: RelogioFalso(passo=5))
+@patch("chat.gemini.genai.Client")
 def test_desiste_no_prazo_e_vira_tutor_indisponivel(client_cls, relogio, sleep):
     gerar = client_cls.return_value.models.generate_content
     gerar.side_effect = SOBRECARGA
