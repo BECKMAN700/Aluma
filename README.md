@@ -187,3 +187,4 @@ quanto os artefatos da Supernova; quem está só em uma responde por aquela fren
 | Iagor | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) | sim | não |
 | Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) | não | sim |
 | Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) | não | sim |
+| Anna Beatriz Moura de Oliveira | Desenvolvedora | [@bibimoura](https://github.com/bibimoura) | não | sim |

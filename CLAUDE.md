@@ -2,7 +2,7 @@
 
 Plataforma de tutoria com IA vinculada à turma real da escola. Projeto acadêmico da UFT,
 duas disciplinas: Projeto de Sistemas (competição Sebrae Supernova) e Desenvolvimento Web/Mobile.
-Equipe de sete, cinco em cada disciplina, prazo de semestre.
+Equipe de oito: cinco em Web/Mobile, seis em Projeto de Sistemas. Prazo de semestre.
 
 O contexto completo — problema, escopo, decisões, riscos e calendário — está em
 @PROJECT-CONTEXT.md. Ele é a fonte da verdade: antes de propor mudança de rumo, consulte lá.
@@ -73,5 +73,6 @@ Duas disciplinas, times parcialmente sobrepostos. Ver `PROJECT-CONTEXT.md` §11.
 | Iagor | @iagorlrnc | Web/Mobile |
 | Flávio | @flaviohen16 | Projeto de Sistemas |
 | Gustavo Bringel | @GustavoBringel | Projeto de Sistemas |
+| Anna Beatriz Moura de Oliveira | @bibimoura | Projeto de Sistemas |
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
