@@ -161,8 +161,8 @@ fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronogra
 
 ## Regras invioláveis
 
-O público do Aluma é formado por menores de idade, e a LGPD se aplica com rigor. Nada abaixo é
-negociável:
+Nada abaixo é negociável, com uma exceção registrada: a regra 8 está suspensa enquanto o projeto
+é só demonstração.
 
 1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch e Pull Request revisado.
 2. Chave de API, senha ou segredo nunca entram no código, no commit, na URL ou no log.
@@ -171,7 +171,9 @@ negociável:
 5. Nada de dado falso ou mock no caminho de produção. O seed é isolado e sinalizado.
 6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
 7. Nenhum dado de aluno cruza a fronteira da sua turma ou escola.
-8. Coleta mínima: sem CPF, sem foto. Exclusão sob pedido.
+8. **Suspensa na fase de apresentação (07/10/2026):** LGPD para menores, consentimento dos pais
+   e exclusão sob pedido. A demonstração usa contas fictícias; a regra volta antes de qualquer
+   uso com aluno real.
 
 ## Equipe
 

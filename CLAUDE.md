@@ -9,9 +9,12 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 
 ## Stack
 
-- React Native + Expo, TypeScript. Um código só, roda no navegador e no celular.
-- O app é **cliente**: consome API REST. Não implementamos backend próprio sem decisão explícita.
+- App: React Native + Expo, TypeScript. Um código só, roda no navegador e no celular.
+- Backend: Python + FastAPI, em `backend/`, organizado por assunto. Banco e login no Supabase.
+- O app é **cliente**: fala com o Supabase só para login; todo dado passa pela API REST.
 - Alvo: celular ruim, internet instável. Tela pequena primeiro, payload leve.
+- Antes de mexer em tabela, rota ou permissão, leia `docs/arquitetura.md`: é o mapa do projeto.
+  Para a tarefa da vez, leia só o arquivo da sprint atual em `docs/sprints/`.
 
 <!-- Confirmar com o professor se a API é fornecida ou se a equipe constrói (pendência nº 1 do PROJECT-CONTEXT) -->
 
@@ -37,17 +40,18 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
 6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
-8. Usuários são menores de idade: LGPD com regra dura. Não colete dado que não é necessário
-   (sem CPF, sem foto). Exclusão sob pedido.
+8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD para menores,
+   consentimento dos pais e exclusão sob pedido. Não trate como bloqueio. A demonstração usa
+   contas fictícias; a regra volta antes de qualquer uso com aluno real.
 
 ## Comandos
 
 <!-- Preencher quando o projeto Expo estiver criado. Ex.: npx expo start / npm test / npm run lint -->
 
-- Instalar: `npm install`
-- Rodar: `npx expo start`
-- Testes: _(definir)_
-- Lint/format: _(definir)_
+- App — instalar: `npm install` · rodar: `npx expo start` · lint: `npm run lint`
+- Backend (dentro de `backend/`) — instalar: `pip install -r requirements-dev.txt` ·
+  rodar: `uvicorn main:app --reload` · testes: `pytest`
+- Testes do app: _(definir)_
 
 ## Convenções
 
