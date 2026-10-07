@@ -14,7 +14,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Night } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { sendMessage } from '@/services/api';
-import type { ChatApiAuthor } from '@/types/aluma';
+import type { ChatApiAuthor } from '@/types/api';
 
 // Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
 const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {

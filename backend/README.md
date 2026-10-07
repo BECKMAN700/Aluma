@@ -73,16 +73,22 @@ envia -> {"mensagem": "como resolvo 3x + 5 = 20?",
 
 ## Arquivos
 
+O backend é organizado **por assunto**: uma pasta para cada, com os testes dentro.
+
 | Arquivo | Dono | O que faz |
 |---|---|---|
-| `main.py` | Giordano | Rotas e middleware de log |
-| `claude.py` | João | IA principal (Claude Haiku 4.5); se falhar, a rota chama o `gemini.py` |
-| `gemini.py` | Giordano | IA de reserva, com modelos alternativos e insistência até 40s |
-| `prompt.py` | Thales (#46) | System prompt socrático, o mesmo para as duas IAs |
-| `validation.py` | Flávio (#39) | Validação da entrada no servidor |
-| `rate_limit.py` | Gustavo (#42) | Limite por IP |
+| `main.py` | Giordano | Monta o app: CORS, log, mensagens de erro, `/health`, e registra as rotas de cada pasta |
+| `nucleo/rate_limit.py` | Gustavo (#42) | Limite por IP |
+| `chat/rotas.py` | Giordano | `POST /api/chat`: chama o Claude e, se falhar, o Gemini |
+| `chat/esquemas.py` | Flávio (#39) | Validação da entrada no servidor |
+| `chat/prompt.py` | Thales (#46) | System prompt socrático, o mesmo para as duas IAs |
+| `chat/claude.py` | João | IA principal (Claude Haiku 4.5) |
+| `chat/gemini.py` | Giordano | IA de reserva, com modelos alternativos e insistência até 40s |
+| `*/testes/` | — | Testes daquela pasta. `pytest` na raiz do backend roda todos (`pytest.ini`) |
 
-Arquivo separado por pessoa é de propósito: ninguém edita a mesma linha e o Git não gera conflito.
+Assunto novo ganha pasta nova com o mesmo formato: `rotas.py` (endereços), `esquemas.py`
+(validação), `consultas.py` (SQL) e `testes/`. Dentro do backend, importe sempre pelo nome da
+pasta: `from chat.prompt import SYSTEM_PROMPT`.
 
 ## Log e privacidade
 

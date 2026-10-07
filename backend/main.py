@@ -2,15 +2,12 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from rate_limit import check_rate_limit
-from claude import chat_com_claude
-from gemini import TutorIndisponivel, chat_com_gemini
-from validation import ChatRequest
+from chat.rotas import router as chat_router
 
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
@@ -62,7 +59,7 @@ async def rate_limit_exception_handler(request: Request, exc: Exception):
 
 
 # Tipos de erro padrão do Pydantic que não passam por um field_validator nosso
-# (esses já levantam ValueError em português, ver validation.py).
+# (esses já levantam ValueError em português, ver chat/esquemas.py).
 _ERRO_POR_TIPO_PYDANTIC = {
     "missing": "faltou um campo obrigatorio na mensagem",
     "extra_forbidden": "a mensagem enviada tem um campo que o servidor nao reconhece",
@@ -88,31 +85,4 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.post("/api/chat", dependencies=[Depends(check_rate_limit)])
-def chat(payload: ChatRequest):
-    """
-    Rota de chat com o tutor. Recebe mensagem e histórico,
-    retorna a resposta do Claude (ou do Gemini, de reserva) ou erro se os dois falharem.
-    """
-    try:
-        # Converte os objetos Pydantic do histórico para dicionários para facilitar em gemini.py
-        historico_dicts = [
-            {"autor": msg.autor, "texto": msg.texto} for msg in payload.historico
-        ]
-
-        # Claude primeiro; sem chave, sem crédito ou fora do ar, o Gemini assume.
-        try:
-            resposta = chat_com_claude(payload.mensagem, historico_dicts)
-        except TutorIndisponivel:
-            resposta = chat_com_gemini(payload.mensagem, historico_dicts)
-        return {"resposta": resposta}
-
-    except TutorIndisponivel:
-        # A falha já foi registrada em gemini.py, sem conteúdo de conversa.
-        return JSONResponse(status_code=503, content={"erro": "tutor indisponivel"})
-
-    except Exception as e:
-        # Só o tipo do erro vai para o log: a mensagem crua pode carregar
-        # trecho da conversa do aluno (regra inviolável 8).
-        print(f"[chat] erro interno: {type(e).__name__}")
-        return JSONResponse(status_code=500, content={"erro": "erro interno do servidor"})
+app.include_router(chat_router)

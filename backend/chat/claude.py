@@ -2,12 +2,12 @@ import os
 
 import anthropic
 
-from gemini import TutorIndisponivel
-from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
+from chat.gemini import TutorIndisponivel
+from chat.prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
 
 # Versão fixa, pelo mesmo motivo do Gemini: a bateria anti-cola precisa apontar sempre para
 # o mesmo alvo. Claude é o principal desde 28/09/2026, quando o Gemini gratuito caiu em ondas
-# de 503; o Gemini segue como reserva em main.py.
+# de 503; o Gemini segue como reserva em chat/rotas.py.
 MODELO = "claude-haiku-4-5-20251001"
 
 # 15s aqui + PRAZO_TOTAL_S do Gemini cabem nos 60s que o app espera (services/api.ts).

@@ -3,7 +3,7 @@ import pytest
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
-from rate_limit import check_rate_limit, ip_request_history
+from nucleo.rate_limit import check_rate_limit, ip_request_history
 
 # Cria uma aplicação FastAPI de teste isolada (sem chamar a API do Gemini)
 app_test = FastAPI()

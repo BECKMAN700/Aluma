@@ -8,11 +8,11 @@ import httpx2  # o cliente HTTP que o SDK anthropic 1.x usa por dentro
 import pytest
 from fastapi.testclient import TestClient
 
-from claude import MODELO, chat_com_claude
-from gemini import TutorIndisponivel
+from chat.claude import MODELO, chat_com_claude
+from chat.gemini import TutorIndisponivel
 from main import app
-from prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
-from rate_limit import ip_request_history
+from chat.prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
+from nucleo.rate_limit import ip_request_history
 
 
 def anthropic_falso(status, corpo, pedidos):
@@ -52,7 +52,7 @@ def test_envia_o_tutor_socratico_e_descarta_a_saudacao():
         {"autor": "tutor", "texto": "o que fazer com o +5?"},
     ]
 
-    with patch("claude.anthropic.Anthropic", anthropic_falso(200, RESPOSTA_OK, pedidos)):
+    with patch("chat.claude.anthropic.Anthropic", anthropic_falso(200, RESPOSTA_OK, pedidos)):
         assert chat_com_claude("tirar dos dois lados?", historico) == "pergunta-guia"
 
     enviado = pedidos[0]
@@ -72,13 +72,13 @@ def test_sem_chave_vira_tutor_indisponivel(monkeypatch):
 @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "chave-de-teste"})
 def test_anthropic_sobrecarregada_vira_tutor_indisponivel():
     sobrecarga = {"type": "error", "error": {"type": "overloaded_error", "message": "Overloaded"}}
-    with patch("claude.anthropic.Anthropic", anthropic_falso(529, sobrecarga, [])):
+    with patch("chat.claude.anthropic.Anthropic", anthropic_falso(529, sobrecarga, [])):
         with pytest.raises(TutorIndisponivel):
             chat_com_claude("oi", [])
 
 
-@patch("main.chat_com_gemini", return_value="resposta do gemini")
-@patch("main.chat_com_claude", side_effect=TutorIndisponivel)
+@patch("chat.rotas.chat_com_gemini", return_value="resposta do gemini")
+@patch("chat.rotas.chat_com_claude", side_effect=TutorIndisponivel)
 def test_rota_cai_no_gemini_quando_o_claude_falha(claude, gemini):
     ip_request_history.clear()
     response = TestClient(app).post("/api/chat", json={"mensagem": "oi"})
