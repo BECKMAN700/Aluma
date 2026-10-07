@@ -3,7 +3,7 @@
 > Registro curto de cada reunião do time. Existe por dois motivos: a equipe não perder o que
 > foi decidido, e cada integrante ter **evidência de participação** — item que vale nota no
 > bloco de engajamento da ficha de avaliação de Projeto de Sistemas (ver
-> [`sprints.md`](sprints.md) §5.7).
+> [`sprints/sprint-2.md`](sprints/sprint-2.md) §5.7).
 >
 > Regras: uma entrada por reunião, sempre no topo da lista. Cinco linhas bastam. Quem não
 > esteve presente entra em "ausentes" — sem constrangimento, mas sem invenção: o professor
