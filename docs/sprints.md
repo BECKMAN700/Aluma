@@ -333,31 +333,200 @@ e issue — é o mesmo repositório e o mesmo custo.
 **Release 2** = qualquer pessoa abre a URL, conversa com o tutor socrático de verdade e passa
 pelos 7 passos do roteiro 5.1. Mais as primeiras evidências de validação de campo.
 
-## 6. Sprint #3 (28/set–18/out) — Release 3 🔶 a confirmar
+## 6. Sprint #3 (28/set–18/out) — Release 3
 
-Deploy e chat com IA já saíram na Release 2. Proposta: a Sprint #3 dá **direção** ao aluno,
-que é a outra metade da dor central ("não sei o que estudar").
+Deploy e chat com IA já saíram na Release 2. A Sprint #3 dá **direção** ao aluno, que é a outra
+metade da dor central ("não sei o que estudar").
 
-Roteiro proposto: *"Abro o app, vejo os tópicos de Matemática do 9º ano, escolho um, e o tutor
-conversa comigo sobre esse tópico. A resposta aparece aos poucos, sem esperar a mensagem
-inteira."*
+Plano fechado em 07/10, no dia 10 dos 21 da sprint: até aqui só entraram correções do tutor
+(PRs #77 a #83). Sobram 11 dias, e a equipe agora tem oito pessoas, com a entrada da Anna
+Beatriz.
+
+Trade-off aceito (decisão do João, 07/10): a release é definida **só por trilha e chat ligado
+ao tópico**. O streaming entra na sprint com dono, mas é **cortável**: é a peça mais arriscada
+(consumir resposta aos poucos no React Native) e não pode derrubar a release. O custo é que a
+Release 3 pode sair ainda com a resposta chegando inteira.
+
+Continua de fora: login, turma, histórico salvo no servidor, exercícios e painel do professor.
+
+### 6.1 Roteiro de demonstração (critério de aceite da Release 3)
+
+1. O professor abre a URL pública no navegador do celular e toca em **Ver minha trilha**.
+2. Aparece a lista de tópicos de Matemática do 9º ano, cada um com o status *não iniciado*.
+3. Sem internet ou com o servidor fora, a trilha mostra um erro claro e um botão de tentar de
+   novo. Nunca mostra lista inventada.
+4. Toca em um tópico (ex.: *Equações do 2º grau*) e chega no chat, com o nome do tópico no topo.
+5. Pergunta algo do tópico: o tutor guia por perguntas, sem entregar a resposta.
+6. Pede a resposta pronta de um exercício do tópico: o tutor continua recusando.
+7. Volta para a trilha: o tópico aparece como *em andamento*. Fechando e reabrindo o app, o
+   status continua lá.
+8. Marca o tópico como *dominado* e o status muda na lista.
+9. Tudo acima repetido a 320px de largura, sem corte nem rolagem lateral
+   ([`layout-flexbox.md`](layout-flexbox.md)).
+
+Passo extra, **só se o streaming entrar**: a resposta do tutor aparece aos poucos, sem esperar
+a mensagem inteira.
+
+### 6.2 Contrato da API (fechado aqui para ninguém esperar ninguém)
+
+Quatro pessoas dependem da lista de tópicos. Com o formato escrito abaixo, cada uma programa
+contra o contrato desde o primeiro dia, sem esperar o PR da outra.
+
+`GET /api/topicos` responde `200`:
+
+```json
+{
+  "topicos": [
+    { "id": "equacoes-2-grau", "nome": "Equações do 2º grau", "descricao": "Uma frase curta." }
+  ]
+}
+```
+
+`POST /api/chat` ganha o campo **opcional** `topico_id` (texto). Sem ele, o chat funciona como
+na Release 2. Com um `id` que não existe na lista, o servidor responde `422` com
+`{"erro": "topico desconhecido"}` e não chama a IA (regra 3).
+
+O status do tópico **não** passa pela API nesta release: ver a suposição em 6.4.
+
+### 6.3 Backend
 
 | Entrega | Descrição | Responsável |
 |---|---|---|
-| Streaming no backend | Resposta no Data Stream Protocol do AI SDK, consumida token a token pelo app | A definir |
-| Trilha de tópicos | Lista de tópicos com status (não iniciado / em andamento / dominado), requisito 3 da V1 | A definir |
-| Chat ligado ao tópico | O tópico escolhido entra no contexto do system prompt | A definir |
+| Rota de tópicos | `backend/topicos.py` com a lista de tópicos de Matemática do 9º ano, tirada da BNCC, e a rota `GET /api/topicos`. Testes em `test_topicos.py` | Anna Beatriz |
+| Validação do tópico | `ChatRequest` aceita `topico_id` opcional e rejeita `id` desconhecido com `422`. Testes em `test_validation.py` | Flávio |
+| Prompt ligado ao tópico | O tópico escolhido entra no system prompt; `claude.py` e `gemini.py` passam a usar o prompt montado. O tutor puxa a conversa de volta quando o aluno sai do tópico | Thales |
+| Bateria anti-cola por tópico | As perguntas-armadilha viram um script que roda contra o servidor publicado, agora também com `topico_id`. Resultado em [`bateria-anti-cola.md`](bateria-anti-cola.md) | Gustavo |
+| Streaming (cortável) | Rota **nova** `POST /api/chat/stream`, no Data Stream Protocol. A rota atual não muda: é isso que permite cortar sem quebrar nada | Giordano |
 
-**Release 3** = roteiro acima passando inteiro na URL pública.
+A lista de tópicos é conteúdo de verdade, curado a partir da BNCC, não dado de exemplo: não
+fere a regra 5. O `data/mock.ts` continua fora do caminho de produção.
 
-## 7. Sprint #4 (19/out–01/nov) — Release 4
+### 6.4 App
+
+| Entrega | Descrição | Responsável |
+|---|---|---|
+| Tela da trilha | `app/trilha.tsx`: lista de tópicos com status, em flexbox, e a navegação início → trilha → chat | Iagor |
+| Serviço e chat por tópico | `getTopics()` em `services/api.ts` e tipos em `types/aluma.ts`; estados de carregando e erro na trilha; o chat envia `topico_id` e mostra o nome do tópico no topo | Antonio |
+| Status do tópico | Hook em `hooks/` que guarda o status de cada tópico no aparelho e o botão de marcar como dominado | João |
+| Streaming no app (cortável) | O chat consome `POST /api/chat/stream` e mostra a resposta aos poucos | João |
+| GitHub Release e ficha | Release publicada com o roteiro 6.1, a URL e o que ficou de fora | João |
+
+**Suposição declarada:** o status fica guardado **no aparelho**, não no servidor. Sem login
+não existe "aluno" no servidor para associar o progresso, e guardar no aparelho não coleta dado
+nenhum de menor (regra 8). O custo: trocou de celular ou limpou o navegador, perdeu o progresso.
+Vai para o servidor quando o login entrar. *Em andamento* é marcado sozinho quando o aluno abre
+o chat do tópico; *dominado* é o próprio aluno que marca, até existirem exercícios (requisito 5
+da V1) para o sistema medir isso.
+
+### 6.5 Divisão do trabalho, peso e dependências
+
+Mesmo critério da Sprint #2: nota individual, então todo mundo entrega código próprio que
+consegue defender. Peso de 1 (pequeno) a 4 (difícil).
+
+| Pessoa | Disciplina | Tarefas | Peso |
+|---|---|---|---|
+| Anna Beatriz | Proj. Sistemas | Rota de tópicos + lista BNCC (3), testes (1) | 4 |
+| Flávio | Proj. Sistemas | Validação do `topico_id` (2), testes (1) | 3 |
+| Gustavo | Proj. Sistemas | Bateria anti-cola por tópico em script (3) | 3 |
+| Thales | as duas | Prompt ligado ao tópico (3), ajuste em `claude.py` e `gemini.py` (1) | 4 |
+| Giordano | as duas | Streaming no backend (4) | 4 |
+| Iagor | Web/Mobile | Tela da trilha (3), navegação (1) | 4 |
+| Antonio | Web/Mobile | `getTopics()` e tipos (2), chat por tópico (2), estados de carregando e erro (1) | 5 |
+| João | as duas | Status do tópico (2), streaming no app (3), Release e ficha (1) | 6 |
+
+A Anna entra no **backend**, em arquivo próprio, pelo mesmo motivo que colocou o Flávio e o
+Gustavo ali na Sprint #2: ela está só em Projeto de Sistemas e o backend não depende do
+conteúdo de Web/Mobile. A tarefa dela é pequena e isolada de propósito, porque ela chega com a
+sprint andando. Suposição a confirmar: ela consegue trabalhar em Python.
+
+**Dependências e marcos internos:**
+
+- **O contrato 6.2 já destrava todo mundo.** A tarefa da Anna é a base de quatro outras, e ela
+  é a integrante mais nova: por isso ninguém espera o PR dela para começar. Flávio, Thales,
+  Antonio e Iagor programam contra o formato escrito acima.
+- **sexta 09/10 — rota de tópicos na `develop` (Anna).** O João acompanha a configuração do
+  ambiente dela em 07 e 08/10. Se a rota não estiver no ar na sexta, o João assume e a Anna
+  fica com os testes.
+- **Arquivos separados no backend**, como na Sprint #2: `topicos.py` (Anna), `validation.py`
+  (Flávio), `prompt.py` (Thales), script da bateria (Gustavo), rota de streaming (Giordano).
+- **Thales e Gustavo seguem em dupla:** a bateria testa o prompt. Se achar furo, os dois voltam
+  juntos ao prompt.
+- **Iagor e Antonio dividem a tela da trilha:** o Iagor faz a tela, o Antonio entrega os dados
+  e os estados. Combinam no primeiro dia o que `getTopics()` devolve em caso de erro.
+- **quarta 14/10 — decisão do streaming.** Se nesse dia ele não estiver funcionando de ponta a
+  ponta no link de teste da `develop`, vai para a Sprint #4 e a Release 3 sai sem ele.
+
+| Dia | Backend | App | Processo |
+|---|---|---|---|
+| qua 07 – qui 08 | Anna: ambiente e lista de tópicos | Antonio e Iagor: contrato de `getTopics()` | João: milestone e issues |
+| sex 09 | **Rota de tópicos na `develop`** | Iagor: tela da trilha | — |
+| sáb 10 – seg 12 | Flávio: validação · Thales: prompt · Giordano: streaming | Antonio: serviço e chat por tópico · João: status | — |
+| ter 13 | Gustavo: bateria por tópico | Integração da trilha com o chat | — |
+| qua 14 | **Decisão do streaming** | **Trilha e chat por tópico na `develop`** | — |
+| qui 15 – sex 16 | Correções | Correções | **Teste do roteiro inteiro, time todo** |
+| sáb 17 – dom 18 | — | — | João: Release e ficha |
+| seg 19 | **Apresentação** (data a confirmar com o professor) | | |
+
+### 6.6 Review, issues e pontuação
+
+A ficha do Prof. Edeilson (§5.7) continua valendo, agora para **seis** pessoas: João, Giordano,
+Thales, Flávio, Gustavo e Anna Beatriz. Antonio e Iagor são avaliados em Web/Mobile e seguem a
+mesma prática.
+
+A Anna entrou em 07/10, mas a ficha não tem regra para quem chega no meio: ela precisa, **nesta
+sprint**, de 1 PR relevante, 1 code review com pelo menos 3 linhas técnicas e 3 evidências de
+engajamento (issue finalizada, reunião registrada em [`reunioes.md`](reunioes.md), resposta
+técnica em PR de colega, tarefa no Trello). O plano acima cobre o PR e o review; as evidências
+dependem de ela ser registrada nas reuniões a partir de agora.
+
+**Matriz de review obrigatório**, refeita para oito. Cada pessoa revisa exatamente um PR:
+
+| PR | Autor | Revisor obrigatório |
+|---|---|---|
+| Rota de tópicos | Anna Beatriz | Giordano |
+| Validação do `topico_id` | Flávio | Anna Beatriz |
+| Prompt ligado ao tópico | Thales | Flávio |
+| Bateria anti-cola por tópico | Gustavo | Thales |
+| Streaming no backend | Giordano | Gustavo |
+| Tela da trilha + navegação | Iagor | Antonio |
+| Serviço e chat por tópico | Antonio | João |
+| Status do tópico + streaming no app | João | Iagor |
+
+O Giordano revisa a Anna porque escreveu a estrutura do backend e é quem melhor aponta onde o
+código dela foge do padrão. A Anna revisa o Flávio porque a validação dele usa a lista de `id`
+que ela mesma escreveu: é o PR que ela consegue criticar com propriedade.
+
+Se o streaming for cortado em 14/10, o Giordano e o João ficam sem esse PR nesta sprint: o João
+ainda tem o do status do tópico, e o Giordano abre o PR do que estiver pronto e testado do
+streaming atrás de uma rota que o app ainda não chama, para não ficar sem PR relevante.
+
+Como na Sprint #2: **cada tarefa vira uma Issue** no marco Release 3, com responsável, e o PR
+escreve `closes #N`. O `.github/CODEOWNERS` não muda: ele só pede o João nas áreas de risco.
+
+**Release 3** = roteiro 6.1 passando inteiro na URL pública.
+
+## 7. Sprint #4 (19/out–01/nov) — Release 4 🔶 proposta
 
 Foco: robustez e preparação para a fase de apresentação, que começa logo depois (09/nov).
 
-| Entrega | Descrição | Responsável |
+A sprint tinha só duas entregas, e oito pessoas precisam de PR relevante. A lista abaixo
+completa com o que o [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §6 já decidiu e ainda não
+foi feito. Os responsáveis são **proposta**: fecham no planejamento de 19/10, porque dependem
+de como a Sprint #3 terminar (em especial, se o streaming foi cortado).
+
+| Entrega | Descrição | Responsável proposto |
 |---|---|---|
-| Testes ponta a ponta | App (web e Expo Go) conversando com o backend real no Render, incluindo o cenário de cold start | A definir |
-| Checklist de segurança | Confirmar que `GEMINI_API_KEY` não aparece em nenhum bundle, log ou commit do app (regra inviolável 2) | A definir |
+| Testes ponta a ponta | App (web e Expo Go) conversando com o backend real no Render, incluindo o cenário de cold start | Flávio |
+| Checklist de segurança no CI | Verificação automática de que nenhuma chave de IA (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) aparece no bundle do app, em log ou em commit (regra 2) | Anna Beatriz |
+| Monitoramento de erro | Log estruturado e Sentry no plano gratuito, sem conteúdo de conversa (regra 8) | Giordano |
+| Conteúdo estático de reserva | Quando a IA falha, o aluno vê o erro e um material fixo do tópico, em vez de ficar sem nada | Thales |
+| Bateria anti-cola no CI | O script da Sprint #3 rodando de forma agendada contra o servidor publicado | Gustavo |
+| Acessibilidade básica | Rótulo para leitor de tela, contraste e uso por teclado nas três telas | Iagor |
+| Testes do app no CI | Primeiros testes do app, com o comando registrado no `CLAUDE.md` | Antonio |
+| Streaming, se cortado da Sprint #3 | Fecha o que sobrou | Giordano e João |
+| GitHub Release e ficha | Release publicada com roteiro, URL e o que ficou de fora | João |
+
+A matriz de review da Sprint #4 é montada junto com os responsáveis, no mesmo formato da §6.6.
 
 **Release 4** fecha as 4 sprints. A partir de 09/nov começa o refinamento do produto e a
 preparação da apresentação final — já fora deste ciclo de 4 sprints.
