@@ -45,6 +45,9 @@ os artefatos da Supernova.
 | Iagor | @iagorlrnc | sim | não |
 | Flávio | @flaviohen16 | não | sim |
 | Gustavo Bringel | @GustavoBringel | não | sim |
+| Anna Beatriz Moura de Oliveira | @bibimoura | não | sim |
+
+Anna Beatriz entrou em 07/10/2026, durante a Sprint #3; por isso não aparece nas Sprints 1 e 2.
 
 A decisão final em qualquer impasse é do João Pedro.
 

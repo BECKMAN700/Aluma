@@ -201,6 +201,9 @@ código quanto os artefatos da Supernova; quem está só em uma responde por aqu
 | Iagor | Desenvolvedor | @iagorlrnc | sim | não |
 | Flávio | Desenvolvedor | @flaviohen16 | não | sim |
 | Gustavo Bringel | Desenvolvedor | @GustavoBringel | não | sim |
+| Anna Beatriz Moura de Oliveira | Desenvolvedora | @bibimoura | não | sim |
+
+Anna Beatriz entrou em 07/10/2026, durante a Sprint #3.
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
