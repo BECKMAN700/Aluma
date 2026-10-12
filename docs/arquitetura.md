@@ -44,6 +44,7 @@ backend/
   turmas/            rotas.py, esquemas.py, consultas.py, testes/
   materiais/         (Sprint 4) mesmo formato
   migrations/        001_inicial.sql, 002_...sql — o banco, em ordem
+  scripts/           criar_professor.py — administração, roda só na máquina da equipe
 app/
   _layout.tsx        lê a sessão e manda cada papel para o seu grupo
   (auth)/            entrar, criar conta
@@ -82,7 +83,7 @@ Tabelas em português, minúsculas, plural. Toda tabela tem `id uuid` (gerado pe
 | Tabela | Colunas | Observação |
 |---|---|---|
 | `escolas` | `nome` | Criada pela equipe |
-| `perfis` | `id` (o mesmo id do login no Supabase), `nome`, `papel` (`aluno`, `professor` ou `admin`), `escola_id` (vazio para aluno sem turma) | Uma linha por conta |
+| `perfis` | `id` (o mesmo id do login no Supabase, sem chave estrangeira para `auth.users`), `nome`, `papel` (`aluno`, `professor` ou `admin`), `escola_id` (vazio para aluno sem turma) | Uma linha por conta |
 | `turmas` | `escola_id`, `professor_id`, `nome`, `serie`, `codigo` (único) | O código tem 6 caracteres, sem os que confundem (`0`/`O`, `1`/`I`) |
 | `matriculas` | `aluno_id` (chave: um aluno, uma turma), `turma_id` | Sem coluna `id` |
 | `conversas` | `aluno_id`, `topico_id` (vazio até a Sprint 4) | |
@@ -196,6 +197,7 @@ vendo alunos de turma de outro professor; professor de outra escola; aluno sem t
 | Render | `DATABASE_URL` (endereço do banco, com senha) | **Sim** |
 | Render | `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` | **Sim** |
 | Render | `SUPABASE_URL`, `CORS_ORIGINS` | Não |
+| Só no `.env` de quem cria professor | `SUPABASE_SECRET_KEY` | **Sim** |
 | App (`.env`, Netlify) | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Não |
 
 Tudo que começa com `EXPO_PUBLIC_` vai dentro do app e qualquer pessoa consegue ler. Por isso

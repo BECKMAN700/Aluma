@@ -16,5 +16,9 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
       - key: PROXIES_CONFIAVEIS
         value: "1"

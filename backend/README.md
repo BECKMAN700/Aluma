@@ -53,6 +53,38 @@ Sem Blueprint (criando o Web Service manualmente na UI), os mesmos valores do `r
 se aplicam à mão: *Root Directory* `backend`, *Build Command* `pip install -r requirements.txt`,
 *Start Command* `uvicorn main:app --host 0.0.0.0 --port $PORT`.
 
+## Banco (Supabase, issue #87)
+
+As tabelas estão em `migrations/`, um arquivo numerado por mudança. Para aplicar: painel do
+Supabase > **SQL Editor**, cole o arquivo e rode. Arquivo já aplicado não se edita.
+
+No `backend/.env` (e no Render, em *Environment*):
+
+- `DATABASE_URL`: painel do Supabase > **Connect** > *Session pooler*. É **segredo**: carrega a
+  senha do banco. A conexão direta não serve, porque só funciona por IPv6 e o Render não tem.
+- `SUPABASE_URL`: `https://<projeto>.supabase.co`. Não é segredo.
+
+Rota que usa o banco recebe a conexão pronta:
+
+```python
+from nucleo.db import conexao
+
+@router.get("/api/turmas")
+def listar(db: psycopg.Connection = Depends(conexao)):
+    return {"turmas": consultas.turmas_do_professor(db, usuario.id)}
+```
+
+As linhas chegam como dicionário. O commit é automático no fim da rota; se ela levantar erro,
+tudo o que ela escreveu é desfeito.
+
+**Conta de professor** é criada pela equipe, com a chave secreta do Supabase (*Settings > API
+Keys > Secret key*) em `SUPABASE_SECRET_KEY` no `.env` da própria máquina. Essa chave nunca vai
+para o Render nem para o app:
+
+```bash
+python scripts/criar_professor.py --escola "Escola Demonstração" --nome "Prof. Demo" --email prof@exemplo.com
+```
+
 ## Contrato da API
 
 Combinado com o time. O `services/chat.ts` do app é escrito contra ele: mudança passa pelo grupo.
@@ -79,6 +111,9 @@ O backend é organizado **por assunto**: uma pasta para cada, com os testes dent
 |---|---|---|
 | `main.py` | Giordano | Monta o app: CORS, log, mensagens de erro, `/health`, e registra as rotas de cada pasta |
 | `nucleo/rate_limit.py` | Gustavo (#42) | Limite por IP |
+| `nucleo/db.py` | João (#87) | Conexão com o Postgres, uma por requisição |
+| `migrations/` | João (#87) | As tabelas, em ordem |
+| `scripts/criar_professor.py` | João (#87) | Cria conta de professor; roda só na máquina da equipe |
 | `chat/rotas.py` | Giordano | `POST /api/chat`: chama o Claude e, se falhar, o Gemini |
 | `chat/esquemas.py` | Flávio (#39) | Validação da entrada no servidor |
 | `chat/prompt.py` | Thales (#46) | System prompt socrático, o mesmo para as duas IAs |
