@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 import jwt
+import psycopg
 import pytest
 
 from nucleo.auth import (
@@ -127,8 +128,9 @@ def gerar_token(
         "aud": aud,
         "iss": iss,
         "exp": exp if exp is not None else (now + 3600),
-        "nbf": nbf if nbf is not None else (now - 60),
     }
+    if nbf is not None:
+        payload["nbf"] = nbf
     if user_metadata is not None:
         payload["user_metadata"] = user_metadata
     if role is not None:
@@ -366,3 +368,36 @@ def test_sanitizacao_nome():
     assert sanitizar_nome("") == "Aluno"
     assert sanitizar_nome(None) == "Aluno"
     assert sanitizar_nome("A" * 150) == "A" * 100
+
+
+def test_token_sem_nbf_retorna_200(client):
+    test_client, _ = client
+    # Supabase não inclui a claim 'nbf' nos tokens JWT reais
+    token = gerar_token()
+    unverified = jwt.decode(token, options={"verify_signature": False})
+    assert "nbf" not in unverified
+
+    response = test_client.get("/api/protegida", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+
+
+def test_token_com_nbf_valido_retorna_200(client):
+    test_client, _ = client
+    now = int(time.time())
+    token = gerar_token(nbf=now - 60)
+    response = test_client.get("/api/protegida", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+
+
+def test_erro_de_banco_nao_e_mascarado_como_401(client, monkeypatch):
+    test_client, db = client
+    token = gerar_token()
+
+    def cursor_com_falha():
+        raise psycopg.OperationalError("Conexao com o banco perdida")
+
+    monkeypatch.setattr(db, "cursor", cursor_com_falha)
+
+    # Exceções de banco de dados devem subir naturalmente e não virar 401
+    with pytest.raises(psycopg.OperationalError):
+        test_client.get("/api/protegida", headers={"Authorization": f"Bearer {token}"})
