@@ -6,11 +6,13 @@ Os endpoints definidos são:
 - GET /api/me: Retorna as informações do perfil do usuário.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from backend.nucleo.auth import usuario_atual, Usuario
-from backend.nucleo.permissoes import exige_aluno
-from backend.turmas.esquemas_matriculas import SolicitacaoMatricula
-from backend.turmas import consultas_matriculas
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse
+from nucleo.auth import usuario_atual, Usuario
+from nucleo.permissoes import exige_aluno
+from nucleo.banco import conexao
+from turmas.esquemas_matriculas import SolicitacaoMatricula
+from turmas import consultas_matriculas
 import psycopg
 
 router = APIRouter()
@@ -19,42 +21,46 @@ router = APIRouter()
 @router.post("/api/matriculas", status_code=status.HTTP_201_CREATED)
 def realizar_matricula(
         dados: SolicitacaoMatricula,
-        usuario: Usuario = Depends(exige_aluno)
+        usuario: Usuario = Depends(exige_aluno),
+        db: psycopg.Connection = Depends(conexao)
 ):
     # verificar se a turma existe
-    turma = consultas.buscar_turma_por_codigo(dados.codigo)
+    turma = consultas_matriculas.buscar_turma_por_codigo(db, dados.codigo)
     if not turma:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"erro": "código não encontrado"}
+            content={"erro": "código não encontrado"}
         )
 
     # verificar se o aluno já está em uma turma
-    turma_existente = consultas.turma_do_aluno(usuario.id)
+    turma_existente = consultas_matriculas.turma_do_aluno(db, usuario.id)
     if turma_existente:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            detail={"erro": "você já está em uma turma"}
+            content={"erro": "você já está em uma turma"}
         )
     try:
-        consultas.matricular(usuario.id, turma["id"])
+        consultas_matriculas.matricular(db, usuario.id, turma["id"])
     except psycopg.errors.UniqueViolation:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            detail={"erro": "você já está em uma turma"}
+            content={"erro": "você já está em uma turma"}
         )
 
     return {"turma": {"id": turma["id"], "nome": turma["nome"]}}
 
 
 @router.get("/api/me")
-def obter_perfil_me(usuario: Usuario = Depends(usuario_atual)):
-    perfil = consultas.buscar_perfil_completo(usuario.id)
+def obter_perfil_me(
+        usuario: Usuario = Depends(usuario_atual),
+        db: psycopg.Connection = Depends(conexao)
+):
+    perfil = consultas_matriculas.buscar_perfil_completo(db, usuario.id)
 
     if not perfil:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"erro": "perfil não encontrado"}
+            content={"erro": "perfil não encontrado"}
         )
 
     escola = None

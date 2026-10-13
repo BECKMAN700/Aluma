@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
-from backend.turmas.rotas_matriculas import router as matriculas_router
+from turmas.rotas_matriculas import router as matriculas_router
 
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
@@ -60,7 +60,7 @@ async def rate_limit_exception_handler(request: Request, exc: Exception):
 
 
 # Tipos de erro padrão do Pydantic que não passam por um field_validator nosso
-# (esses já levantam ValueError em português, ver chat/esquemas_matriculas.py).
+# (esses já levantam ValueError em português, ver chat/esquemas.py).
 _ERRO_POR_TIPO_PYDANTIC = {
     "missing": "faltou um campo obrigatorio na mensagem",
     "extra_forbidden": "a mensagem enviada tem um campo que o servidor nao reconhece",
