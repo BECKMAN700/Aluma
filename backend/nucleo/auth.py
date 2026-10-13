@@ -73,7 +73,8 @@ def decodificar_token(token: str, client: PyJWKClient | None = None) -> dict[str
     Decodifica e valida o token JWT do Supabase:
     - Aceita apenas algoritmos ES256 e RS256.
     - Rejeita explicitamente HS256 e none.
-    - Valida audience ('authenticated'), issuer (SUPABASE_URL + '/auth/v1'), exp e nbf.
+    - Valida audience ('authenticated'), issuer (SUPABASE_URL + '/auth/v1'), exp e nbf (quando presente).
+    - Exige apenas exp e sub (Supabase não emite nbf por padrão).
     - Qualquer falha levanta NaoAutenticado (HTTP 401).
     """
     if not token or not isinstance(token, str):
@@ -116,7 +117,7 @@ def decodificar_token(token: str, client: PyJWKClient | None = None) -> dict[str
                 "verify_iss": True,
                 "verify_exp": True,
                 "verify_nbf": True,
-                "require": ["exp", "nbf", "sub"],
+                "require": ["exp", "sub"],
             },
         )
     except Exception:
@@ -159,10 +160,10 @@ def buscar_ou_criar_perfil(
             linha = cur.fetchone()
 
         if linha is None:
-            raise NaoAutenticado()
+            raise RuntimeError(f"Nao foi possivel obter perfil para o usuario {user_id}")
 
-        papel = linha["papel"] if isinstance(linha, dict) else linha[1]
-        escola_id = linha["escola_id"] if isinstance(linha, dict) else linha[2]
+        papel = linha["papel"]
+        escola_id = linha["escola_id"]
         return str(papel), str(escola_id) if escola_id is not None else None
 
 
@@ -206,12 +207,7 @@ def usuario_atual(
         nome_bruto = user_metadata.get("name")
     nome = sanitizar_nome(nome_bruto)
 
-    try:
-        papel, escola_id = buscar_ou_criar_perfil(db, user_id, nome)
-    except NaoAutenticado:
-        raise
-    except Exception:
-        raise NaoAutenticado()
+    papel, escola_id = buscar_ou_criar_perfil(db, user_id, nome)
 
     return Usuario(
         id=user_id,
