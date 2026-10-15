@@ -8,20 +8,17 @@ Nesse arquivo contém:
 """
 
 from typing import Optional, Dict, Any
-from nucleo.db import conexao
 
-def buscar_turma_por_codigo(codigo: str) -> Optional[Dict[str, Any]]:
-    conn = next(conexao())
-    with conn.cursor() as cur:
+def buscar_turma_por_codigo(db, codigo: str) -> Optional[Dict[str, Any]]:
+    with db.cursor() as cur:
         cur.execute(
             "SELECT id, nome, escola_id, professor_id, serie, codigo FROM turmas WHERE codigo = %s;",
             (codigo,)
         )
         return cur.fetchone()
 
-def turma_do_aluno(aluno_id: str) -> Optional[Dict[str, Any]]:
-    conn = next(conexao())
-    with conn.cursor() as cur:
+def turma_do_aluno(db, aluno_id: str) -> Optional[Dict[str, Any]]:
+    with db.cursor() as cur:
         cur.execute(
             """
             SELECT t.id, t.nome 
@@ -33,19 +30,16 @@ def turma_do_aluno(aluno_id: str) -> Optional[Dict[str, Any]]:
         )
         return cur.fetchone()
 
-def matricular(aluno_id: str, turma_id: str) -> bool:
-    conn = next(conexao())
-    with conn.cursor() as cur:
+def matricular(db, aluno_id: str, turma_id: str) -> bool:
+    with db.cursor() as cur:
         cur.execute(
             "INSERT INTO matriculas (aluno_id, turma_id) VALUES (%s, %s);",
             (aluno_id, turma_id)
         )
-        conn.commit()
         return True
 
-def buscar_perfil_completo(usuario_id: str) -> Optional[Dict[str, Any]]:
-    conn = next(conexao())
-    with conn.cursor() as cur:
+def buscar_perfil_completo(db, usuario_id: str) -> Optional[Dict[str, Any]]:
+    with db.cursor() as cur:
         cur.execute(
             """
             SELECT 

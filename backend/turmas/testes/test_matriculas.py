@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from main import app
 from nucleo.auth import usuario_atual, Usuario
 from nucleo.permissoes import exige_aluno
+from nucleo.db import conexao
 
 client = TestClient(app)
 
@@ -13,7 +14,8 @@ professor_mock = Usuario(id="456", papel="professor", escola_id=None)
 
 
 @pytest.fixture(autouse=True)
-def limpar_overrides():
+def configurar_overrides():
+    app.dependency_overrides[conexao] = lambda: object()
     yield
     app.dependency_overrides.clear()
 
