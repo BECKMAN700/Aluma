@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from nucleo.auth import usuario_atual, Usuario
 from nucleo.permissoes import exige_aluno
-from nucleo.banco import conexao
+from nucleo.db import conexao
 from turmas.esquemas_matriculas import SolicitacaoMatricula
 from turmas import consultas_matriculas
 import psycopg

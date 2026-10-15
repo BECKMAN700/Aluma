@@ -8,7 +8,7 @@ Nesse arquivo contém:
 """
 
 from typing import Optional, Dict, Any
-from backend.nucleo.db import conexao
+from nucleo.db import conexao
 
 def buscar_turma_por_codigo(codigo: str) -> Optional[Dict[str, Any]]:
     conn = next(conexao())
