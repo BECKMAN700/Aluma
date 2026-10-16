@@ -2,12 +2,13 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
+from nucleo.db import BancoIndisponivel
 
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
@@ -63,6 +64,24 @@ async def rate_limit_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=429,
         content={"erro": "muitas perguntas seguidas, aguarde um pouco"},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    detalhe = exc.detail if isinstance(exc.detail, str) else "erro inesperado"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"erro": detalhe},
+        headers=exc.headers,
+    )
+
+
+@app.exception_handler(BancoIndisponivel)
+async def database_exception_handler(request: Request, exc: BancoIndisponivel):
+    return JSONResponse(
+        status_code=503,
+        content={"erro": "servico temporariamente indisponivel"},
     )
 
 
