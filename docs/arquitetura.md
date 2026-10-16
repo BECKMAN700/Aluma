@@ -182,6 +182,7 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `exige_aluno` | `papel == "aluno"` |
 | `exige_dono_da_turma(turma_id)` | A turma existe **e** o professor dela é o usuário. Turma de outro professor responde `404`, não `403`: quem não é dono não fica sabendo que ela existe |
 | `exige_aluno_da_turma(turma_id)` | O aluno está matriculado naquela turma |
+| `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |
 
 **Nos testes** não existe Supabase: o `usuario_atual` é trocado por um usuário de mentira, com
 `app.dependency_overrides`. É assim que se testa "aluno tentando rota de professor" sem criar

@@ -5,17 +5,23 @@ from fastapi.testclient import TestClient
 
 from chat.gemini import TutorIndisponivel
 from main import app
-from nucleo.rate_limit import ip_request_history
+from nucleo.auth import Usuario, usuario_atual
+from nucleo.rate_limit import user_request_history
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
-def reset_ip_history():
+def usuario_autenticado_e_historico_limpo():
     # Outros arquivos de teste também batem em /api/chat com o mesmo IP de
     # teste ("testclient"); sem isso o rate limit derrubaria estes testes
     # com 429 antes de chegar na validação.
-    ip_request_history.clear()
+    user_request_history.clear()
+    app.dependency_overrides[usuario_atual] = lambda: Usuario(
+        id="aluno-teste", papel="aluno", escola_id=None
+    )
+    yield
+    app.dependency_overrides.pop(usuario_atual, None)
 
 
 @pytest.fixture(autouse=True)
