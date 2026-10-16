@@ -126,6 +126,30 @@ def test_professor_pode_acessar_chat_sem_consultar_matricula(app_test, monkeypat
     assert resposta.json() == {"id": ID_PROFESSOR}
 
 
+def test_aluno_matriculado_acessa_turma_sem_escola_no_perfil(app_test, monkeypatch):
+    monkeypatch.setattr(consultas, "aluno_matriculado_na_turma", lambda *args: True)
+    cliente = cliente_com_usuario(
+        app_test, Usuario(id=ID_ALUNO, papel="aluno", escola_id=None)
+    )
+
+    resposta = cliente.get(f"/turmas/{ID_TURMA}/conteudo")
+
+    assert resposta.status_code == 200
+    assert resposta.json() == {"id": ID_ALUNO}
+
+
+def test_aluno_nao_matriculado_na_turma_recebe_404(app_test, monkeypatch):
+    monkeypatch.setattr(consultas, "aluno_matriculado_na_turma", lambda *args: False)
+    cliente = cliente_com_usuario(
+        app_test, Usuario(id=ID_ALUNO, papel="aluno", escola_id=None)
+    )
+
+    resposta = cliente.get(f"/turmas/{ID_TURMA}/conteudo")
+
+    assert resposta.status_code == 404
+    assert resposta.json() == {"erro": "turma nao encontrada"}
+
+
 @pytest.mark.parametrize(
     "metodo, caminho",
     [
@@ -199,11 +223,11 @@ def test_consulta_de_dono_filtra_turma_professor_e_escola():
     assert db.parametros == (ID_TURMA, ID_PROFESSOR, ID_ESCOLA)
 
 
-def test_consulta_de_matricula_filtra_aluno_turma_e_escola():
+def test_consulta_de_matricula_filtra_aluno_e_turma():
     db = BancoDeTeste(None)
 
-    assert not consultas.aluno_matriculado_na_turma(db, ID_TURMA, ID_ALUNO, ID_ESCOLA)
-    assert "join turmas" in db.sql
-    assert "m.aluno_id = %s" in db.sql
-    assert "t.escola_id = %s" in db.sql
-    assert db.parametros == (ID_TURMA, ID_ALUNO, ID_ESCOLA)
+    assert not consultas.aluno_matriculado_na_turma(db, ID_TURMA, ID_ALUNO)
+    assert "from matriculas" in db.sql
+    assert "turma_id = %s" in db.sql
+    assert "aluno_id = %s" in db.sql
+    assert db.parametros == (ID_TURMA, ID_ALUNO)

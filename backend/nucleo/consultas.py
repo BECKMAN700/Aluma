@@ -24,16 +24,14 @@ def aluno_matriculado_na_turma(
     db: psycopg.Connection,
     turma_id: UUID,
     aluno_id: str,
-    escola_id: str,
 ) -> bool:
     linha = db.execute(
         """
         select 1
-        from matriculas m
-        join turmas t on t.id = m.turma_id
-        where m.turma_id = %s and m.aluno_id = %s and t.escola_id = %s
+        from matriculas
+        where turma_id = %s and aluno_id = %s
         """,
-        (turma_id, aluno_id, escola_id),
+        (turma_id, aluno_id),
     ).fetchone()
     return linha is not None
 

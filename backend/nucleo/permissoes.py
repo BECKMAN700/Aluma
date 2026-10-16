@@ -45,11 +45,9 @@ def exige_aluno_da_turma(
     usuario: Usuario = Depends(exige_aluno),
     db: psycopg.Connection = Depends(conexao),
 ) -> Usuario:
-    if not usuario.escola_id:
-        raise HTTPException(status_code=404, detail="turma nao encontrada")
     try:
         autorizado = consultas.aluno_matriculado_na_turma(
-            db, id, usuario.id, usuario.escola_id
+            db, id, usuario.id
         )
     except Exception:
         raise HTTPException(
