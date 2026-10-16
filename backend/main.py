@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
+from turmas.rotas_matriculas import router as matriculas_router
 from nucleo.db import BancoIndisponivel
 
 # Carrega as variáveis de ambiente do .env
@@ -113,3 +114,4 @@ def health_check():
 
 
 app.include_router(chat_router)
+app.include_router(matriculas_router)
