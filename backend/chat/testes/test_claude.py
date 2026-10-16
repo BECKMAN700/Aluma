@@ -12,7 +12,18 @@ from chat.claude import MODELO, chat_com_claude
 from chat.gemini import TutorIndisponivel
 from main import app
 from chat.prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
-from nucleo.rate_limit import ip_request_history
+from nucleo.auth import Usuario, usuario_atual
+from nucleo.rate_limit import user_request_history
+
+
+@pytest.fixture(autouse=True)
+def usuario_autenticado():
+    user_request_history.clear()
+    app.dependency_overrides[usuario_atual] = lambda: Usuario(
+        id="aluno-teste", papel="aluno", escola_id=None
+    )
+    yield
+    app.dependency_overrides.pop(usuario_atual, None)
 
 
 def anthropic_falso(status, corpo, pedidos):
@@ -80,7 +91,6 @@ def test_anthropic_sobrecarregada_vira_tutor_indisponivel():
 @patch("chat.rotas.chat_com_gemini", return_value="resposta do gemini")
 @patch("chat.rotas.chat_com_claude", side_effect=TutorIndisponivel)
 def test_rota_cai_no_gemini_quando_o_claude_falha(claude, gemini):
-    ip_request_history.clear()
     response = TestClient(app).post("/api/chat", json={"mensagem": "oi"})
 
     assert response.json() == {"resposta": "resposta do gemini"}
