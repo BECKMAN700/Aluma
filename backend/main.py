@@ -28,7 +28,7 @@ app.add_middleware(
     allow_origins=cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 @app.middleware("http")
@@ -49,6 +49,14 @@ async def log_requests(request: Request, call_next):
     )
 
     return response
+
+
+@app.exception_handler(401)
+async def auth_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=401,
+        content={"erro": "faca login de novo"},
+    )
 
 
 @app.exception_handler(429)

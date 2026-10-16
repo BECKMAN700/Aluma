@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from nucleo.db import BancoIndisponivel, conexao
@@ -18,3 +20,13 @@ def test_falha_de_conexao_nao_vaza_o_endereco(monkeypatch):
     assert erro.value.__suppress_context__
     for trecho in ("senha_secreta", "usuario_x", "127.0.0.1"):
         assert trecho not in str(erro.value)
+
+
+@pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="requer DATABASE_URL")
+def test_conexao_com_banco():
+    conexoes = conexao()
+    banco = next(conexoes)
+    try:
+        assert banco.execute("select 1 as resultado").fetchone()["resultado"] == 1
+    finally:
+        conexoes.close()
