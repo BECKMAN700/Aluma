@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 import psycopg
@@ -36,8 +35,8 @@ def criar(
 
     turma = criar_turma(
         db=db,
-        escola_id=UUID(usuario.escola_id),
-        professor_id=UUID(usuario.id),
+        escola_id=UUID(str(usuario.escola_id)),
+        professor_id=UUID(str(usuario.id)),
         nome=dados.nome,
         serie=dados.serie,
     )
@@ -50,10 +49,12 @@ def listar(
     usuario: Usuario = Depends(exige_professor),
     db: psycopg.Connection = Depends(conexao),
 ):
-    return turmas_do_professor(
-        db=db,
-        professor_id=UUID(usuario.id),
-    )
+    return {
+        "turmas": turmas_do_professor(
+            db=db,
+            professor_id=UUID(str(usuario.id)),
+        )
+    }
 
 
 @router.get("/{id}/alunos")
@@ -62,7 +63,9 @@ def listar_alunos(
     usuario: Usuario = Depends(exige_dono_da_turma),
     db: psycopg.Connection = Depends(conexao),
 ):
-    return alunos_da_turma(
-        db=db,
-        turma_id=id,
-    )
+    return {
+        "alunos": alunos_da_turma(
+            db=db,
+            turma_id=id,
+        )
+    }

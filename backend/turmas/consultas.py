@@ -1,9 +1,9 @@
 import secrets
-import string
 from uuid import UUID
 
 import psycopg
 from psycopg import errors
+from psycopg.rows import dict_row
 
 
 ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -29,27 +29,28 @@ def criar_turma(
         codigo = gerar_codigo_turma()
 
         try:
-            with db.cursor() as cursor:
-                cursor.execute(
-                    """
-                    INSERT INTO turmas (
-                        escola_id,
-                        professor_id,
-                        nome,
-                        serie,
-                        codigo
+            with db.transaction():
+                with db.cursor(row_factory=dict_row) as cursor:
+                    cursor.execute(
+                        """
+                        INSERT INTO turmas (
+                            escola_id,
+                            professor_id,
+                            nome,
+                            serie,
+                            codigo
+                        )
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING id, nome, serie, codigo
+                        """,
+                        (escola_id, professor_id, nome, serie, codigo),
                     )
-                    VALUES (%s, %s, %s, %s, %s)
-                    RETURNING id, nome, serie, codigo
-                    """,
-                    (escola_id, professor_id, nome, serie, codigo),
-                )
-                turma = cursor.fetchone()
+                    turma = cursor.fetchone()
 
             if turma is None:
                 raise RuntimeError("a turma nao foi retornada pelo banco")
 
-            return dict(turma)
+            return turma
 
         except errors.UniqueViolation as erro:
             if erro.diag.constraint_name != "turmas_codigo_key":
@@ -66,7 +67,7 @@ def turmas_do_professor(
     professor_id: UUID,
 ) -> list[dict]:
     """Retorna somente as turmas do professor informado."""
-    with db.cursor() as cursor:
+    with db.cursor(row_factory=dict_row) as cursor:
         cursor.execute(
             """
             SELECT id, nome, serie, codigo
@@ -76,7 +77,7 @@ def turmas_do_professor(
             """,
             (professor_id,),
         )
-        return [dict(turma) for turma in cursor.fetchall()]
+        return cursor.fetchall()
 
 
 def alunos_da_turma(
@@ -84,7 +85,7 @@ def alunos_da_turma(
     turma_id: UUID,
 ) -> list[dict]:
     """Retorna os alunos matriculados na turma."""
-    with db.cursor() as cursor:
+    with db.cursor(row_factory=dict_row) as cursor:
         cursor.execute(
             """
             SELECT p.id, p.nome
@@ -96,5 +97,4 @@ def alunos_da_turma(
             """,
             (turma_id,),
         )
-        return [dict(aluno) for aluno in cursor.fetchall()]
-    
+        return cursor.fetchall()

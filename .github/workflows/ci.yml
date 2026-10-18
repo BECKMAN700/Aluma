@@ -31,6 +31,18 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
@@ -46,6 +58,20 @@ jobs:
         run: pip install -r requirements-dev.txt
         working-directory: backend
 
+      - name: Instalar cliente PostgreSQL
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client
+
+      - name: Aplicar migrações
+        run: |
+          for migration in migrations/*.sql; do
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
+          done
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+
       - name: Rodar testes
         run: pytest
         working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres

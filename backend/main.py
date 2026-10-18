@@ -2,12 +2,14 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
+from turmas.rotas_matriculas import router as matriculas_router
+from nucleo.db import BancoIndisponivel
 
 from turmas.rotas import router as turmas_router
 
@@ -29,7 +31,7 @@ app.add_middleware(
     allow_origins=cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 @app.middleware("http")
@@ -52,11 +54,37 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+@app.exception_handler(401)
+async def auth_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=401,
+        content={"erro": "faca login de novo"},
+    )
+
+
 @app.exception_handler(429)
 async def rate_limit_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=429,
         content={"erro": "muitas perguntas seguidas, aguarde um pouco"},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    detalhe = exc.detail if isinstance(exc.detail, str) else "erro inesperado"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"erro": detalhe},
+        headers=exc.headers,
+    )
+
+
+@app.exception_handler(BancoIndisponivel)
+async def database_exception_handler(request: Request, exc: BancoIndisponivel):
+    return JSONResponse(
+        status_code=503,
+        content={"erro": "servico temporariamente indisponivel"},
     )
 
 
@@ -89,3 +117,4 @@ def health_check():
 
 app.include_router(chat_router)
 app.include_router(turmas_router)
+app.include_router(matriculas_router)
