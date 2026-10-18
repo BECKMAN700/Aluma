@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
 
+from turmas.rotas import router as turmas_router
+
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
 
@@ -86,3 +88,4 @@ def health_check():
 
 
 app.include_router(chat_router)
+app.include_router(turmas_router)
