@@ -111,8 +111,9 @@ recebendo commits depois de já ter sido mergeada por squash no PR #7 — o squa
 um commit que não existe no histórico da branch, e as duas histórias divergem. Branch mergeada é
 branch encerrada.
 
-Padrão de mensagem de commit — prefixo, dois-pontos, verbo no imperativo, em português e
-curto:
+Padrão de mensagem de commit e de título de PR — prefixo, dois-pontos, verbo no imperativo, em
+português e curto. O título do PR segue o mesmo padrão porque o merge é por squash: ele vira a
+mensagem do commit na `develop`.
 
 | Prefixo | Quando usar | Exemplo |
 |---|---|---|
