@@ -1,5 +1,12 @@
 import { obterToken } from '@/services/auth';
-import type { ChatErrorResponse, ChatHistoryItem, ChatRequestBody, ChatResponse } from '@/types/api';
+import type {
+  ChatErrorResponse,
+  ChatHistoryItem,
+  ChatRequestBody,
+  ChatResponse,
+  MatriculaResponse,
+  Me,
+} from '@/types/api';
 
 /**
  * Único lugar do app que conhece o endereço do servidor.
@@ -16,6 +23,7 @@ const TIMEOUT_ENVIO_MS = 60_000;
 const ERRO_SEM_URL = 'Endereço do servidor não configurado.';
 const ERRO_REDE_OU_TIMEOUT =
   'Não foi possível falar com o tutor. Verifique sua internet e tente de novo.';
+const ERRO_SERVIDOR = 'Não foi possível falar com o servidor. Verifique sua internet e tente de novo.';
 
 export type SendMessageResult = { ok: true; resposta: string } | { ok: false; erro: string };
 
@@ -95,4 +103,44 @@ export async function sendMessage(
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** status 0 = não chegou resposta (sem internet, timeout ou servidor fora do ar). */
+export type ResultadoApi<T> = { ok: true; dados: T } | { ok: false; status: number; erro: string };
+
+async function chamar<T>(caminho: string, init: RequestInit = {}): Promise<ResultadoApi<T>> {
+  if (!API_URL) {
+    console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
+    return { ok: false, status: 0, erro: ERRO_SEM_URL };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_ENVIO_MS);
+  try {
+    const response = await fetch(`${API_URL}${caminho}`, {
+      ...init,
+      headers: await cabecalhos(),
+      signal: controller.signal,
+    });
+    if (response.ok) return { ok: true, dados: (await response.json()) as T };
+    const data: Partial<ChatErrorResponse> = await response.json().catch(() => ({}));
+    return { ok: false, status: response.status, erro: data.erro || ERRO_SERVIDOR };
+  } catch {
+    return { ok: false, status: 0, erro: ERRO_SERVIDOR };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Quem é a pessoa logada: papel e turma. É o servidor quem diz, nunca o app. */
+export function buscarMe(): Promise<ResultadoApi<Me>> {
+  return chamar<Me>('/api/me');
+}
+
+/** Aluno entra na turma pelo código. 404 = código não existe; 409 = já tem turma. */
+export function entrarNaTurma(codigo: string): Promise<ResultadoApi<MatriculaResponse>> {
+  return chamar<MatriculaResponse>('/api/matriculas', {
+    method: 'POST',
+    body: JSON.stringify({ codigo }),
+  });
 }
