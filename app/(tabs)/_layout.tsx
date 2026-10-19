@@ -1,3 +1,6 @@
+/**
+ * Layout das abas do app.
+ */
 import { Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -16,8 +19,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
+      {/* arquivo renomeado: index.tsx -> home.tsx (a rota "/" agora é a escolha de perfil) */}
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
