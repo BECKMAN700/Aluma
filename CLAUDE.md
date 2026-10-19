@@ -62,7 +62,8 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
   `@/components/card`, nunca `../../components/card`.
 - Nada de `any` em TypeScript sem comentário justificando.
 - Texto de interface em português, nomes de código em inglês.
-- Commit em português, imperativo, curto: `adiciona tela de login`.
+- Commit e título de PR com prefixo (`feat`, `fix`, `docs`, `chore` — tabela em
+  `docs/sprints.md`), em português, imperativo, curto: `feat: adiciona tela de login`.
 
 ## Equipe
 

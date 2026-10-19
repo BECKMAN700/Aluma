@@ -132,7 +132,7 @@ git pull
 git checkout -b feature/nome-da-tarefa
 # ... suas alterações ...
 git add .
-git commit -m "adiciona tela de login"
+git commit -m "feat: adiciona tela de login"
 
 git push -u origin feature/nome-da-tarefa
 # abra o Pull Request no GitHub, com base na develop, e aguarde a revisão
@@ -144,7 +144,9 @@ Nomes de branch: `feature/...` para funcionalidade nova, `fix/...` para conserto
 **Depois que o seu PR for mergeado, apague a branch.** O botão aparece no próprio PR. Continuar
 commitando numa branch já mergeada gera conflito — foi o que aconteceu no PR #11.
 
-Commits em português, no imperativo e curtos: `corrige validação do e-mail`.
+Commits e títulos de PR com prefixo (`feat`, `fix`, `docs` ou `chore`), em português, no
+imperativo e curtos: `fix: corrige validação do e-mail`. A tabela dos prefixos está em
+[`docs/sprints.md`](docs/sprints.md).
 
 O trabalho é dividido em **fatias verticais por funcionalidade, não por camada** — assim ninguém
 fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronograma, no Trello.
