@@ -26,7 +26,10 @@ export function validarSenha(senha: string): string | null {
   return null;
 }
 
-function semConexao(erro: any): boolean {
+// Os campos que o Supabase põe nos erros dele; um erro de rede pode não ter nenhum.
+type ErroSupabase = { name?: string; status?: number; code?: string; message?: string };
+
+function semConexao(erro: ErroSupabase | undefined): boolean {
   return (
     erro?.name === 'AuthRetryableFetchError' ||
     erro?.status === 0 ||
@@ -34,7 +37,8 @@ function semConexao(erro: any): boolean {
   );
 }
 
-function traduzirErro(erro: any): ResultadoAuth {
+function traduzirErro(e: unknown): ResultadoAuth {
+  const erro = e as ErroSupabase | undefined;
   if (semConexao(erro)) return { ok: false, erro: MSG_SEM_INTERNET };
   switch (erro?.code) {
     case 'invalid_credentials':
@@ -85,9 +89,9 @@ export async function criarConta(nome: string, email: string, senha: string): Pr
   }
 }
 
-// Placeholder: precisa de supabase.auth.signInWithOAuth + expo-web-browser + provedor Google no Supabase.
-export async function entrarComGoogle(_perfil: Perfil): Promise<ResultadoAuth> {
-  return { ok: false, erro: 'Entrar com o Google ainda não está disponível.' };
+/** Encerra a sessão e apaga o token guardado no aparelho. */
+export async function sair(): Promise<void> {
+  await supabase.auth.signOut();
 }
 
 /** Token para o services/api.ts mandar em "Authorization: Bearer ...". */

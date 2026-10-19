@@ -1,5 +1,5 @@
 /**
- * Tela de entrar (rota /entrar): e-mail, senha, botão Entrar e login com Google.
+ * Tela de entrar (rota /entrar): e-mail, senha e botão Entrar.
  * Valida os campos, mostra erros claros e bloqueia envio duplo enquanto envia.
  * A chamada de login fica em services/auth.ts.
  */
@@ -9,9 +9,8 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CampoTexto } from '@/components/auth/campo-text';
 import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { IconeGoogle } from '@/components/auth/icone-google';
 import { TelaAuth } from '@/components/auth/screen-auth';
-import { emailValido, entrar, entrarComGoogle, type CampoComErro, type Perfil } from '@/services/auth';
+import { emailValido, entrar, type CampoComErro, type Perfil } from '@/services/auth';
 
 export default function EntrarScreen() {
   const router = useRouter();
@@ -27,13 +26,13 @@ export default function EntrarScreen() {
   const enviandoRef = useRef(false); // trava síncrona: dois toques rápidos não passam
   const senhaRef = useRef<TextInput>(null);
 
-  const executar = async (chamada: () => ReturnType<typeof entrar>) => {
+  const executar = async () => {
     if (enviandoRef.current) return;
     enviandoRef.current = true;
     setEnviando(true);
     setErroGeral(null);
     try {
-      const r = await chamada();
+      const r = await entrar(email, senha);
       if (r.ok) {
         router.replace('/home');
       } else if (r.campo) {
@@ -55,7 +54,7 @@ export default function EntrarScreen() {
     setErros(novos);
     setErroGeral(null);
     if (Object.keys(novos).length) return;
-    executar(() => entrar(email, senha));
+    executar();
   };
 
   return (
@@ -109,32 +108,17 @@ export default function EntrarScreen() {
         <Text style={s.botaoTexto}>{enviando ? 'Entrando…' : 'Entrar'}</Text>
       </Pressable>
 
-      <View style={s.divisor}>
-        <View style={s.divisorLinha} />
-        <Text style={s.divisorTexto}>ou</Text>
-        <View style={s.divisorLinha} />
-      </View>
-
-      <Pressable
-        style={[s.botaoSecundario, enviando && s.botaoDesativado]}
-        onPress={() => executar(() => entrarComGoogle(perfil))}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityLabel="Entrar com o Google"
-        accessibilityState={{ disabled: enviando }}
-      >
-        <IconeGoogle />
-        <Text style={s.botaoSecundarioTexto}>Entrar com o Google</Text>
-      </Pressable>
-
-      <Pressable
-        style={s.link}
-        onPress={() => router.push({ pathname: '/criar-conta', params: { perfil } })}
-        accessibilityRole="button"
-        accessibilityLabel="Criar conta"
-      >
-        <Text style={s.linkTexto}>Não tem conta? Criar conta</Text>
-      </Pressable>
+      {/* Só aluno cria conta pelo app; a conta de professor é criada pela equipe. */}
+      {perfil === 'aluno' && (
+        <Pressable
+          style={s.link}
+          onPress={() => router.push('/criar-conta')}
+          accessibilityRole="button"
+          accessibilityLabel="Criar conta"
+        >
+          <Text style={s.linkTexto}>Não tem conta? Criar conta</Text>
+        </Pressable>
+      )}
     </TelaAuth>
   );
 }

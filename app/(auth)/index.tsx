@@ -12,8 +12,8 @@ import { useCoresAuth } from '@/constants/auth-theme';
 import type { Perfil } from '@/services/auth';
 
 const PERFIS: { id: Perfil; titulo: string; descricao: string }[] = [
-  { id: 'aluno', titulo: 'Aluno', descricao: 'Tutor de IA, provas e feedback do seu aprendizado.' },
-  { id: 'professor', titulo: 'Professor', descricao: 'Provas, planejamento e acompanhamento das turmas.' },
+  { id: 'aluno', titulo: 'Aluno', descricao: 'Estude com um tutor que te ajuda a pensar.' },
+  { id: 'professor', titulo: 'Professor', descricao: 'Crie turmas e acompanhe seus alunos.' },
 ];
 
 export default function EscolherPerfilScreen() {

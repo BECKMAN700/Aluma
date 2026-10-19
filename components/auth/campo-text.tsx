@@ -43,7 +43,6 @@ export function CampoTexto({ rotulo, erro, senha = false, inputRef, ...props }: 
           paddingVertical: 12,
           fontSize: 15,
           color: c.texto,
-          outlineStyle: 'none',
         },
         olho: {
           alignItems: 'center',

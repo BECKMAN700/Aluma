@@ -1,3 +1,4 @@
+import { obterToken } from '@/services/auth';
 import type { ChatErrorResponse, ChatHistoryItem, ChatRequestBody, ChatResponse } from '@/types/api';
 
 /**
@@ -17,6 +18,17 @@ const ERRO_REDE_OU_TIMEOUT =
   'Não foi possível falar com o tutor. Verifique sua internet e tente de novo.';
 
 export type SendMessageResult = { ok: true; resposta: string } | { ok: false; erro: string };
+
+/**
+ * Cabeçalhos de toda chamada à API. Sem sessão vai sem token, e o servidor
+ * responde 401 "faca login de novo" — quem decide quem pode é sempre o servidor.
+ */
+async function cabecalhos(): Promise<Record<string, string>> {
+  const token = await obterToken();
+  return token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' };
+}
 
 /**
  * Pergunta ao servidor "você está aí?" pela rota /health, que não gasta cota
@@ -49,8 +61,8 @@ export async function checkHealth(timeoutMs: number): Promise<boolean> {
  * Envia a mensagem do aluno e o histórico da conversa para o tutor.
  *
  * Nunca loga `mensagem` nem `historico`: é conversa de aluno menor de idade
- * (regra inviolável 8). 422, 429 e 503 já chegam com `{"erro": "..."}` pronto
- * em português (backend/main.py) — só repassamos.
+ * (regra inviolável 8). 401, 403, 422, 429 e 503 já chegam com `{"erro": "..."}`
+ * pronto em português (backend/main.py) — só repassamos.
  */
 export async function sendMessage(
   mensagem: string,
@@ -66,7 +78,7 @@ export async function sendMessage(
   try {
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await cabecalhos(),
       body: JSON.stringify({ mensagem, historico } satisfies ChatRequestBody),
       signal: controller.signal,
     });

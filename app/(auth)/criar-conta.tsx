@@ -1,13 +1,14 @@
 /**
  * Tela de criar conta: nome, e-mail, senha e confirmação de senha.
+ * Só existe para aluno: a conta de professor é criada pela equipe (arquitetura.md §4).
  */
 import React, { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { CampoTexto } from '@/components/auth/campo-text';
 import { useEstilosAuth } from '@/components/auth/styles-auth';
 import { TelaAuth } from '@/components/auth/screen-auth';
-import { criarConta, emailValido, validarSenha, type CampoComErro, type Perfil } from '@/services/auth';
+import { criarConta, emailValido, validarSenha, type CampoComErro } from '@/services/auth';
 
 // O campo "confirmar senha" só existe na tela; o servidor nunca devolve erro nele.
 type CampoForm = CampoComErro | 'confirmar';
@@ -15,8 +16,6 @@ type CampoForm = CampoComErro | 'confirmar';
 export default function CriarContaScreen() {
   const router = useRouter();
   const s = useEstilosAuth();
-  const params = useLocalSearchParams<{ perfil?: string }>();
-  const perfil: Perfil = params.perfil === 'professor' ? 'professor' : 'aluno';
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -71,7 +70,7 @@ export default function CriarContaScreen() {
   return (
     <TelaAuth
       titulo="Criar conta"
-      subtitulo={`Cadastro de ${perfil}.`}
+      subtitulo="Cadastro de aluno."
       voltar={() => router.replace('/')}
     >
       {!!aviso && (
@@ -154,7 +153,7 @@ export default function CriarContaScreen() {
 
       <Pressable
         style={s.link}
-        onPress={() => router.replace({ pathname: '/entrar', params: { perfil } })}
+        onPress={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
         accessibilityRole="button"
         accessibilityLabel="Já tenho conta, entrar"
       >
