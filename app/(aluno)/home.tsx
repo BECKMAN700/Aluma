@@ -1,6 +1,8 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { Colors } from '@/constants/theme';
+import { useSessao } from '@/hooks/use-sessao';
+import { sair } from '@/services/auth';
 
 // estrelas -- amostra de ~20 do céu original (98 pontos era peso demais para celular fraco)
 const GALAXY_STARS = [
@@ -27,6 +29,9 @@ const GALAXY_STARS = [
 ] as const;
 
 export default function HomeScreen() {
+  const { sessao } = useSessao();
+  const turma = sessao.estado === 'pronto' ? sessao.usuario.turma?.nome : undefined;
+
   return (
     <View style={styles.screen}>
       {/* circulos */}
@@ -77,7 +82,7 @@ export default function HomeScreen() {
       >
         <View style={styles.container}>
           <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>• ALUNO • LUZ •</Text>
+            <Text style={styles.statusText}>{turma ? `• ${turma.toUpperCase()} •` : '• ALUNO •'}</Text>
           </View>
 
           {/* logo */}
@@ -126,6 +131,15 @@ export default function HomeScreen() {
               <Text style={styles.chatButtonText}>Conversar com o tutor</Text>
             </Pressable>
           </Link>
+
+          <Pressable
+            style={styles.sairButton}
+            onPress={sair}
+            accessibilityRole="button"
+            accessibilityLabel="Sair da conta"
+          >
+            <Text style={styles.sairText}>Sair</Text>
+          </Pressable>
         </View>
 
         {/* rodape */}
@@ -351,6 +365,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+  sairButton: {
+    marginTop: 12,
+    minHeight: 44,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  sairText: {
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',

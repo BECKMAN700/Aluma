@@ -33,9 +33,9 @@ export default function EntrarScreen() {
     setErroGeral(null);
     try {
       const r = await entrar(email, senha);
-      if (r.ok) {
-        router.replace('/home');
-      } else if (r.campo) {
+      // Deu certo: o layout raiz percebe a sessão nova e leva para a tela certa.
+      if (r.ok) return;
+      if (r.campo) {
         setErros({ [r.campo]: r.erro });
       } else {
         setErroGeral(r.erro);

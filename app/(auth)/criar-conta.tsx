@@ -55,7 +55,7 @@ export default function CriarContaScreen() {
       if (r.ok && r.precisaConfirmarEmail) {
         setAviso('Conta criada! Enviamos um link para o seu e-mail. Confirme e depois entre.');
       } else if (r.ok) {
-        router.replace('/home');
+        // Conta criada e logada: o layout raiz leva para a tela do código da turma.
       } else if (r.campo) {
         setErros({ [r.campo]: r.erro });
       } else {

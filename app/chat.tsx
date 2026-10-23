@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -58,7 +59,13 @@ export default function ChatScreen() {
   const canSend = isBackendReady && !isSending;
 
   // Mensagem nova ou teclado abrindo (a lista encolhe): a última fala continua à vista.
-  const scrollToLatest = () => listRef.current?.scrollToEnd({ animated: true });
+  // Pelo ScrollView de baixo, não pela FlatList: ela calcula o fim pelas alturas que já mediu e,
+  // no web, parava antes da última fala. O ScrollView usa a altura real do conteúdo.
+  // O tipo também admite View, mas a FlatList sempre rola dentro de um ScrollView.
+  const scrollToLatest = () =>
+    (listRef.current?.getNativeScrollRef() as ScrollView | null | undefined)?.scrollToEnd({
+      animated: true,
+    });
 
   const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
@@ -150,6 +157,10 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
+          // A resposta leva de 2 a 7 segundos: sem este balão a tela parece travada.
+          ListFooterComponent={
+            isSending ? <MessageBubble author="tutor" text="Tutor está pensando…" /> : null
+          }
         />
 
         <View style={styles.inputBar}>
@@ -203,7 +214,7 @@ const styles = StyleSheet.create({
   privacyNotice: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     color: Night.dust,
   },
