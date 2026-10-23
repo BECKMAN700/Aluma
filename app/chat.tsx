@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -58,14 +59,13 @@ export default function ChatScreen() {
   const canSend = isBackendReady && !isSending;
 
   // Mensagem nova ou teclado abrindo (a lista encolhe): a última fala continua à vista.
-  const scrollToLatest = () => listRef.current?.scrollToEnd({ animated: true });
-
-  // No web, só o onContentSizeChange deixava a última fala escondida embaixo (visto ao ensaiar o
-  // pitch); rolar de novo depois que a tela desenha o balão novo garante que ela aparece.
-  useEffect(() => {
-    const timer = setTimeout(scrollToLatest, 100);
-    return () => clearTimeout(timer);
-  }, [messages, isSending]);
+  // Pelo ScrollView de baixo, não pela FlatList: ela calcula o fim pelas alturas que já mediu e,
+  // no web, parava antes da última fala. O ScrollView usa a altura real do conteúdo.
+  // O tipo também admite View, mas a FlatList sempre rola dentro de um ScrollView.
+  const scrollToLatest = () =>
+    (listRef.current?.getNativeScrollRef() as ScrollView | null | undefined)?.scrollToEnd({
+      animated: true,
+    });
 
   const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
