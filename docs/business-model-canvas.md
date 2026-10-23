@@ -93,9 +93,7 @@ A aplicação será **web primeiro**, deixando a publicação em lojas de aplica
 
 O modelo de receita segue o ciclo de compra anual das escolas.
 
-> **Valor da licença: a validar.**
-
-Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Portanto, nenhum preço é estabelecido neste Canvas.
+* **Preço: R$ 10 por aluno por mês**, cobrado na licença anual da escola.
 
 ---
 
