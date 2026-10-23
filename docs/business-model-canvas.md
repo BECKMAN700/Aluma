@@ -108,11 +108,11 @@ Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Port
 * TypeScript.
 * API REST.
 * Backend em Python + FastAPI.
-* Banco de dados.
-* Serviço de IA baseado no Google Gemini 3.5 Flash Lite.
+* Banco de dados e login no Supabase.
+* Serviço de IA: Claude Haiku 4.5 como tutor principal, com o Google Gemini 3.5 Flash Lite de reserva.
 * Hospedagem do backend no Render.
+* App web publicado no Netlify.
 * GitHub para código, Issues e Pull Requests.
-* Sentry para monitoramento.
 
 ### Recursos de produto
 
@@ -174,9 +174,14 @@ Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Port
 
 * **R$ 0/mês na V1**, utilizando somente camadas gratuitas dos serviços definidos pela equipe.
 * Render — Web Service gratuito.
-* Google Gemini — camada gratuita.
-* Sentry — plano gratuito.
+* Supabase — plano gratuito (banco de dados e login).
+* Netlify — plano gratuito (app web).
 * Subdomínio gratuito para a demonstração.
+
+### Inteligência artificial
+
+* **Claude Haiku 4.5** — crédito pré-pago, com teto de **US$ 3/mês** (cerca de 500 mensagens com material do professor).
+* Google Gemini — camada gratuita, usada só quando o Claude falha.
 
 ### Desenvolvimento
 
@@ -184,4 +189,4 @@ Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Port
 
 ### Premissa financeira atual
 
-A V1 foi planejada sem orçamento para infraestrutura paga. Caso os limites das camadas gratuitas sejam ultrapassados ou o produto avance para uso real em escala, os custos deverão ser reavaliados.
+A V1 foi planejada sem orçamento para infraestrutura paga; o único gasto é o crédito da IA, limitado a US$ 3/mês. Caso os limites das camadas gratuitas sejam ultrapassados ou o produto avance para uso real em escala, os custos deverão ser reavaliados.
