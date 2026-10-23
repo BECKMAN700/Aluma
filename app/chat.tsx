@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -59,6 +59,13 @@ export default function ChatScreen() {
 
   // Mensagem nova ou teclado abrindo (a lista encolhe): a última fala continua à vista.
   const scrollToLatest = () => listRef.current?.scrollToEnd({ animated: true });
+
+  // No web, só o onContentSizeChange deixava a última fala escondida embaixo (visto ao ensaiar o
+  // pitch); rolar de novo depois que a tela desenha o balão novo garante que ela aparece.
+  useEffect(() => {
+    const timer = setTimeout(scrollToLatest, 100);
+    return () => clearTimeout(timer);
+  }, [messages, isSending]);
 
   const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
@@ -150,6 +157,10 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
+          // A resposta leva de 2 a 7 segundos: sem este balão a tela parece travada.
+          ListFooterComponent={
+            isSending ? <MessageBubble author="tutor" text="Tutor está pensando…" /> : null
+          }
         />
 
         <View style={styles.inputBar}>
@@ -203,7 +214,7 @@ const styles = StyleSheet.create({
   privacyNotice: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     color: Night.dust,
   },
