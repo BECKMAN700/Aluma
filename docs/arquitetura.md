@@ -44,7 +44,7 @@ backend/
   turmas/            rotas.py, esquemas.py, consultas.py, testes/
   materiais/         (Sprint 4) mesmo formato
   migrations/        001_inicial.sql, 002_...sql — o banco, em ordem
-  scripts/           criar_professor.py — administração, roda só na máquina da equipe
+  scripts/           criar_professor.py, seed_demo.py — administração, roda só na máquina da equipe
 app/
   _layout.tsx        lê a sessão e manda cada papel para o seu grupo
   (auth)/            entrar, criar conta

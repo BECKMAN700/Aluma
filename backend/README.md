@@ -85,6 +85,13 @@ para o Render nem para o app:
 python scripts/criar_professor.py --escola "Escola Demonstração" --nome "Prof. Demo" --email prof@exemplo.com
 ```
 
+**Demonstração inteira** (escola fictícia, professor, turma do 9º ano e aluno já matriculado),
+para gravar o pitch ou apresentar na banca. Mesma chave secreta, mesmo cuidado:
+
+```bash
+python scripts/seed_demo.py
+```
+
 ## Contrato da API
 
 Combinado com o time. O `services/chat.ts` do app é escrito contra ele: mudança passa pelo grupo.
@@ -114,6 +121,7 @@ O backend é organizado **por assunto**: uma pasta para cada, com os testes dent
 | `nucleo/db.py` | João (#87) | Conexão com o Postgres, uma por requisição |
 | `migrations/` | João (#87) | As tabelas, em ordem |
 | `scripts/criar_professor.py` | João (#87) | Cria conta de professor; roda só na máquina da equipe |
+| `scripts/seed_demo.py` | João | Cria a demonstração fictícia completa; roda só na máquina da equipe |
 | `chat/rotas.py` | Giordano | `POST /api/chat`: chama o Claude e, se falhar, o Gemini |
 | `chat/esquemas.py` | Flávio (#39) | Validação da entrada no servidor |
 | `chat/prompt.py` | Thales (#46) | System prompt socrático, o mesmo para as duas IAs |
