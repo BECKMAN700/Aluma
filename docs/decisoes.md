@@ -4,6 +4,23 @@
 > §6 guarda só o que vale hoje, em uma linha; aqui fica a história completa. Decisão nova entra
 > no topo.
 
+## 20 a 22/10/2026 — decisões do BMC e do pitch do Sebrae Supernova
+
+Contexto: a equipe de Projeto de Sistemas preencheu o BMC (20/10) e gravou o pitch (22/10) em
+conversas fora do repositório, registradas em 28/10 em [`sebrae-supernova.md`](sebrae-supernova.md).
+
+| Decisão | Escolha | Por quê | Custo aceito |
+|---|---|---|---|
+| Modelo de negócio | Licença anual **por escola** (não por turma), cobrada por aluno ativo, **R$ 10/aluno/mês** com limite de uso | Acompanha o ciclo anual de compra da escola; por aluno ativo escala com o tamanho da escola. Com a IA a cerca de R$ 4,40/aluno/mês no uso médio, sobra cerca de 56% | É hipótese: nenhum coordenador validou o preço, e o custo de IA não foi medido |
+| Quem paga e quem usa | Escola particular paga; aluno e professor usam. Secretarias na fase 2 | Começar por um piloto pequeno, em Palmas | A rede pública fica para depois |
+| Escopo | Serve a **qualquer disciplina**; Matemática do 9º ano é só o piloto | A matéria e os tópicos são do professor; o produto não depende do recorte | O pitch não pode prometer qualidade igual em toda disciplina sem teste |
+| Acesso | Web primeiro, sem instalação, entrada por código da turma | Celular ruim e sem espaço; o código já é como o app funciona | Sem presença nas lojas |
+| Diferencial | O **conjunto**: privacidade, controle da escola, anti-cola testada, simplicidade, suporte local | Khanmigo e Auvien também são socráticos; "não dar a resposta" sozinho não diferencia | Cada peça precisa existir de verdade; o painel com resumo ainda não existe |
+| Gamificação | Roadmap, não entrega imediata | Prazo; e ela precisa premiar raciocínio, não velocidade | — |
+| Honestidade | O que não existe se diz no futuro ("vai acompanhar") | O regulamento desclassifica por informação falsa | Pitch menos impactante |
+| Números | Sem validação real, nenhum dado de validação aparece; o resto fica como "hipótese" ou "a validar" | Mesmo motivo | Critério "Conhecimento do problema" fica fraco |
+| IA | Claude Haiku 4.5 principal, Gemini de reserva | Já era a decisão de 28/09; o BMC foi alinhado a ela | — |
+
 ## 07/10/2026 — o Aluma vira plataforma com login, turma e material
 
 Contexto: a Release 2 entregou um chat aberto, sem conta, sem turma e sem professor. O pitch

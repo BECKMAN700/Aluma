@@ -26,7 +26,8 @@ por sua vez, alimenta o conteúdo da matéria e recebe da IA o mapa de onde cada
 sem acesso à conversa crua — só ao resumo de desempenho, porque a privacidade do adolescente
 é regra fechada.
 
-O modelo de receita é **licença por escola, por ano**. A escolha acompanha o ciclo de compra
+O modelo de receita é **licença por escola, por ano**, cobrada por aluno ativo (R$ 10 por
+aluno/mês, hipótese a validar). A escolha acompanha o ciclo de compra
 de quem paga: escola da rede privada e secretaria de educação decidem orçamento anualmente,
 não por assinatura individual. Quem paga é a instituição; quem usa são aluno e professor. A
 métrica de sucesso adotada é aluno ativo por semana.
@@ -45,9 +46,10 @@ os artefatos da Supernova.
 | Iagor | @iagorlrnc | sim | não |
 | Flávio | @flaviohen16 | não | sim |
 | Gustavo Bringel | @GustavoBringel | não | sim |
-| Anna Beatriz Moura de Oliveira | @bibimoura | não | sim |
 
-Anna Beatriz entrou em 07/10/2026, durante a Sprint #3; por isso não aparece nas Sprints 1 e 2.
+Anna Beatriz (@bibimoura) entrou em 07/10/2026, durante a Sprint #3, e saiu do grupo em
+outubro/2026. Por isso só aparece na Sprint #3; o que estava com ela na Sprint #4 precisa de
+outro responsável.
 
 A decisão final em qualquer impasse é do João Pedro.
 
@@ -70,7 +72,8 @@ Depois da Sprint #4 vem uma fase fora das 4 sprints: refinamento do produto (09 
 banca de apresentação técnica (23 e 30/nov) e o Demo Day / pitch final (07/dez).
 
 Os marcos da Supernova ligados a esse calendário estão registrados no
-[`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §12.
+[`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §12; o que foi entregue, em
+[`sebrae-supernova.md`](sebrae-supernova.md).
 
 ## 4. Sprints
 
@@ -80,8 +83,8 @@ Cada sprint tem o seu arquivo. Para trabalhar, abra só o da sprint atual.
 |---|---|---|---|
 | #1 | Fundação: projeto Expo, tema, tipos, tela inicial | Concluída (não aceita como release) | [`sprint-1.md`](sprints/sprint-1.md) |
 | #2 | Chat com o tutor socrático, com IA de verdade, publicado | Concluída | [`sprint-2.md`](sprints/sprint-2.md) |
-| #3 | Entrar: login, papéis, turma por código, conversa salva | **Em andamento** | [`sprint-3.md`](sprints/sprint-3.md) |
-| #4 | Matéria e material: tópicos, PDF do professor, trilha | Proposta | [`sprint-4.md`](sprints/sprint-4.md) |
+| #3 | Entrar: login, papéis, turma por código, conversa salva | **Atrasada**: 5 issues abertas em 28/10, Release 3 não publicada | [`sprint-3.md`](sprints/sprint-3.md) |
+| #4 | Matéria e material: tópicos, PDF do professor, trilha | Não iniciada (sem issues em 28/10) | [`sprint-4.md`](sprints/sprint-4.md) |
 
 Depois da Sprint #4 vem o refinamento (painel do professor e acabamento), descrito no fim do
 [`sprint-4.md`](sprints/sprint-4.md).

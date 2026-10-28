@@ -28,7 +28,7 @@ conversa sobre um tópico.
 | Matéria e tópicos | Tabelas e rotas para o professor criar, ordenar e listar | `materiais/` | Flávio |
 | Envio de PDF | Recebe o arquivo, confere tipo e tamanho, extrai o texto com `pypdf` e guarda o texto ligado ao tópico | `materiais/` | Giordano |
 | Chat por tópico | `POST /api/chat` aceita `topico_id`; o texto do material entra no prompt, com limite de tamanho medido contra o teto de US$ 3/mês | `chat/` | Thales |
-| Progresso | Status por aluno e tópico guardado no servidor | `materiais/` | Anna Beatriz |
+| Progresso | Status por aluno e tópico guardado no servidor | `materiais/` | _a redistribuir_ (a Anna saiu do grupo) |
 | Bateria anti-cola com material | As perguntas-armadilha rodam em script, agora com material no prompt (inclusive material que tenta dar ordens à IA) | `chat/testes/` | Gustavo |
 | Trilha do aluno | Caminho visual com os tópicos e o progresso | `app/(aluno)/` | Iagor |
 | Matéria e material no app | Telas do professor para criar matéria, tópicos e enviar o PDF | `app/(professor)/` | Antonio |
