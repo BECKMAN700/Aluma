@@ -4,12 +4,17 @@ from fastapi.responses import JSONResponse
 from chat.claude import chat_com_claude
 from chat.esquemas import ChatRequest
 from chat.gemini import TutorIndisponivel, chat_com_gemini
+from nucleo.permissoes import exige_usuario_do_chat
 from nucleo.rate_limit import check_rate_limit
 
 router = APIRouter()
 
 
-@router.post("/api/chat", dependencies=[Depends(check_rate_limit)])
+# A permissão vem antes do limite: conta sem turma é barrada sem gastar cota nem crédito de IA.
+@router.post(
+    "/api/chat",
+    dependencies=[Depends(exige_usuario_do_chat), Depends(check_rate_limit)],
+)
 def chat(payload: ChatRequest):
     """
     Rota de chat com o tutor. Recebe mensagem e histórico,

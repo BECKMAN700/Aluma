@@ -31,7 +31,9 @@ def turma_do_aluno(db, aluno_id: str) -> Optional[Dict[str, Any]]:
         return cur.fetchone()
 
 def matricular(db, aluno_id: str, turma_id: str) -> bool:
-    with db.cursor() as cur:
+    # Savepoint: se der UniqueViolation (dois cliques ao mesmo tempo), só este INSERT é desfeito
+    # e o resto da transação da requisição continua válido.
+    with db.transaction(), db.cursor() as cur:
         cur.execute(
             "INSERT INTO matriculas (aluno_id, turma_id) VALUES (%s, %s);",
             (aluno_id, turma_id)

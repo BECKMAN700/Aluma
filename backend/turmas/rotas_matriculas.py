@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from nucleo.auth import usuario_atual, Usuario
 from nucleo.permissoes import exige_aluno
 from nucleo.db import conexao
+from nucleo.rate_limit import check_rate_limit
 from turmas.esquemas_matriculas import SolicitacaoMatricula
 from turmas import consultas_matriculas
 import psycopg
@@ -18,7 +19,14 @@ import psycopg
 router = APIRouter()
 
 
-@router.post("/api/matriculas", status_code=status.HTTP_201_CREATED)
+# O limite por conta impede testar códigos sem parar até cair na turma de outra escola.
+# shortcut: divide a cota com o chat (30/min por conta); se aparecer ataque com muitas contas,
+# criar um limite próprio, mais baixo, que conte só os códigos errados.
+@router.post(
+    "/api/matriculas",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(check_rate_limit)],
+)
 def realizar_matricula(
         dados: SolicitacaoMatricula,
         usuario: Usuario = Depends(exige_aluno),

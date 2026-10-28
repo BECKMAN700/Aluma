@@ -6,6 +6,7 @@ from main import app
 from nucleo.auth import usuario_atual, Usuario
 from nucleo.permissoes import exige_aluno
 from nucleo.db import conexao
+from nucleo.rate_limit import LIMITE_POR_MINUTO, user_request_history
 
 client = TestClient(app)
 
@@ -15,9 +16,23 @@ professor_mock = Usuario(id="456", papel="professor", escola_id=None)
 
 @pytest.fixture(autouse=True)
 def configurar_overrides():
+    user_request_history.clear()
     app.dependency_overrides[conexao] = lambda: object()
+    # O limite de tentativas lê o usuário daqui; cada teste pode trocar por outro.
+    app.dependency_overrides[usuario_atual] = lambda: aluno_mock
     yield
     app.dependency_overrides.clear()
+
+
+def test_matricula_bloqueia_quem_testa_codigos_sem_parar():
+    app.dependency_overrides[exige_aluno] = lambda: aluno_mock
+
+    with patch("turmas.consultas_matriculas.buscar_turma_por_codigo", return_value=None):
+        for _ in range(LIMITE_POR_MINUTO):
+            assert client.post("/api/matriculas", json={"codigo": "XXXXXX"}).status_code == 404
+        response = client.post("/api/matriculas", json={"codigo": "XXXXXX"})
+
+    assert response.status_code == 429
 
 
 # --- Testes de Matrícula ---
