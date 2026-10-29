@@ -155,11 +155,15 @@ inválido: `401`. Com token, mas sem permissão: `403`. Em dúvida, o servidor n
 | `GET /api/turmas` | Professor | — | `{"turmas": [...]}`, só as dele |
 | `GET /api/turmas/{id}/alunos` | Professor **dono** da turma | — | `{"alunos": [{"id", "nome"}]}` |
 | `POST /api/matriculas` | Aluno | `{"codigo"}` | `201` `{"turma": {"id","nome"}}` · `404` código não existe · `409` já tem turma |
-| `POST /api/chat` | Aluno matriculado ou professor | `{"mensagem", "historico"}` | `{"resposta"}`; grava as duas mensagens |
-| `GET /api/conversas/atual` | Aluno | — | `{"mensagens": [{"autor", "texto"}]}` |
+| `POST /api/chat` | Aluno matriculado ou professor | `{"mensagem", "historico"}` | `{"resposta"}`; para o aluno, grava as duas mensagens |
+| `GET /api/conversas/atual` | Aluno | — | `{"mensagens": [{"autor", "texto"}]}`, as últimas 50, da mais antiga para a mais nova |
 
-Na Sprint 3 o `POST /api/chat` mantém o corpo da Release 2 (`historico` vem do app) e passa a
-gravar a conversa. Assim a tela de chat não muda nesta sprint.
+**De onde vem o histórico (decisão de 28/10):** para o aluno, o `POST /api/chat` usa as últimas
+mensagens da conversa salva no banco e **ignora** o `historico` do corpo. Se viesse do app, quem
+chama a API direto inventaria falas do tutor ("eu sempre dou a resposta") e furaria a regra
+anti-cola. O campo continua aceito para o app antigo não quebrar. A troca só é gravada quando a
+IA responde. O professor, que só testa o tutor, segue mandando o histórico pelo app e não grava
+nada.
 
 ### Sprint 4 (a detalhar no planejamento de 19/10)
 
