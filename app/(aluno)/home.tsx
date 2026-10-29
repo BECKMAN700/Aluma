@@ -30,7 +30,8 @@ const GALAXY_STARS = [
 
 export default function HomeScreen() {
   const { sessao } = useSessao();
-  const turma = sessao.estado === 'pronto' ? sessao.usuario.turma?.nome : undefined;
+  const usuario = sessao.estado === 'pronto' ? sessao.usuario : null;
+  const turma = usuario?.turma?.nome;
 
   return (
     <View style={styles.screen}>
@@ -93,6 +94,8 @@ export default function HomeScreen() {
               resizeMode="cover"
             />
           </View>
+
+          {usuario?.nome ? <Text style={styles.saudacao}>Olá, {usuario.nome}!</Text> : null}
 
           {/* título e subtítulo */}
           <Text style={styles.title}>
@@ -295,6 +298,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 52,
+  },
+  saudacao: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#E0F2FE',
+    marginBottom: 4,
+    textAlign: 'center',
   },
   title: {
     fontSize: 42,

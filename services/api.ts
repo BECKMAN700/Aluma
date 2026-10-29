@@ -1,9 +1,9 @@
 import { obterToken } from '@/services/auth';
 import type {
   ChatErrorResponse,
-  ChatHistoryItem,
   ChatRequestBody,
   ChatResponse,
+  ConversaAtual,
   MatriculaResponse,
   Me,
 } from '@/types/api';
@@ -66,16 +66,14 @@ export async function checkHealth(timeoutMs: number): Promise<boolean> {
 }
 
 /**
- * Envia a mensagem do aluno e o histórico da conversa para o tutor.
+ * Envia a mensagem do aluno para o tutor. O histórico não vai junto: o servidor
+ * lê a conversa salva do banco e grava a troca nova.
  *
- * Nunca loga `mensagem` nem `historico`: é conversa de aluno menor de idade
- * (regra inviolável 8). 401, 403, 422, 429 e 503 já chegam com `{"erro": "..."}`
- * pronto em português (backend/main.py) — só repassamos.
+ * Nunca loga `mensagem`: é conversa de aluno menor de idade (regra inviolável 8).
+ * 401, 403, 422, 429 e 503 já chegam com `{"erro": "..."}` pronto em português
+ * (backend/main.py) — só repassamos.
  */
-export async function sendMessage(
-  mensagem: string,
-  historico: ChatHistoryItem[],
-): Promise<SendMessageResult> {
+export async function sendMessage(mensagem: string): Promise<SendMessageResult> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
     return { ok: false, erro: ERRO_SEM_URL };
@@ -87,7 +85,7 @@ export async function sendMessage(
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: await cabecalhos(),
-      body: JSON.stringify({ mensagem, historico } satisfies ChatRequestBody),
+      body: JSON.stringify({ mensagem } satisfies ChatRequestBody),
       signal: controller.signal,
     });
 
@@ -135,6 +133,11 @@ async function chamar<T>(caminho: string, init: RequestInit = {}): Promise<Resul
 /** Quem é a pessoa logada: papel e turma. É o servidor quem diz, nunca o app. */
 export function buscarMe(): Promise<ResultadoApi<Me>> {
   return chamar<Me>('/api/me');
+}
+
+/** A conversa salva do aluno, para o chat abrir de onde parou. Sem conversa ainda = lista vazia. */
+export function buscarConversaAtual(): Promise<ResultadoApi<ConversaAtual>> {
+  return chamar<ConversaAtual>('/api/conversas/atual');
 }
 
 /** Aluno entra na turma pelo código. 404 = código não existe; 409 = já tem turma. */

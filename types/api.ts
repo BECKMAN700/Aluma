@@ -13,7 +13,13 @@ export interface ChatHistoryItem {
 
 export interface ChatRequestBody {
   mensagem: string;
-  historico: ChatHistoryItem[];
+  // Só o professor manda; o histórico do aluno o servidor lê do banco.
+  historico?: ChatHistoryItem[];
+}
+
+/** Contrato de GET /api/conversas/atual: as últimas mensagens do aluno, da mais antiga à mais nova. */
+export interface ConversaAtual {
+  mensagens: ChatHistoryItem[];
 }
 
 export interface ChatResponse {
