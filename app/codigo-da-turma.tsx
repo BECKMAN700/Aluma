@@ -42,6 +42,9 @@ export default function CodigoDaTurmaScreen() {
         await recarregar();
       } else if (r.status === 404) {
         setErroCampo('Código não encontrado. Confira com seu professor.');
+      } else if (r.status === 401) {
+        // Sessão vencida: sair leva de volta ao login (use-sessao), em vez de prender o aluno aqui.
+        await sair();
       } else {
         setErroGeral(r.erro);
       }

@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from chat.gemini import TutorIndisponivel
 from main import app
 from nucleo.auth import Usuario, usuario_atual
+from nucleo.db import conexao
 from nucleo.rate_limit import user_request_history
 
 client = TestClient(app)
@@ -20,8 +21,21 @@ def usuario_autenticado_e_historico_limpo():
     app.dependency_overrides[usuario_atual] = lambda: Usuario(
         id="aluno-teste", papel="aluno", escola_id=None
     )
-    yield
+    app.dependency_overrides[conexao] = lambda: object()
+    with patch("nucleo.consultas.aluno_tem_turma", return_value=True):
+        yield
     app.dependency_overrides.pop(usuario_atual, None)
+    app.dependency_overrides.pop(conexao, None)
+
+
+def test_aluno_sem_turma_nao_usa_o_tutor():
+    with patch("nucleo.consultas.aluno_tem_turma", return_value=False), \
+            patch("chat.rotas.chat_com_gemini") as mock_chat_com_gemini:
+        response = client.post("/api/chat", json={"mensagem": "oi"})
+
+    assert response.status_code == 403
+    assert response.json() == {"erro": "voce precisa estar em uma turma"}
+    mock_chat_com_gemini.assert_not_called()
 
 
 @pytest.fixture(autouse=True)

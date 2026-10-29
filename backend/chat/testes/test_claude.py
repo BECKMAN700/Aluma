@@ -13,6 +13,7 @@ from chat.gemini import TutorIndisponivel
 from main import app
 from chat.prompt import MAX_OUTPUT_TOKENS, SYSTEM_PROMPT
 from nucleo.auth import Usuario, usuario_atual
+from nucleo.db import conexao
 from nucleo.rate_limit import user_request_history
 
 
@@ -22,8 +23,11 @@ def usuario_autenticado():
     app.dependency_overrides[usuario_atual] = lambda: Usuario(
         id="aluno-teste", papel="aluno", escola_id=None
     )
-    yield
+    app.dependency_overrides[conexao] = lambda: object()
+    with patch("nucleo.consultas.aluno_tem_turma", return_value=True):
+        yield
     app.dependency_overrides.pop(usuario_atual, None)
+    app.dependency_overrides.pop(conexao, None)
 
 
 def anthropic_falso(status, corpo, pedidos):
