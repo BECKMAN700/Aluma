@@ -34,8 +34,8 @@ verdade do projeto. Antes de propor mudança de rumo, consulte lá.
 
 | # | Funcionalidade |
 |---|---|
-| 1 | Login por e-mail institucional, com papéis de aluno, professor e administrador |
-| 2 | Professor cadastra turma, alunos e o conteúdo da matéria |
+| 1 | Login por e-mail e senha, com papéis de aluno, professor e administrador |
+| 2 | Professor cria a turma e o conteúdo da matéria; o aluno entra pelo código da turma |
 | 3 | Trilha do aluno: tópicos com status de não iniciado, em andamento ou dominado |
 | 4 | Chat de tutoria socrática sobre um tópico |
 | 5 | Exercícios com correção e explicação do erro |
@@ -191,4 +191,6 @@ quanto os artefatos da Supernova; quem está só em uma responde por aquela fren
 | Iagor | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) | sim | não |
 | Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) | não | sim |
 | Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) | não | sim |
-| Anna Beatriz Moura de Oliveira | Desenvolvedora | [@bibimoura](https://github.com/bibimoura) | não | sim |
+
+Anna Beatriz Moura de Oliveira ([@bibimoura](https://github.com/bibimoura)) participou da
+Sprint #3 e saiu do grupo em outubro/2026.

@@ -6,7 +6,8 @@
 > em [`docs/decisoes.md`](docs/decisoes.md); o desenho técnico, em
 > [`docs/arquitetura.md`](docs/arquitetura.md).
 >
-> Versão 0.2 — 07/10/2026 — o projeto passa a ter login, banco de dados, turma e material.
+> Versão 0.3 — 28/10/2026 — registra o Sebrae Supernova (BMC e pitch entregues), o preço e a
+> saída da Anna. Detalhe do Supernova em [`docs/sebrae-supernova.md`](docs/sebrae-supernova.md).
 
 ---
 
@@ -16,17 +17,32 @@
 
 **Dor (escola):** a escola hoje ou proíbe a IA ou finge que ela não existe. Nos dois casos o aluno usa mesmo assim, sem supervisão, para copiar resposta. A escola não tem controle, não tem visibilidade e não tem dado sobre onde a turma está travando.
 
-**Usuário que paga:** a escola (rede privada) ou a secretaria de educação (rede pública).
-**Usuário que usa:** aluno e professor.
+**Usuário que paga:** escola particular do ensino fundamental, começando por Palmas/TO como
+piloto (hipótese). Na fase 2, secretaria de educação.
+**Usuário que usa:** aluno do 6º ao 9º ano, em qualquer disciplina, e professor. O piloto é
+Matemática, 9º ano.
 **Etapa de ensino:** fundamental primeiro; médio depois.
+
+**O dado do problema:** só 16,5% dos alunos do 9º ano têm aprendizado adequado em Matemática
+(Saeb 2023); 70% dos alunos do ensino médio usam IA para tarefa e só 19% receberam orientação da
+escola (TIC Educação 2024).
 
 ## 2. Proposta de valor
 
 Para o **aluno**: um tutor que nunca entrega a resposta. Ele mostra o que estudar, como estudar, dá exemplos e obriga o aluno a pensar até chegar sozinho.
 
-Para o **professor**: ele alimenta o conteúdo da matéria, vê o desempenho da turma, recebe da IA o mapa de onde cada aluno travou e dicas do que reforçar em aula.
+Para o **professor**: ele cria a turma e alimenta o conteúdo da matéria. Com o painel (ainda
+não construído), vai ver um **resumo** de onde a turma trava e o que reforçar em aula, sem ler a
+conversa do aluno.
 
-Para a **escola**: controle sobre a IA que os alunos já usam de qualquer jeito — com uso restrito a fins educacionais, resistência à cola por construção, e conformidade com LGPD para menores.
+Para a **escola**: controle sobre a IA que os alunos já usam de qualquer jeito — com uso restrito a fins educacionais e resistência à cola testada (10 de 10 ataques na [bateria](docs/bateria-anti-cola.md)). Adequação à LGPD e ao ECA Digital antes de qualquer uso com aluno real.
+
+**Diferencial:** "não dar a resposta", sozinho, não é diferencial (Khanmigo e Auvien também são
+socráticos). O argumento é o conjunto: privacidade (resumo em vez de conversa crua), controle da
+escola, anti-cola testada, simplicidade, preço e suporte local.
+
+**Honestidade no pitch:** o que não existe no app se diz no futuro ("vai acompanhar", nunca
+"acompanha"). O regulamento do Supernova desclassifica por informação falsa.
 
 **A frase do pitch (rascunho a lapidar):** *"Seus alunos já usam IA para copiar resposta. O Aluma é a IA que a escola controla — e que se recusa a dar a resposta."*
 
@@ -115,7 +131,7 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 | Peso do app | O mais leve possível; precisa abrir em 3G e celular fraco |
 | Infra | R$ 0/mês, só camada gratuita; subdomínio grátis na demo |
 | Interface | Duas linguagens visuais: sóbria para professor, viva para o aluno |
-| Modelo de receita | Licença por escola por ano |
+| Modelo de receita | Licença anual **por escola**, cobrada por aluno ativo: **R$ 10 por aluno/mês** com limite de uso (hipótese, a validar com coordenadores) |
 | Métrica de sucesso | Aluno ativo por semana |
 | Dados de demonstração | Script de seed com escola, professor e turma fictícios, isolado do caminho de produção |
 | Divisão do trabalho | Fatias verticais por funcionalidade, não por camada |
@@ -153,6 +169,8 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 | Três serviços gratuitos podem cair na demo (Render, Supabase, Netlify) | **Alta** | Ping agendado, checklist de véspera de demo, Gemini de reserva para a IA |
 | Equipe aprendendo Supabase e SQL enquanto entrega | Alta | Contrato escrito em `docs/arquitetura.md`; mesmo formato em toda pasta do backend |
 | Teto de US$ 3/mês da IA: cerca de 500 mensagens com material | Média | Limite de tamanho do material; serve para demonstração, não para turma usando todo dia |
+| Custo de IA por aluno não medido (estimativa de R$ 2 a 9/mês, com 25 mil tokens por conversa) | Média | A margem do preço depende disso; medir no painel da Anthropic com conversas reais |
+| Painel do professor prometido no pitch ainda não existe | **Alta** | Sempre falar no futuro; construir antes do Demo Day |
 | Cold start do Render (cerca de 1 min) | Média | O app avisa que o tutor está acordando; ping agendado das 7h às 23h |
 | Supabase pausa o projeto após 7 dias sem uso | Média | O mesmo ping toca o banco |
 | Sem recuperação de senha | Baixa na demo | Contas de demonstração; ligar exige domínio próprio |
@@ -172,24 +190,27 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 **Para o professor de Projeto de Sistemas:**
 
 3. Quais artefatos além do Supernova serão cobrados (documento de requisitos, UML, cronograma)?
-4. A apresentação da Release 3 é em 19/10?
-
 **Da equipe:**
 
-5. Criar o projeto no Supabase e conferir os limites atuais do plano gratuito.
-6. Confirmar que a Anna Beatriz consegue trabalhar em Python.
-7. Enviar a logo provisória.
+4. Criar o projeto no Supabase e conferir os limites atuais do plano gratuito.
+5. Enviar a logo provisória.
+6. Supernova: confirmar a entrega na plataforma e a data do resultado (lista em
+   [`docs/sebrae-supernova.md`](docs/sebrae-supernova.md) §6).
 
-## 10. Ação urgente — validação
+## 10. Validação de campo
 
-O Supernova avalia validação, e hoje ela é **zero**: nenhuma conversa com aluno, professor ou diretor. Os módulos vão de 28/08 a 08/10 e a entrega do pitch fecha em 22/10. A janela para conseguir evidência é **agora**.
+A validação segue em **zero**: nenhuma resposta de formulário, entrevistas aguardando resposta
+(ver [`docs/validacao-de-campo.md`](docs/validacao-de-campo.md)). Ela foi adiada por decisão do
+João em 28/09, e o BMC e o pitch do Supernova saíram sem ela. É o ponto mais fraco nos critérios
+"Conhecimento do problema" e "Viabilidade técnica" (protótipo testado com o público).
 
-Meta mínima para as próximas duas semanas:
-- Formulário respondido por **30+ alunos** do fundamental/médio (dá para rodar em grupo de WhatsApp de escola, primo, vizinho)
-- **3 conversas** de 20 minutos com professores
+A meta continua valendo para a banca técnica e o Demo Day:
+- Formulário respondido por **30+ alunos** do fundamental/médio
+- **3 conversas** de 20 minutos com professores (há mensagem pronta para o professor Melk,
+  Escola Almirante Tamandaré)
 - **1 conversa** com um coordenador ou diretor
 
-Isso é barato, cabe no fim de semana, e é a diferença entre "achamos que" e "perguntamos para 34 pessoas e 71% disseram".
+Sem resposta real, nenhum número de validação aparece em pitch ou documento.
 
 ## 11. Equipe
 
@@ -205,23 +226,27 @@ código quanto os artefatos da Supernova; quem está só em uma responde por aqu
 | Iagor | Desenvolvedor | @iagorlrnc | sim | não |
 | Flávio | Desenvolvedor | @flaviohen16 | não | sim |
 | Gustavo Bringel | Desenvolvedor | @GustavoBringel | não | sim |
-| Anna Beatriz Moura de Oliveira | Desenvolvedora | @bibimoura | não | sim |
 
-Anna Beatriz entrou em 07/10/2026, durante a Sprint #3.
+Anna Beatriz (@bibimoura) entrou em 07/10/2026, durante a Sprint #3, e saiu do grupo em
+outubro/2026; o PR #104 (matrícula e `/api/me`) é dela.
+
+**No Sebrae Supernova** (limite de 4 por equipe), os inscritos são João, Giordano, Flávio e
+Thales. Gustavo ajudou no BMC mas não está inscrito. A equipe não tem professor orientador.
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
 ## 12. Calendário
 
-> 🔄 **Atualizado em 12/09/2026** com o plano de ensino oficial de Projeto de Sistemas
-> 2026-2 (Prof. Edeilson Milhomem). As datas de pitch (09/10–22/10) e banca (26/10–16/11) da
-> versão anterior deste documento pareciam superadas por esse plano de ensino, mais recente e
-> específico — foram substituídas pelas datas abaixo. Se havia um motivo para manter as datas
-> antigas, vale a equipe confirmar antes da próxima revisão.
+> Duas fontes: o plano de ensino de Projeto de Sistemas 2026-2 (Prof. Edeilson Milhomem) e o
+> Sebrae Supernova. As datas do Supernova tinham saído desta tabela em 12/09, confundidas com as
+> da disciplina; voltaram em 28/10.
 
 | Data | Marco |
 |---|---|
 | 26/08 | Supernova — evento de boas-vindas |
+| 20/10 | Supernova — prazo do BMC (entregue) |
+| 22/10 | Supernova — prazo do vídeo pitch (entregue) |
+| 16/11 | Supernova — resultado previsto (**confirmar na plataforma**) |
 | Encontro 2 da disciplina | Descoberta: problema, personas, backlog, repositório configurado |
 | Encontro 7 | MVP navegável com dados locais |
 | 24/ago–13/set | Sprint #1 → Release 1 (definição de projeto/equipe, BMC, escopo) |
@@ -232,7 +257,7 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 | 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais |
 | 23/11 e 30/11 | Banca de apresentação final — parte técnica |
 | Encontro 16 | Entrega final: demo, distribuição, documentação, retrospectiva |
-| 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa |
+| 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa (da disciplina, não do Supernova) |
 
 O detalhamento sprint a sprint — o que cada uma entrega e quem responde por cada item — está
 em [`docs/sprints.md`](docs/sprints.md).
