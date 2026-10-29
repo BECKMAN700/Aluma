@@ -22,7 +22,11 @@ def usuario_autenticado_e_historico_limpo():
         id="aluno-teste", papel="aluno", escola_id=None
     )
     app.dependency_overrides[conexao] = lambda: object()
-    with patch("nucleo.consultas.aluno_tem_turma", return_value=True):
+    # Banco de mentira: aluno com turma e conversa vazia (o SQL é testado em test_consultas.py).
+    with patch("nucleo.consultas.aluno_tem_turma", return_value=True), \
+            patch("chat.consultas.conversa_do_aluno", return_value="conversa-teste"), \
+            patch("chat.consultas.ultimas_mensagens", return_value=[]), \
+            patch("chat.consultas.gravar_troca"):
         yield
     app.dependency_overrides.pop(usuario_atual, None)
     app.dependency_overrides.pop(conexao, None)
@@ -90,6 +94,10 @@ def test_campo_desconhecido_e_rejeitado():
 
 
 def test_historico_com_mais_de_10_itens_corta_os_mais_antigos():
+    # Só o professor usa o histórico do corpo; o do aluno vem do banco.
+    app.dependency_overrides[usuario_atual] = lambda: Usuario(
+        id="professor-teste", papel="professor", escola_id=None
+    )
     historico = [{"autor": "aluno", "texto": f"pergunta {i}"} for i in range(15)]
     with patch("chat.rotas.chat_com_gemini", return_value="ok") as mock_chat_com_gemini:
         response = client.post("/api/chat", json={"mensagem": "oi", "historico": historico})

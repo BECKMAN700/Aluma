@@ -24,7 +24,10 @@ def usuario_autenticado():
         id="aluno-teste", papel="aluno", escola_id=None
     )
     app.dependency_overrides[conexao] = lambda: object()
-    with patch("nucleo.consultas.aluno_tem_turma", return_value=True):
+    with patch("nucleo.consultas.aluno_tem_turma", return_value=True), \
+            patch("chat.consultas.conversa_do_aluno", return_value="conversa-teste"), \
+            patch("chat.consultas.ultimas_mensagens", return_value=[]), \
+            patch("chat.consultas.gravar_troca"):
         yield
     app.dependency_overrides.pop(usuario_atual, None)
     app.dependency_overrides.pop(conexao, None)
