@@ -106,7 +106,7 @@ export async function sendMessage(mensagem: string): Promise<SendMessageResult> 
 /** status 0 = não chegou resposta (sem internet, timeout ou servidor fora do ar). */
 export type ResultadoApi<T> = { ok: true; dados: T } | { ok: false; status: number; erro: string };
 
-async function chamar<T>(caminho: string, init: RequestInit = {}): Promise<ResultadoApi<T>> {
+export async function chamar<T>(caminho: string, init: RequestInit = {}): Promise<ResultadoApi<T>> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
     return { ok: false, status: 0, erro: ERRO_SEM_URL };

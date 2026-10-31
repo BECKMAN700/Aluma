@@ -1,9 +1,30 @@
 /**
- * Layout do grupo do professor. As telas de turmas e alunos chegam com a #100.
+ * Layout do grupo do professor: visual claro e sóbrio, diferente do céu noturno do aluno.
  */
 import { Stack } from 'expo-router';
-import { Night } from '@/constants/theme';
+import { StatusBar } from 'expo-status-bar';
+
+import { Auth, CoresAuthContext } from '@/constants/auth-theme';
+
+// Recarregar a página numa turma ainda deixa o "voltar" levando para a lista.
+export const unstable_settings = { initialRouteName: 'turmas' };
 
 export default function ProfessorLayout() {
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Night.sky } }} />;
+  return (
+    <CoresAuthContext.Provider value={Auth}>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: Auth.fundo },
+          headerTintColor: Auth.link,
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: Auth.fundo },
+        }}
+      >
+        <Stack.Screen name="turmas" options={{ title: 'Minhas turmas' }} />
+        <Stack.Screen name="nova-turma" options={{ title: 'Criar turma' }} />
+        <Stack.Screen name="turma/[id]" options={{ title: 'Turma' }} />
+      </Stack>
+    </CoresAuthContext.Provider>
+  );
 }
