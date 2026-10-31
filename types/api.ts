@@ -45,3 +45,25 @@ export interface Me {
 export interface MatriculaResponse {
   turma: { id: string; nome: string };
 }
+
+/** Contrato de /api/turmas (backend/turmas/rotas.py). */
+export interface Turma {
+  id: string;
+  nome: string;
+  serie: string;
+  codigo: string;
+}
+
+export interface ListaDeTurmas {
+  turmas: Turma[];
+}
+
+/** Só id e nome: o professor nunca recebe a conversa do aluno. */
+export interface AlunoDaTurma {
+  id: string;
+  nome: string;
+}
+
+export interface ListaDeAlunos {
+  alunos: AlunoDaTurma[];
+}

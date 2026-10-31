@@ -1,3 +1,4 @@
+import { createContext, useContext } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 export const LARGURA_DIVIDIDA = 840;
@@ -52,6 +53,11 @@ export function useTelaDividida(): boolean {
   return width >= LARGURA_DIVIDIDA;
 }
 
+// A área do professor fixa a paleta clara; sem provider, a cor segue a largura da tela.
+export const CoresAuthContext = createContext<CoresAuth | null>(null);
+
 export function useCoresAuth(): CoresAuth {
-  return useTelaDividida() ? Auth : AuthEscuro;
+  const fixa = useContext(CoresAuthContext);
+  const dividida = useTelaDividida();
+  return fixa ?? (dividida ? Auth : AuthEscuro);
 }
