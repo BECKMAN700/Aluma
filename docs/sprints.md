@@ -83,7 +83,7 @@ Cada sprint tem o seu arquivo. Para trabalhar, abra só o da sprint atual.
 |---|---|---|---|
 | #1 | Fundação: projeto Expo, tema, tipos, tela inicial | Concluída (não aceita como release) | [`sprint-1.md`](sprints/sprint-1.md) |
 | #2 | Chat com o tutor socrático, com IA de verdade, publicado | Concluída | [`sprint-2.md`](sprints/sprint-2.md) |
-| #3 | Entrar: login, papéis, turma por código, conversa salva | **Atrasada**: 5 issues abertas em 28/10, Release 3 não publicada | [`sprint-3.md`](sprints/sprint-3.md) |
+| #3 | Entrar: login, papéis, turma por código, conversa salva | Concluída em 31/10, com atraso: Release 3 publicada (`v0.3.0`) | [`sprint-3.md`](sprints/sprint-3.md) |
 | #4 | Matéria e material: tópicos, PDF do professor, trilha | Não iniciada (sem issues em 28/10) | [`sprint-4.md`](sprints/sprint-4.md) |
 
 Depois da Sprint #4 vem o refinamento (painel do professor e acabamento), descrito no fim do
