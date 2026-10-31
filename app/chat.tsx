@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,8 +14,8 @@ import { MessageBubble } from '@/components/balao-mensagem';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Night } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
-import { sendMessage } from '@/services/api';
-import type { ChatApiAuthor } from '@/types/aluma';
+import { buscarConversaAtual, sendMessage } from '@/services/api';
+import type { ChatApiAuthor } from '@/types/api';
 
 // Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
 const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {
@@ -39,26 +40,59 @@ interface Message {
   text: string;
 }
 
+// Só na tela: não é gravada nem vai para o servidor.
+const SAUDACAO: Message = {
+  id: 'saudacao',
+  author: 'tutor',
+  text: 'Oi, eu sou a Luma! Qual dúvida você quer pensar comigo hoje?',
+};
+
 export default function ChatScreen() {
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
   const listRef = useRef<FlatList<Message>>(null);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      author: 'tutor',
-      text: 'Olá! Sou o orientador de estudos do Aluma. Qual tópico você gostaria de explorar hoje?',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([SAUDACAO]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [conversa, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
+  const [tentativaConversa, setTentativaConversa] = useState(0);
 
-  const canSend = isBackendReady && !isSending;
+  // Abre de onde o aluno parou: a conversa vem do servidor, não do aparelho.
+  useEffect(() => {
+    let ativo = true;
+    buscarConversaAtual().then((r) => {
+      if (!ativo) return;
+      if (!r.ok) {
+        setConversa('erro');
+        return;
+      }
+      const salvas = r.dados.mensagens.map((m, i) => ({ id: `salva-${i}`, author: m.autor, text: m.texto }));
+      setMessages([SAUDACAO, ...salvas]);
+      setConversa('pronta');
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [tentativaConversa]);
+
+  const recarregarConversa = () => {
+    setConversa('carregando');
+    setTentativaConversa((t) => t + 1);
+  };
+
+  // Só envia com a conversa carregada: senão a resposta nova chegaria antes das antigas.
+  const canSend = isBackendReady && !isSending && conversa === 'pronta';
 
   // Mensagem nova ou teclado abrindo (a lista encolhe): a última fala continua à vista.
-  const scrollToLatest = () => listRef.current?.scrollToEnd({ animated: true });
+  // Pelo ScrollView de baixo, não pela FlatList: ela calcula o fim pelas alturas que já mediu e,
+  // no web, parava antes da última fala. O ScrollView usa a altura real do conteúdo.
+  // O tipo também admite View, mas a FlatList sempre rola dentro de um ScrollView.
+  const scrollToLatest = () =>
+    (listRef.current?.getNativeScrollRef() as ScrollView | null | undefined)?.scrollToEnd({
+      animated: true,
+    });
 
   const handleSendMessage = async () => {
     const trimmedText = inputText.trim();
@@ -70,15 +104,12 @@ export default function ChatScreen() {
       text: trimmedText,
     };
 
-    // Histórico é o que veio ANTES desta mensagem; o backend corta os 10 mais recentes.
-    const historico = messages.map((message) => ({ autor: message.author, texto: message.text }));
-
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInputText('');
     setSendError(null);
     setIsSending(true);
 
-    const result = await sendMessage(trimmedText, historico);
+    const result = await sendMessage(trimmedText);
 
     if (result.ok) {
       const tutorReply: Message = {
@@ -135,6 +166,21 @@ export default function ChatScreen() {
             )}
           </View>
         )}
+        {isBackendReady && conversa === 'carregando' && (
+          <Text style={[styles.statusBanner, styles.bannerText]} accessibilityLiveRegion="polite">
+            Carregando sua conversa…
+          </Text>
+        )}
+        {conversa === 'erro' && (
+          <View style={styles.statusBannerRow}>
+            <Text style={styles.bannerText} accessibilityLiveRegion="polite">
+              Não deu para carregar sua conversa.
+            </Text>
+            <Pressable onPress={recarregarConversa} accessibilityRole="button">
+              <Text style={styles.retryText}>Tentar de novo</Text>
+            </Pressable>
+          </View>
+        )}
         {sendError && (
           <Text style={[styles.statusBanner, styles.bannerText]} accessibilityLiveRegion="polite">
             {sendError}
@@ -150,6 +196,10 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
+          // A resposta leva de 2 a 7 segundos: sem este balão a tela parece travada.
+          ListFooterComponent={
+            isSending ? <MessageBubble author="tutor" text="Luma está pensando…" /> : null
+          }
         />
 
         <View style={styles.inputBar}>
@@ -203,7 +253,7 @@ const styles = StyleSheet.create({
   privacyNotice: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     color: Night.dust,
   },

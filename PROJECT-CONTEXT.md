@@ -1,11 +1,13 @@
 # Aluma — Contexto do Projeto
 
-> Documento vivo. É a **constituição** do projeto: o que já foi decidido e por quê.
+> Documento vivo. É a **constituição** do projeto: o que vale hoje.
 > Antes de abrir qualquer discussão sobre "e se a gente fizesse...", consulte aqui.
-> Local sugerido no repositório: raiz, como `PROJECT-CONTEXT.md`.
+> Este arquivo é carregado em toda sessão de IA: mantenha curto. O porquê de cada decisão fica
+> em [`docs/decisoes.md`](docs/decisoes.md); o desenho técnico, em
+> [`docs/arquitetura.md`](docs/arquitetura.md).
 >
-> Versão 0.1 — 25/08/2026 — consolidada a partir do questionário de descoberta.
-> Status: **rascunho aguardando confirmação da equipe** nos pontos marcados 🔶.
+> Versão 0.3 — 28/10/2026 — registra o Sebrae Supernova (BMC e pitch entregues), o preço e a
+> saída da Anna. Detalhe do Supernova em [`docs/sebrae-supernova.md`](docs/sebrae-supernova.md).
 
 ---
 
@@ -15,176 +17,200 @@
 
 **Dor (escola):** a escola hoje ou proíbe a IA ou finge que ela não existe. Nos dois casos o aluno usa mesmo assim, sem supervisão, para copiar resposta. A escola não tem controle, não tem visibilidade e não tem dado sobre onde a turma está travando.
 
-**Usuário que paga:** a escola (rede privada) ou a secretaria de educação (rede pública).
-**Usuário que usa:** aluno e professor.
+**Usuário que paga:** escola particular do ensino fundamental, começando por Palmas/TO como
+piloto (hipótese). Na fase 2, secretaria de educação.
+**Usuário que usa:** aluno do 6º ao 9º ano, em qualquer disciplina, e professor. O piloto é
+Matemática, 9º ano.
 **Etapa de ensino:** fundamental primeiro; médio depois.
+
+**O dado do problema:** só 16,5% dos alunos do 9º ano têm aprendizado adequado em Matemática
+(Saeb 2023); 70% dos alunos do ensino médio usam IA para tarefa e só 19% receberam orientação da
+escola (TIC Educação 2024).
 
 ## 2. Proposta de valor
 
 Para o **aluno**: um tutor que nunca entrega a resposta. Ele mostra o que estudar, como estudar, dá exemplos e obriga o aluno a pensar até chegar sozinho.
 
-Para o **professor**: ele alimenta o conteúdo da matéria, vê o desempenho da turma, recebe da IA o mapa de onde cada aluno travou e dicas do que reforçar em aula.
+Para o **professor**: ele cria a turma e alimenta o conteúdo da matéria. Com o painel (ainda
+não construído), vai ver um **resumo** de onde a turma trava e o que reforçar em aula, sem ler a
+conversa do aluno.
 
-Para a **escola**: controle sobre a IA que os alunos já usam de qualquer jeito — com uso restrito a fins educacionais, resistência à cola por construção, e conformidade com LGPD para menores.
+Para a **escola**: controle sobre a IA que os alunos já usam de qualquer jeito — com uso restrito a fins educacionais e resistência à cola testada (10 de 10 ataques na [bateria](docs/bateria-anti-cola.md)). Adequação à LGPD e ao ECA Digital antes de qualquer uso com aluno real.
+
+**Diferencial:** "não dar a resposta", sozinho, não é diferencial (Khanmigo e Auvien também são
+socráticos). O argumento é o conjunto: privacidade (resumo em vez de conversa crua), controle da
+escola, anti-cola testada, simplicidade, preço e suporte local.
+
+**Honestidade no pitch:** o que não existe no app se diz no futuro ("vai acompanhar", nunca
+"acompanha"). O regulamento do Supernova desclassifica por informação falsa.
 
 **A frase do pitch (rascunho a lapidar):** *"Seus alunos já usam IA para copiar resposta. O Aluma é a IA que a escola controla — e que se recusa a dar a resposta."*
 
 ## 3. Escopo
 
-### Dentro da V1 🔶 proposta a confirmar
+### Dentro da V1
 
-| # | Funcionalidade | Por que entra |
+| # | Funcionalidade | Quando |
 |---|---|---|
-| 1 | Login por e-mail institucional, papéis aluno/professor/admin | Sem isso nada mais funciona |
-| 2 | Professor cadastra turma, alunos e o conteúdo da matéria | É o que faz a IA falar do conteúdo certo |
-| 3 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | É o "o que estudar" da dor central |
-| 4 | Chat de tutoria socrática sobre um tópico | É **o** diferencial. Sem isso não há produto |
-| 5 | Exercícios com correção e explicação do erro | É como o sistema descobre onde o aluno travou |
-| 6 | Painel do professor: onde a turma está travando | É o que a escola compra |
+| 1 | Login por e-mail e senha, papéis aluno/professor/admin | Sprint 3 |
+| 2 | Professor cria turma; aluno entra por código | Sprint 3 |
+| 3 | Chat de tutoria socrática, com a conversa salva | Feito na Sprint 2; salvo na Sprint 3 |
+| 4 | Professor cadastra matéria, tópicos e o material (PDF) de cada tópico | Sprint 4 |
+| 5 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | Sprint 4 |
+| 6 | Chat ligado ao tópico, usando o material do professor | Sprint 4 |
+| 7 | Painel do professor: onde a turma está travando | Refinamento |
+| 8 | Aluno pede questões e o tutor corrige guiando | Refinamento |
+
+O detalhe de cada sprint está em [`docs/sprints.md`](docs/sprints.md).
 
 ### Fora da V1 (roadmap, aparecem no pitch como visão)
 
-Gamificação/XP, notificações, relatório para coordenação, painel do responsável, correção de redação, resumos e flashcards, modo offline, chat entre alunos (esse último está fora **permanentemente**).
+Gamificação/XP, notificações, relatório para coordenação, painel do responsável, correção de
+redação, resumos e flashcards, modo offline, streaming da resposta, chat entre alunos (esse
+último está fora **permanentemente**).
 
-### Recorte de conteúdo 🔶
+### Recorte de conteúdo
 
-Uma disciplina e uma série na V1. Recomendação: **Matemática, 9º ano** — currículo BNCC bem documentado, é onde a tutoria socrática mais brilha, e é fácil demonstrar em vídeo.
+Público: ensino fundamental. Demonstração com **Matemática, 9º ano**: currículo BNCC bem
+documentado, é onde a tutoria socrática mais brilha, e é fácil de mostrar em vídeo. A matéria e
+os tópicos são cadastrados pelo professor, então o produto não fica preso a esse recorte.
 
-## 4. Stack — decidida pela disciplina, não por preferência
+## 4. Stack
 
-A ementa de Desenvolvimento Webmobile (UFT/Palmas, Prof. Jackson Gomes) define o terreno. Não há escolha aqui, e isso é bom: elimina uma decisão.
+A ementa de Desenvolvimento Webmobile (UFT/Palmas, Prof. Jackson Gomes) define o app. O resto é
+decisão da equipe.
 
 | Camada | Tecnologia | Origem |
 |---|---|---|
-| App (web + mobile, mesmo código) | **React Native + Expo** | Exigido pela ementa |
-| Linguagem | **TypeScript** | Exigido pela ementa |
-| Navegação | Expo Router (navegação universal + deep links) | Ementa, encontro 6 |
-| Estado remoto e cache | definido no encontro 13 | Ementa |
-| Testes + CI | lint e testes a cada push, GitHub Actions | Ementa, encontros 15–16 |
-| API | REST, contrato tipado documentado | Ementa, encontro 9 |
-| Backend | **Python + FastAPI**, hospedado no Render (Web Service gratuito) | Decisão da equipe — ver §6 e §9 |
-| IA | **Google Gemini 3.5 Flash Lite** (AI Studio), camada gratuita, ~1.500 req/dia | Decisão da equipe — ver §6 |
+| App (web + mobile, mesmo código) | **React Native + Expo**, **TypeScript**, Expo Router | Exigido pela ementa |
+| Testes + CI | Lint e testes a cada PR, GitHub Actions | Ementa, encontros 15–16 |
+| Backend | **Python + FastAPI**, em `backend/`, hospedado no Render (gratuito) | Decisão da equipe |
+| Banco de dados e login | **Supabase** (Postgres + Auth), plano gratuito | Decisão da equipe |
+| IA | **Claude Haiku 4.5**, teto de US$ 3/mês, com **Google Gemini** gratuito de reserva | Decisão da equipe |
+| App web publicado | **Netlify**, plano gratuito | Decisão da equipe |
 
-**Distribuição:** aplicação universal — roda no navegador e no celular a partir do mesmo código. Build instalável via EAS é possível, mas <cite index="13-1">a ementa deixa claro que build em nuvem não é requisito para aprovação quando houver limitação de conta ou plataforma</cite>. Logo: **web primeiro, loja fica para depois.**
+**Distribuição:** aplicação universal — roda no navegador e no celular a partir do mesmo
+código. **Web primeiro, loja fica para depois.**
 
 ## 5. Arquitetura em uma imagem mental
 
 ```
-[App Expo — aluno]      [App Expo — professor]
-        \                        /
-         \                      /
-          →  API REST (contrato tipado)  ←
-                      |
-              +-------+-------+
-              |               |
-         Banco de dados   Serviço de IA
-        (escolas, turmas,  (tutoria socrática,
-         progresso,         geração e correção
-         conversas)         de exercícios)
+App Expo ── e-mail e senha ──> Supabase Auth ──> devolve um token
+App Expo ── token em toda chamada ──> FastAPI (Render) ──> Postgres (Supabase)
+                                            └──> Claude (Gemini de reserva)
 ```
 
-Duas regras que definem tudo:
+Três regras que definem tudo:
 
-1. **A chave da API de IA nunca fica no app.** Toda chamada de IA passa pelo servidor. Chave no app = chave pública = conta zerada por terceiros. Isso é inegociável.
+1. **A chave da API de IA nunca fica no app.** Toda chamada de IA passa pelo servidor.
 2. **O app não decide regra de negócio.** Quem pode ver o quê é decidido no servidor, sempre.
+3. **O app fala com o Supabase só para login.** Todo dado passa pelo FastAPI.
+
+O mapa completo — pastas, tabelas, rotas e quem pode chamar cada uma — está em
+[`docs/arquitetura.md`](docs/arquitetura.md).
 
 ## 6. Decisões fechadas
 
-| Decisão | Escolha | Por quê |
-|---|---|---|
-| Tutoria | **Nunca entrega a resposta pronta.** Guia, exemplifica, pergunta de volta | É o diferencial e é a defesa anti-cola. As duas coisas são o mesmo mecanismo |
-| Escopo de assunto | Só assunto educacional; fora disso, recusa | Requisito para a escola aceitar |
-| Login do aluno | E-mail institucional da escola. Professor coloca o aluno na turma | Escolha da equipe |
-| Turmas | Aluno pertence a **uma** turma; professor tem **várias** | Escolha da equipe |
-| Visibilidade do professor | Vê **resumo** do desempenho, não a conversa crua | Privacidade do adolescente |
-| Isolamento | Professor **jamais** vê aluno de outra turma ou de outra escola | Regra de segurança inviolável |
-| Histórico | Guardado até o aluno mudar de turma no ano seguinte. Aluno **não** apaga | Escolha da equipe |
-| Coleta de dados | Só o estritamente necessário. Sem CPF, sem foto | LGPD + princípio de minimização |
-| Consentimento | Dos pais 🔶 mecanismo a definir | LGPD, menores de idade |
-| Auditoria | Log simples em ações sensíveis | Padrão aceito |
-| Falha da IA | Erro explícito e claro + conteúdo estático de reserva. Nunca inventar | Padrão aceito |
-| Offline | Fora da V1 | Custa caro e arrisca o prazo |
-| Recursos do aparelho | Nenhum na V1 (sem câmera, microfone, push) | Escopo |
-| Acessibilidade | Básico: teclado, contraste, rótulo para leitor de tela | Padrão aceito |
-| Peso do app | O mais leve possível; precisa abrir em 3G e celular fraco | Realidade do público |
-| Infra | R$ 0/mês, só camada gratuita | Sem orçamento |
-| Domínio | Subdomínio grátis na demo | Sem orçamento |
-| Interface | Duas linguagens visuais: sóbria para professor, viva para o aluno | Escolha da equipe |
-| Modelo de receita | Licença por escola por ano | Ciclo de compra da escola é anual |
-| Métrica de sucesso | Aluno ativo por semana | Padrão aceito |
-| Monitoramento | Log estruturado + Sentry (plano gratuito) | Padrão aceito |
-| Dados de demonstração | Script de seed com turma fictícia, isolado do caminho de produção | Demo não pode ficar vazia |
-| Divisão do trabalho | Fatias verticais por funcionalidade, não por camada | Ninguém fica bloqueado esperando o outro |
-| Decisão final | João Pedro Beckman | Confirmado |
-| Modo de trabalho com a IA assistente | **A IA implementa a solução inteira, em nível sênior, e explica o porquê; quem commita precisa saber explicar o código** | Decisão do João (15/09/2026): a Release 1 foi recusada por não ser funcional e o prazo é curto. A explicação continua obrigatória porque a banca pergunta |
-| Backend | **Python + FastAPI**, em `backend/` no mesmo repositório (monorepo) | A equipe constrói o próprio, sem esperar resposta do professor (ADR da equipe, 12/09/2026) |
-| Hospedagem do backend | **Render**, Web Service gratuito, deploy direto do GitHub | Único com free tier permanente e sem cartão em 2026. Custo: cold start de 30-50s após ~15 min de inatividade — aceitável para uso acadêmico |
-| Hospedagem do app web | **Netlify**, plano gratuito, build `npx expo export -p web` direto do GitHub (`netlify.toml`). Produção publica a `main`; a `develop` e cada PR ganham link de teste próprio | Plano gratuito em créditos (300/mês): só o deploy de produção gasta (15 cada). Previews e o link da `develop` são grátis. Se os créditos acabarem, o site sai do ar até o mês virar. Decidido em 27/09/2026 |
-| Provedor de IA | **Google Gemini** (`gemini-3.5-flash-lite`), via `google-genai` (Python), com streaming | Tier gratuito permanente (não é trial), ~1.500 req/dia, sem cartão. Modelo trocado em 21/09/2026: a linha 2.5 foi descontinuada para contas novas (404 ao chamar, inclusive no `flash-lite`), e o `gemini-3.6-flash` indicado pelo próprio Google como substituto respondeu em 41s e depois falhou por alta demanda — o `3.5-flash-lite` responde a mesma pergunta do roteiro em 2,3s. Versão fixa em vez do alias `gemini-flash-lite-latest` para a bateria anti-cola não mudar de alvo sozinha. Custo: no tier gratuito, os prompts podem ser usados pela Google para treinar modelos — ver risco de LGPD na §8 |
-| Camada de abstração para IA (LangChain) | **Não usar por ora** (YAGNI) | Reavaliar só se o projeto passar a precisar de RAG sobre o material da disciplina |
-| Protocolo de streaming | Backend implementa o **Data Stream Protocol do AI SDK** | Permite o app (Expo/React Native) consumir a resposta token a token sem depender das bibliotecas JS do AI SDK |
+Uma linha por decisão, só o que vale hoje. O porquê, a data e as alternativas descartadas estão
+em [`docs/decisoes.md`](docs/decisoes.md).
+
+| Decisão | Escolha |
+|---|---|
+| Tutoria | **Nunca entrega a resposta pronta.** Guia, exemplifica, pergunta de volta. É o diferencial e a defesa anti-cola |
+| Escopo de assunto | Só assunto educacional; fora disso, recusa |
+| Login | E-mail e senha, pelo Supabase. Sem e-mail de confirmação e sem "esqueci a senha" na fase de apresentação |
+| Papéis | Quem cria conta pelo app é aluno. Conta de professor e escola são criadas pela equipe |
+| Turmas | Aluno entra por código e pertence a **uma** turma; professor tem **várias** |
+| Visibilidade do professor | Vê **resumo** do desempenho, não a conversa crua |
+| Isolamento | Professor **jamais** vê aluno de outra turma ou de outra escola |
+| Histórico | A conversa do aluno fica salva no servidor |
+| Material do professor | PDF ligado a um tópico; só o texto daquele tópico vai para a IA |
+| Falha da IA | Erro explícito e claro. Nunca inventar |
+| Offline e recursos do aparelho | Fora da V1 (sem câmera, microfone, push) |
+| Acessibilidade | Básico: teclado, contraste, rótulo para leitor de tela |
+| Peso do app | O mais leve possível; precisa abrir em 3G e celular fraco |
+| Infra | R$ 0/mês, só camada gratuita; subdomínio grátis na demo |
+| Interface | Duas linguagens visuais: sóbria para professor, viva para o aluno |
+| Modelo de receita | Licença anual **por escola**, cobrada por aluno ativo: **R$ 10 por aluno/mês** com limite de uso (hipótese, a validar com coordenadores) |
+| Métrica de sucesso | Aluno ativo por semana |
+| Dados de demonstração | Script de seed com escola, professor e turma fictícios, isolado do caminho de produção |
+| Divisão do trabalho | Fatias verticais por funcionalidade, não por camada |
+| Decisão final | João Pedro Beckman |
+| Modo de trabalho com a IA assistente | A IA implementa a solução inteira, em nível sênior, e explica o porquê; quem commita precisa saber explicar o código |
+| Backend | Python + FastAPI, no mesmo repositório, organizado por assunto. No Render gratuito (dorme após 15 min) |
+| Banco de dados | Postgres no Supabase. Todo dado passa pelo FastAPI; tabelas trancadas com RLS |
+| App web | Netlify gratuito. Produção publica a `main`; a `develop` e cada PR ganham link de teste |
+| IA principal | Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), versão fixa, crédito pré-pago com teto de US$ 3/mês |
+| IA de reserva | Google Gemini (`gemini-3.5-flash-lite`), versão fixa, tier gratuito |
+| LangChain e busca por similaridade | Não usar |
+| Limite de requisições | Por usuário |
+| Streaming | Cortado |
+| LGPD | Suspensa na fase de apresentação (ver §7, regra 8) |
 
 ## 7. Regras invioláveis
 
-1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch + PR revisado. (já no README)
+1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch + PR revisado.
 2. Chave de API, senha ou segredo **nunca** no código, no commit, na URL ou no log.
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: **negue e pare**. Nunca "deixa passar por enquanto".
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
 6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
+8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD com regra dura para
+   menores, consentimento dos pais e exclusão sob pedido. A demonstração usa contas fictícias.
+   Volta a valer, e precisa ser cumprida, antes de qualquer uso com aluno real.
 
 ## 8. Riscos conhecidos
 
 | Risco | Gravidade | Como estamos tratando |
 |---|---|---|
-| Equipe não domina TypeScript/React ainda | **Alta** | Marcos 1–7 da disciplina não exigem IA nem API. Aproveitar essa janela para aprender construindo |
-| Zero validação com escola ou aluno real | **Alta** | Ação urgente — ver seção 10 |
-| Sem orçamento para API de IA | Alta | Camada gratuita + cache agressivo + conteúdo pré-gerado para a demo |
-| Escopo maior que o prazo | Alta | Corte já aplicado na seção 3. Revisar a cada marco |
-| Aluno de fundamental em escola pública pode não ter e-mail institucional | Média | Rever decisão de login se a validação confirmar. Plano B: código de turma |
-| Domínio `aluma.com` e `aluma.com.br` indisponíveis | Baixa | Não bloqueia nada agora. Resolver antes de qualquer registro de marca |
-| Conteúdo pedagógico sem validação de especialista | Média | Ancorar em BNCC + material do próprio professor da escola. Buscar validação com um licenciado |
-| IA alucinar em conteúdo escolar | Média | Restringir ao material do professor, botão de reportar, revisão do professor |
-| Tier gratuito do Gemini pode usar os prompts para treinar modelos da Google | **Média/Alta** — o público é menor de idade (regra inviolável 8) | Documentar a limitação; revisar antes de qualquer uso com turma real ou dado sensível de aluno. Ligado à pendência de exclusão de dados registrada em memória (`rf08-lgpd-exclusao-dados-adiado`) |
-| Cold start do Render (30-50s após inatividade) | Baixa para uso acadêmico | Sinalizar na UI (estado de carregamento) em vez de deixar o aluno com tela travada — item da Sprint #4 em `docs/sprints.md` |
+| Escopo maior que o prazo | **Alta** | Três fatias em ordem de dependência (§3). Cada release é um roteiro que precisa passar inteiro |
+| Zero validação com escola ou aluno real | **Alta** | Adiada por decisão do João (28/09). Ver §10 |
+| Três serviços gratuitos podem cair na demo (Render, Supabase, Netlify) | **Alta** | Ping agendado, checklist de véspera de demo, Gemini de reserva para a IA |
+| Equipe aprendendo Supabase e SQL enquanto entrega | Alta | Contrato escrito em `docs/arquitetura.md`; mesmo formato em toda pasta do backend |
+| Teto de US$ 3/mês da IA: cerca de 500 mensagens com material | Média | Limite de tamanho do material; serve para demonstração, não para turma usando todo dia |
+| Custo de IA por aluno não medido (estimativa de R$ 2 a 9/mês, com 25 mil tokens por conversa) | Média | A margem do preço depende disso; medir no painel da Anthropic com conversas reais |
+| Painel do professor prometido no pitch ainda não existe | **Alta** | Sempre falar no futuro; construir antes do Demo Day |
+| Cold start do Render (cerca de 1 min) | Média | O app avisa que o tutor está acordando; ping agendado das 7h às 23h |
+| Supabase pausa o projeto após 7 dias sem uso | Média | O mesmo ping toca o banco |
+| Sem recuperação de senha | Baixa na demo | Contas de demonstração; ligar exige domínio próprio |
+| IA alucinar em conteúdo escolar | Média | Restringir ao material do professor; bateria anti-cola a cada mudança de prompt |
+| Material do professor tentar dar ordens à IA | Média | O material entra como conteúdo, não como instrução; caso de teste na bateria |
+| LGPD suspensa | **Alta se houver uso real** | Só contas fictícias até a regra 8 voltar |
+| Tier gratuito do Gemini pode usar os prompts para treinar modelos | Baixa na demo | O Gemini é reserva e só recebe conversa quando o Claude falha |
 
 ## 9. Pendências
 
 **Para o professor de Desenvolvimento Webmobile:**
 
-1. ~~A API REST que o projeto vai consumir é fornecida pelo senhor ou cada equipe constrói a sua?~~
-   **Resolvida pela equipe em 12/09/2026, independente da resposta do professor:** vamos
-   construir a nossa própria (Python + FastAPI, IA via Google Gemini, hospedagem no Render —
-   ver §4 e §6). A pergunta ao professor continua valendo para efeito de avaliação/comparação,
-   mas não bloqueia mais o plano de sprints.
-2. Se a equipe construir: há restrição de linguagem/framework no servidor? (Vale confirmar,
-   já que a escolha de Python/FastAPI foi decisão nossa, não resposta do professor.)
-3. ~~Onde a versão web deve ser publicada? Há infraestrutura da UFT ou usamos serviço gratuito?~~
-   **Resolvida pela equipe em 27/09/2026:** Netlify, plano gratuito (ver §6). A pergunta ao
-   professor continua valendo caso a UFT ofereça infraestrutura própria.
+1. Há restrição de linguagem ou framework no servidor? (Python/FastAPI e Supabase foram escolha
+   da equipe.)
+2. A UFT oferece infraestrutura própria para publicar o app?
 
 **Para o professor de Projeto de Sistemas:**
 
-4. Quais artefatos além do Supernova serão cobrados (documento de requisitos, UML, cronograma)?
-
+3. Quais artefatos além do Supernova serão cobrados (documento de requisitos, UML, cronograma)?
 **Da equipe:**
 
-5. Confirmar o corte de escopo da seção 3.
-6. Confirmar a disciplina e série da V1.
-7. Enviar a logo provisória.
-8. Definir como o consentimento dos pais é coletado na prática.
+4. Criar o projeto no Supabase e conferir os limites atuais do plano gratuito.
+5. Enviar a logo provisória.
+6. Supernova: confirmar a entrega na plataforma e a data do resultado (lista em
+   [`docs/sebrae-supernova.md`](docs/sebrae-supernova.md) §6).
 
-## 10. Ação urgente — validação
+## 10. Validação de campo
 
-O Supernova avalia validação, e hoje ela é **zero**: nenhuma conversa com aluno, professor ou diretor. Os módulos vão de 28/08 a 08/10 e a entrega do pitch fecha em 22/10. A janela para conseguir evidência é **agora**.
+A validação segue em **zero**: nenhuma resposta de formulário, entrevistas aguardando resposta
+(ver [`docs/validacao-de-campo.md`](docs/validacao-de-campo.md)). Ela foi adiada por decisão do
+João em 28/09, e o BMC e o pitch do Supernova saíram sem ela. É o ponto mais fraco nos critérios
+"Conhecimento do problema" e "Viabilidade técnica" (protótipo testado com o público).
 
-Meta mínima para as próximas duas semanas:
-- Formulário respondido por **30+ alunos** do fundamental/médio (dá para rodar em grupo de WhatsApp de escola, primo, vizinho)
-- **3 conversas** de 20 minutos com professores
+A meta continua valendo para a banca técnica e o Demo Day:
+- Formulário respondido por **30+ alunos** do fundamental/médio
+- **3 conversas** de 20 minutos com professores (há mensagem pronta para o professor Melk,
+  Escola Almirante Tamandaré)
 - **1 conversa** com um coordenador ou diretor
 
-Isso é barato, cabe no fim de semana, e é a diferença entre "achamos que" e "perguntamos para 34 pessoas e 71% disseram".
+Sem resposta real, nenhum número de validação aparece em pitch ou documento.
 
 ## 11. Equipe
 
@@ -201,19 +227,26 @@ código quanto os artefatos da Supernova; quem está só em uma responde por aqu
 | Flávio | Desenvolvedor | @flaviohen16 | não | sim |
 | Gustavo Bringel | Desenvolvedor | @GustavoBringel | não | sim |
 
+Anna Beatriz (@bibimoura) entrou em 07/10/2026, durante a Sprint #3, e saiu do grupo em
+outubro/2026; o PR #104 (matrícula e `/api/me`) é dela.
+
+**No Sebrae Supernova** (limite de 4 por equipe), os inscritos são João, Giordano, Flávio e
+Thales. Gustavo ajudou no BMC mas não está inscrito. A equipe não tem professor orientador.
+
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 
 ## 12. Calendário
 
-> 🔄 **Atualizado em 12/09/2026** com o plano de ensino oficial de Projeto de Sistemas
-> 2026-2 (Prof. Edeilson Milhomem). As datas de pitch (09/10–22/10) e banca (26/10–16/11) da
-> versão anterior deste documento pareciam superadas por esse plano de ensino, mais recente e
-> específico — foram substituídas pelas datas abaixo. Se havia um motivo para manter as datas
-> antigas, vale a equipe confirmar antes da próxima revisão.
+> Duas fontes: o plano de ensino de Projeto de Sistemas 2026-2 (Prof. Edeilson Milhomem) e o
+> Sebrae Supernova. As datas do Supernova tinham saído desta tabela em 12/09, confundidas com as
+> da disciplina; voltaram em 28/10.
 
 | Data | Marco |
 |---|---|
 | 26/08 | Supernova — evento de boas-vindas |
+| 20/10 | Supernova — prazo do BMC (entregue) |
+| 22/10 | Supernova — prazo do vídeo pitch (entregue) |
+| 16/11 | Supernova — resultado previsto (**confirmar na plataforma**) |
 | Encontro 2 da disciplina | Descoberta: problema, personas, backlog, repositório configurado |
 | Encontro 7 | MVP navegável com dados locais |
 | 24/ago–13/set | Sprint #1 → Release 1 (definição de projeto/equipe, BMC, escopo) |
@@ -224,7 +257,7 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 | 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais |
 | 23/11 e 30/11 | Banca de apresentação final — parte técnica |
 | Encontro 16 | Entrega final: demo, distribuição, documentação, retrospectiva |
-| 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa |
+| 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa (da disciplina, não do Supernova) |
 
 O detalhamento sprint a sprint — o que cada uma entrega e quem responde por cada item — está
 em [`docs/sprints.md`](docs/sprints.md).

@@ -34,8 +34,8 @@ verdade do projeto. Antes de propor mudança de rumo, consulte lá.
 
 | # | Funcionalidade |
 |---|---|
-| 1 | Login por e-mail institucional, com papéis de aluno, professor e administrador |
-| 2 | Professor cadastra turma, alunos e o conteúdo da matéria |
+| 1 | Login por e-mail e senha, com papéis de aluno, professor e administrador |
+| 2 | Professor cria a turma e o conteúdo da matéria; o aluno entra pelo código da turma |
 | 3 | Trilha do aluno: tópicos com status de não iniciado, em andamento ou dominado |
 | 4 | Chat de tutoria socrática sobre um tópico |
 | 5 | Exercícios com correção e explicação do erro |
@@ -132,7 +132,7 @@ git pull
 git checkout -b feature/nome-da-tarefa
 # ... suas alterações ...
 git add .
-git commit -m "adiciona tela de login"
+git commit -m "feat: adiciona tela de login"
 
 git push -u origin feature/nome-da-tarefa
 # abra o Pull Request no GitHub, com base na develop, e aguarde a revisão
@@ -144,7 +144,9 @@ Nomes de branch: `feature/...` para funcionalidade nova, `fix/...` para conserto
 **Depois que o seu PR for mergeado, apague a branch.** O botão aparece no próprio PR. Continuar
 commitando numa branch já mergeada gera conflito — foi o que aconteceu no PR #11.
 
-Commits em português, no imperativo e curtos: `corrige validação do e-mail`.
+Commits e títulos de PR com prefixo (`feat`, `fix`, `docs` ou `chore`), em português, no
+imperativo e curtos: `fix: corrige validação do e-mail`. A tabela dos prefixos está em
+[`docs/sprints.md`](docs/sprints.md).
 
 O trabalho é dividido em **fatias verticais por funcionalidade, não por camada** — assim ninguém
 fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronograma, no Trello.
@@ -161,8 +163,8 @@ fica bloqueado esperando o outro. Tarefas ficam nas Issues do GitHub; o cronogra
 
 ## Regras invioláveis
 
-O público do Aluma é formado por menores de idade, e a LGPD se aplica com rigor. Nada abaixo é
-negociável:
+Nada abaixo é negociável, com uma exceção registrada: a regra 8 está suspensa enquanto o projeto
+é só demonstração.
 
 1. Ninguém trabalha direto na `main` nem na `develop`. Tudo por branch e Pull Request revisado.
 2. Chave de API, senha ou segredo nunca entram no código, no commit, na URL ou no log.
@@ -171,7 +173,9 @@ negociável:
 5. Nada de dado falso ou mock no caminho de produção. O seed é isolado e sinalizado.
 6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
 7. Nenhum dado de aluno cruza a fronteira da sua turma ou escola.
-8. Coleta mínima: sem CPF, sem foto. Exclusão sob pedido.
+8. **Suspensa na fase de apresentação (07/10/2026):** LGPD para menores, consentimento dos pais
+   e exclusão sob pedido. A demonstração usa contas fictícias; a regra volta antes de qualquer
+   uso com aluno real.
 
 ## Equipe
 
@@ -187,3 +191,6 @@ quanto os artefatos da Supernova; quem está só em uma responde por aquela fren
 | Iagor | Desenvolvedor | [@iagorlrnc](https://github.com/iagorlrnc) | sim | não |
 | Flávio | Desenvolvedor | [@flaviohen16](https://github.com/flaviohen16) | não | sim |
 | Gustavo Bringel | Desenvolvedor | [@GustavoBringel](https://github.com/GustavoBringel) | não | sim |
+
+Anna Beatriz Moura de Oliveira ([@bibimoura](https://github.com/bibimoura)) participou da
+Sprint #3 e saiu do grupo em outubro/2026.

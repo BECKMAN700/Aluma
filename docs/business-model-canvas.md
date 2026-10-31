@@ -1,187 +1,109 @@
 # Aluma — Business Model Canvas
 
+> Versão enviada ao Sebrae Supernova em 20/10/2026, nos cards da plataforma (título + conteúdo).
+> Responsáveis por bloco e contexto da entrega em [`sebrae-supernova.md`](sebrae-supernova.md).
+> O que é **hipótese** ainda não foi validado com escola, professor ou aluno.
+
 ## 1. Segmentos de clientes
 
 ### Quem paga
 
-* Escolas da rede privada.
-* Secretarias de educação da rede pública.
+* Escolas particulares do ensino fundamental, começando por Palmas/TO como piloto (hipótese).
+* Fase seguinte: secretarias de educação.
 
 ### Quem usa
 
-* **Alunos:** utilizam o Aluma como tutor educacional para estudar, praticar e identificar suas dificuldades.
-* **Professores:** cadastram turmas e conteúdos, acompanham o desempenho dos alunos e identificam os pontos em que a turma está tendo dificuldades.
-
-### Etapa de ensino
-
-* **V1:** Ensino Fundamental.
-* **Visão futura:** Ensino Médio.
-
-### Recorte inicial da V1
-
-* Uma disciplina e uma série.
-* Recomendação atual: **Matemática — 9º ano**.
+* **Alunos** do 6º ao 9º ano, em qualquer disciplina. O piloto é Matemática, 9º ano.
+* **Professores** de todas as disciplinas.
 
 ---
 
 ## 2. Proposta de valor
 
-### Para o aluno
-
-* Tutor educacional que **nunca entrega a resposta pronta**.
-* Orientação sobre o que estudar e como estudar.
-* Exemplos e perguntas que estimulam o aluno a chegar à resposta por conta própria.
-* Exercícios com correção e explicação dos erros.
-* Trilha de estudos para acompanhar o progresso nos tópicos.
-
-### Para o professor
-
-* Cadastro de turmas, alunos e conteúdos da matéria.
-* Acompanhamento do desempenho da turma.
-* Visualização dos pontos em que os alunos estão tendo dificuldades.
-* Apoio da IA para identificar onde cada aluno travou e indicar pontos que podem ser reforçados em aula.
-
-### Para a escola
-
-* Uso controlado da IA para fins educacionais.
-* Redução da utilização da IA como ferramenta de cola.
-* Visibilidade sobre o desempenho e as dificuldades das turmas.
-* Tratamento de dados orientado aos requisitos da LGPD para menores.
+* Tutor que **nunca entrega a resposta**: guia com perguntas e pistas até o aluno chegar sozinho
+  na solução.
+* A recusa em dar a resposta é também a defesa anti-cola.
+* A escola controla a IA, restrita a fins educacionais.
+* Privacidade do aluno: o professor vai ver um **resumo** de onde a turma trava, sem ler a
+  conversa (próxima etapa; o painel ainda não existe).
+* Problema: só 16,5% dos alunos do 9º ano têm aprendizado adequado em Matemática (Saeb 2023).
+  O card enviado arredondou para 16%.
 
 ---
 
 ## 3. Canais
 
-* Escola.
-* Professores.
-* Alunos por meio da instituição de ensino.
-* Aplicação web acessível pelo navegador.
-* Aplicação mobile planejada a partir da mesma base tecnológica.
-
-### Estratégia inicial
-
-A aplicação será **web primeiro**, deixando a publicação em lojas de aplicativos para uma etapa posterior.
+* Venda direta a escolas e apresentação a professores e coordenadores.
+* O aluno entra na turma por código e usa pelo navegador (web primeiro), no celular ou no
+  computador, sem instalar nada. Pode virar app nas lojas depois.
 
 ---
 
 ## 4. Relacionamento com clientes
 
-### Escolas e secretarias de educação
-
-* Relacionamento institucional.
-* Oferta de uma ferramenta de IA voltada exclusivamente para fins educacionais.
-* Acompanhamento do uso e desempenho por meio dos recursos disponíveis para professores e administradores.
-
-### Professores
-
-* Professor alimenta o sistema com turmas, alunos e conteúdos.
-* Painel para acompanhamento do desempenho da turma.
-* Informações sobre pontos de dificuldade para auxiliar o planejamento das aulas.
-
-### Alunos
-
-* Acesso por e-mail institucional da escola.
-* Tutor socrático que conduz o aluno durante o aprendizado.
-* Trilha de estudos e exercícios para acompanhamento da evolução.
-* A IA não fornece respostas prontas aos exercícios.
+* **Aluno:** self-service com o tutor.
+* **Professor:** cria a turma e acompanha.
+* **Escola:** contato direto, contrato anual e suporte.
+* **Engajamento (futuro):** gamificação com progresso por tópico dominado. Premia o raciocínio,
+  não a velocidade.
 
 ---
 
 ## 5. Fontes de receita
 
-* **Licença por escola por ano.**
-
-O modelo de receita segue o ciclo de compra anual das escolas.
-
-> **Valor da licença: a validar.**
-
-Não há, neste momento, valor financeiro definido no `PROJECT-CONTEXT.md`. Portanto, nenhum preço é estabelecido neste Canvas.
+| Título | Conteúdo |
+|---|---|
+| Licença anual por escola | Cobrada por aluno ativo, alinhada ao ciclo anual de compra das escolas |
+| Preço (hipótese) | **R$ 10 por aluno/mês (R$ 120/ano)**, com limite de uso. A validar com coordenadores |
+| Margem | No uso médio, a IA custa cerca de R$ 4,40 por aluno/mês, sobrando cerca de 56% |
+| Referência de mercado | Khanmigo cobra US$ 15 por aluno de escolas (fonte a confirmar). Auvien e Geekie não publicam preço |
+| Fase 2 | Contratos com secretarias de educação |
 
 ---
 
 ## 6. Recursos principais
 
-### Recursos tecnológicos
-
-* Aplicação web e mobile.
-* React Native + Expo.
-* TypeScript.
-* API REST.
-* Backend em Python + FastAPI.
-* Banco de dados.
-* Serviço de IA baseado no Google Gemini 3.5 Flash Lite.
-* Hospedagem do backend no Render.
-* GitHub para código, Issues e Pull Requests.
-* Sentry para monitoramento.
-
-### Recursos de produto
-
-* Conteúdo educacional cadastrado pelo professor.
-* Trilha de estudos.
-* Tutoria socrática.
-* Exercícios com correção e explicação.
-* Painel de desempenho do professor.
-* Dados de progresso dos alunos.
-
-### Recursos humanos
-
-* Equipe responsável pelo desenvolvimento do produto, documentação e demais artefatos do projeto.
+* Equipe da UFT.
+* IA: Claude Haiku 4.5 (principal), com Google Gemini de reserva.
+* App React Native + Expo; backend Python (FastAPI).
+* Supabase (banco e login), Render (servidor), Netlify (web).
 
 ---
 
 ## 7. Atividades-chave
 
-* Desenvolvimento e manutenção da aplicação.
-* Desenvolvimento e manutenção da API e backend.
-* Integração e gerenciamento do serviço de IA.
-* Desenvolvimento da tutoria socrática.
-* Cadastro e organização dos conteúdos educacionais.
-* Desenvolvimento dos exercícios e mecanismos de correção.
-* Desenvolvimento do painel de acompanhamento do professor.
-* Implementação de autenticação, permissões e isolamento entre turmas e escolas.
-* Proteção e tratamento adequado dos dados dos alunos.
-* Testes e integração contínua.
-* Monitoramento da aplicação.
-* Validação do produto com alunos, professores e profissionais da área educacional.
-* Evolução do produto conforme os resultados da validação.
-
-### Atividades prioritárias da V1
-
-1. Login por e-mail institucional e definição dos papéis de usuário.
-2. Cadastro de turmas, alunos e conteúdo pelo professor.
-3. Trilha de estudos do aluno.
-4. Chat de tutoria socrática.
-5. Exercícios com correção e explicação.
-6. Painel do professor com os pontos em que a turma está tendo dificuldades.
+* Desenvolver o app e a API.
+* Calibrar o tutor para guiar sem entregar a resposta.
+* Testar o tutor contra pedidos de resposta pronta ([`bateria-anti-cola.md`](bateria-anti-cola.md)).
+* Validar com alunos, professores e gestores.
 
 ---
 
 ## 8. Parcerias principais
 
-* **Sebrae Supernova:** contexto de validação e desenvolvimento do projeto como startup/produto.
-* **Universidade Federal do Tocantins (UFT):** contexto acadêmico das disciplinas relacionadas ao desenvolvimento do projeto.
-* **Professores e profissionais da área educacional:** importantes para validação do conteúdo e da proposta pedagógica.
-* **Escolas:** potenciais parceiras para validação com usuários reais e posterior utilização do produto.
-* **Equipe do projeto:** responsável pelo desenvolvimento e evolução da solução.
+* Escolas e professores para o piloto (a confirmar).
+* UFT (apoio acadêmico).
+* Anthropic e Google (IA).
+* Supabase, Render e Netlify.
 
-> Parcerias comerciais ou institucionais adicionais: **a validar**.
+O Sebrae Supernova saiu das parcerias: é o programa, não um parceiro do negócio.
 
 ---
 
 ## 9. Estrutura de custos
 
-### Infraestrutura
+Versão final a partir da análise do Giordano.
 
-* **R$ 0/mês na V1**, utilizando somente camadas gratuitas dos serviços definidos pela equipe.
-* Render — Web Service gratuito.
-* Google Gemini — camada gratuita.
-* Sentry — plano gratuito.
-* Subdomínio gratuito para a demonstração.
+| Título | Conteúdo |
+|---|---|
+| Custo de IA | Claude Haiku 4.5: US$ 1 por milhão de tokens de entrada e US$ 5 de saída. Estimativa: R$ 2 a 9 por aluno/mês, conforme o uso (câmbio R$ 5,5) |
+| Economia com cache | O prompt socrático se repete; a entrada reaproveitada custa 90% menos. A estimativa é um teto |
+| Infraestrutura | R$ 0/mês na V1 (planos gratuitos). Ao escalar, custo fixo baixo dividido entre as escolas |
+| Equipe e suporte | Maior custo no início |
+| Conformidade | Adequação ao ECA Digital e à LGPD antes do uso com alunos reais |
 
-### Desenvolvimento
+**Premissa não medida:** 25 mil tokens por conversa. Conferir no painel de uso da Anthropic com
+conversas reais antes de defender a margem.
 
-* Custos financeiros diretos: **a validar**.
-
-### Premissa financeira atual
-
-A V1 foi planejada sem orçamento para infraestrutura paga. Caso os limites das camadas gratuitas sejam ultrapassados ou o produto avance para uso real em escala, os custos deverão ser reavaliados.
+Na fase de apresentação, o gasto real com IA continua limitado ao crédito pré-pago de US$ 3/mês
+(ver [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §4).

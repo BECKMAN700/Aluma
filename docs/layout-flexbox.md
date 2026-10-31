@@ -1,7 +1,7 @@
 # Aluma — Regras de layout (flexbox)
 
 > Critério objetivo para o review de qualquer tela. Quem revisa não discute gosto: aponta a
-> regra aqui. Referência do plano em [`sprints.md`](sprints.md) §5.3.
+> regra aqui. Referência do plano em [`sprints/sprint-2.md`](sprints/sprint-2.md) §5.3.
 
 ## Por que existe
 

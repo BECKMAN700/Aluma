@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Night } from '@/constants/theme';
-import type { ChatApiAuthor } from '@/types/aluma';
+import type { ChatApiAuthor } from '@/types/api';
 
 export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: string }) {
   const isStudent = author === 'aluno';

@@ -2,14 +2,16 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from rate_limit import check_rate_limit
-from gemini import TutorIndisponivel, chat_com_gemini
-from validation import ChatRequest
+from chat.rotas import router as chat_router
+from turmas.rotas_matriculas import router as matriculas_router
+from nucleo.db import BancoIndisponivel
+
+from turmas.rotas import router as turmas_router
 
 # Carrega as variáveis de ambiente do .env
 load_dotenv()
@@ -29,7 +31,7 @@ app.add_middleware(
     allow_origins=cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 @app.middleware("http")
@@ -52,6 +54,14 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+@app.exception_handler(401)
+async def auth_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=401,
+        content={"erro": "faca login de novo"},
+    )
+
+
 @app.exception_handler(429)
 async def rate_limit_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -60,8 +70,26 @@ async def rate_limit_exception_handler(request: Request, exc: Exception):
     )
 
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    detalhe = exc.detail if isinstance(exc.detail, str) else "erro inesperado"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"erro": detalhe},
+        headers=exc.headers,
+    )
+
+
+@app.exception_handler(BancoIndisponivel)
+async def database_exception_handler(request: Request, exc: BancoIndisponivel):
+    return JSONResponse(
+        status_code=503,
+        content={"erro": "servico temporariamente indisponivel"},
+    )
+
+
 # Tipos de erro padrão do Pydantic que não passam por um field_validator nosso
-# (esses já levantam ValueError em português, ver validation.py).
+# (esses já levantam ValueError em português, ver chat/esquemas.py).
 _ERRO_POR_TIPO_PYDANTIC = {
     "missing": "faltou um campo obrigatorio na mensagem",
     "extra_forbidden": "a mensagem enviada tem um campo que o servidor nao reconhece",
@@ -87,27 +115,6 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.post("/api/chat", dependencies=[Depends(check_rate_limit)])
-def chat(payload: ChatRequest):
-    """
-    Rota de chat com o tutor. Recebe mensagem e histórico,
-    retorna a resposta do Gemini ou erro se falhar.
-    """
-    try:
-        # Converte os objetos Pydantic do histórico para dicionários para facilitar em gemini.py
-        historico_dicts = [
-            {"autor": msg.autor, "texto": msg.texto} for msg in payload.historico
-        ]
-
-        resposta = chat_com_gemini(payload.mensagem, historico_dicts)
-        return {"resposta": resposta}
-
-    except TutorIndisponivel:
-        # A falha já foi registrada em gemini.py, sem conteúdo de conversa.
-        return JSONResponse(status_code=503, content={"erro": "tutor indisponivel"})
-
-    except Exception as e:
-        # Só o tipo do erro vai para o log: a mensagem crua pode carregar
-        # trecho da conversa do aluno (regra inviolável 8).
-        print(f"[chat] erro interno: {type(e).__name__}")
-        return JSONResponse(status_code=500, content={"erro": "erro interno do servidor"})
+app.include_router(chat_router)
+app.include_router(turmas_router)
+app.include_router(matriculas_router)

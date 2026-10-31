@@ -2,16 +2,20 @@
 
 Plataforma de tutoria com IA vinculada à turma real da escola. Projeto acadêmico da UFT,
 duas disciplinas: Projeto de Sistemas (competição Sebrae Supernova) e Desenvolvimento Web/Mobile.
-Equipe de sete, cinco em cada disciplina, prazo de semestre.
+Equipe de sete: cinco em Web/Mobile, cinco em Projeto de Sistemas. Prazo de semestre.
+BMC e pitch do Supernova entregues em 20 e 22/10; detalhe em `docs/sebrae-supernova.md`.
 
 O contexto completo — problema, escopo, decisões, riscos e calendário — está em
 @PROJECT-CONTEXT.md. Ele é a fonte da verdade: antes de propor mudança de rumo, consulte lá.
 
 ## Stack
 
-- React Native + Expo, TypeScript. Um código só, roda no navegador e no celular.
-- O app é **cliente**: consome API REST. Não implementamos backend próprio sem decisão explícita.
+- App: React Native + Expo, TypeScript. Um código só, roda no navegador e no celular.
+- Backend: Python + FastAPI, em `backend/`, organizado por assunto. Banco e login no Supabase.
+- O app é **cliente**: fala com o Supabase só para login; todo dado passa pela API REST.
 - Alvo: celular ruim, internet instável. Tela pequena primeiro, payload leve.
+- Antes de mexer em tabela, rota ou permissão, leia `docs/arquitetura.md`: é o mapa do projeto.
+  Para a tarefa da vez, leia só o arquivo da sprint atual em `docs/sprints/`.
 
 <!-- Confirmar com o professor se a API é fornecida ou se a equipe constrói (pendência nº 1 do PROJECT-CONTEXT) -->
 
@@ -37,17 +41,18 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
 6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
-8. Usuários são menores de idade: LGPD com regra dura. Não colete dado que não é necessário
-   (sem CPF, sem foto). Exclusão sob pedido.
+8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD para menores,
+   consentimento dos pais e exclusão sob pedido. Não trate como bloqueio. A demonstração usa
+   contas fictícias; a regra volta antes de qualquer uso com aluno real.
 
 ## Comandos
 
 <!-- Preencher quando o projeto Expo estiver criado. Ex.: npx expo start / npm test / npm run lint -->
 
-- Instalar: `npm install`
-- Rodar: `npx expo start`
-- Testes: _(definir)_
-- Lint/format: _(definir)_
+- App — instalar: `npm install` · rodar: `npx expo start` · lint: `npm run lint`
+- Backend (dentro de `backend/`) — instalar: `pip install -r requirements-dev.txt` ·
+  rodar: `uvicorn main:app --reload` · testes: `pytest`
+- Testes do app: _(definir)_
 
 ## Convenções
 
@@ -58,7 +63,8 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
   `@/components/card`, nunca `../../components/card`.
 - Nada de `any` em TypeScript sem comentário justificando.
 - Texto de interface em português, nomes de código em inglês.
-- Commit em português, imperativo, curto: `adiciona tela de login`.
+- Commit e título de PR com prefixo (`feat`, `fix`, `docs`, `chore` — tabela em
+  `docs/sprints.md`), em português, imperativo, curto: `feat: adiciona tela de login`.
 
 ## Equipe
 
@@ -73,5 +79,7 @@ Duas disciplinas, times parcialmente sobrepostos. Ver `PROJECT-CONTEXT.md` §11.
 | Iagor | @iagorlrnc | Web/Mobile |
 | Flávio | @flaviohen16 | Projeto de Sistemas |
 | Gustavo Bringel | @GustavoBringel | Projeto de Sistemas |
+
+Anna Beatriz (@bibimoura) saiu do grupo em outubro/2026.
 
 Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
