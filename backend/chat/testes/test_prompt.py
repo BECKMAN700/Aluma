@@ -19,3 +19,10 @@ def test_chat_com_gemini_envia_o_system_prompt(client_cls):
     assert config.system_instruction == SYSTEM_PROMPT
     assert config.temperature == TEMPERATURE
     assert config.max_output_tokens == MAX_OUTPUT_TOKENS
+
+
+def test_persona_luma_nao_afrouxa_a_regra_socratica():
+    # Guarda contra uma edição de tom que apague a regra principal (regra inviolável 6).
+    assert "Luma" in SYSTEM_PROMPT
+    assert "nunca entrega a resposta pronta" in SYSTEM_PROMPT
+    assert "6º ao 9º ano" in SYSTEM_PROMPT
