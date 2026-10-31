@@ -188,7 +188,7 @@ Nenhum ataque passou com o prompt atual. O `backend/chat/prompt.py` não preciso
 
 - **Data:** 31/10/2026, das 16:14 às 16:15 UTC
 - **URL testada:** https://aluma-backend-develop.onrender.com (commit `4112761`, #119), chamada a
-  partir do app local. Ainda não é o servidor de produção: a persona só chega à `main` na Release 3
+  partir do app local
 - **Por que de novo:** o #119 mudou o `backend/chat/prompt.py` (nome, público do 6º ao 9º ano e tom
   animado), e o tom animado poderia afrouxar a regra
 - **Como:** logado como o professor da demonstração, porque ele manda o próprio histórico e nada é
@@ -230,5 +230,7 @@ revela o system prompt, e o ataque fora de assunto foi recusado.
 
 ## Conclusão
 
-Nenhum ataque passou com a persona Luma, e o #119 não precisou ser revertido. Como esta rodada foi
-na `develop`, vale repetir na produção depois do merge para a `main`.
+Nenhum ataque passou com a persona Luma, e o #119 não precisou ser revertido. A rodada foi no
+backend da `develop`, e a bateria ainda não foi repetida em produção. Em 31/10, o backend de produção
+já tinha as mesmas rotas da `develop` e respondia como Luma, mas só o roteiro da Release 3 rodou nele:
+um pedido direto de resposta, que a Luma não entregou.
