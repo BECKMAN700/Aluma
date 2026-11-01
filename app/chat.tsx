@@ -11,10 +11,14 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MessageBubble } from '@/components/balao-mensagem';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import { LumaPensando, MessageBubble } from '@/components/balao-mensagem';
+import { CAMINHO_ESTRELA, CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
 import { textoDaPartida } from '@/constants/partidas';
-import { Night } from '@/constants/theme';
+import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
 import type { ChatApiAuthor } from '@/types/api';
@@ -25,16 +29,6 @@ const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> =
   acordando: 'Acordando o tutor, isso pode levar até um minuto.',
   indisponivel: 'O tutor está fora do ar agora. Tente de novo mais tarde.',
 };
-
-// Poucas e estáticas: é fundo de leitura, não pode competir com o texto.
-const CHAT_STARS = [
-  { top: '12%', left: '86%', size: 2, opacity: 0.5, color: Night.starlight },
-  { top: '28%', left: '5%', size: 1.5, opacity: 0.45, color: Night.guide },
-  { top: '46%', left: '93%', size: 2, opacity: 0.35, color: Night.spark },
-  { top: '61%', left: '10%', size: 1.5, opacity: 0.4, color: Night.starlight },
-  { top: '74%', left: '72%', size: 2, opacity: 0.35, color: Night.guide },
-  { top: '20%', left: '42%', size: 1, opacity: 0.5, color: Night.starlight },
-] as const;
 
 interface Message {
   id: string;
@@ -51,6 +45,7 @@ const SAUDACAO: Message = {
 
 export default function ChatScreen() {
   const router = useRouter();
+  const margens = useSafeAreaInsets();
   const { partida } = useLocalSearchParams<{ partida?: string }>();
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
@@ -58,6 +53,7 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<Message[]>([SAUDACAO]);
   const [inputText, setInputText] = useState('');
+  const [emFoco, setEmFoco] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [conversa, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
@@ -132,6 +128,9 @@ export default function ChatScreen() {
 
   const handleSendMessage = () => enviarTexto(inputText);
 
+  // Aberto direto pelo endereço, na web, não há tela anterior para voltar.
+  const voltar = () => (router.canGoBack() ? router.back() : router.replace('/home'));
+
   // Veio de um atalho do início: envia a frase assim que o tutor e a conversa estiverem prontos.
   // Tira o atalho do endereço para recarregar a página não enviar de novo.
   const textoPartida = textoDaPartida(partida);
@@ -145,28 +144,46 @@ export default function ChatScreen() {
   }, [textoPartida, canSend]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.wrapper}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <View style={styles.container}>
-        <View style={styles.stars} pointerEvents="none">
-          {CHAT_STARS.map((star, index) => (
-            <View
-              key={index}
-              style={{
-                position: 'absolute',
-                top: star.top,
-                left: star.left,
-                width: star.size,
-                height: star.size,
-                borderRadius: star.size / 2,
-                backgroundColor: star.color,
-                opacity: star.opacity,
-              }}
-            />
-          ))}
+    <KeyboardAvoidingView style={styles.wrapper} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style="light" />
+      <CeuEstrelado />
+      {/* Fora da lista: o horizonte fica parado enquanto as falas rolam. */}
+      <View style={[styles.horizonte, { top: margens.top + 64 }]} pointerEvents="none">
+        <EstrelaNoHorizonte tamanho={0} />
+      </View>
+
+      <Surgir
+        style={[
+          styles.coluna,
+          {
+            paddingTop: margens.top + 4,
+            paddingBottom: margens.bottom,
+          },
+        ]}
+      >
+        <View style={styles.cabecalho}>
+          <Pressable
+            style={({ pressed }) => [styles.voltar, pressed && styles.pressionado]}
+            onPress={voltar}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M15 5l-7 7 7 7"
+                stroke={Horizonte.text}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
+          <Svg width={22} height={22} viewBox="0 0 56 56">
+            <Path d={CAMINHO_ESTRELA} fill={Horizonte.luma} />
+          </Svg>
+          <Text style={styles.titulo} accessibilityRole="header">
+            Luma
+          </Text>
         </View>
 
         <Text style={styles.privacyNotice}>
@@ -178,9 +195,7 @@ export default function ChatScreen() {
               {BACKEND_STATUS_MESSAGE[backendStatus]}
             </Text>
             {backendStatus === 'indisponivel' && (
-              <Pressable onPress={tentarNovamente} accessibilityRole="button">
-                <Text style={styles.retryText}>Tentar de novo</Text>
-              </Pressable>
+              <LinkTexto texto="Tentar de novo" rotulo="Tentar de novo" aoTocar={tentarNovamente} />
             )}
           </View>
         )}
@@ -194,15 +209,13 @@ export default function ChatScreen() {
             <Text style={styles.bannerText} accessibilityLiveRegion="polite">
               Não deu para carregar sua conversa.
             </Text>
-            <Pressable onPress={recarregarConversa} accessibilityRole="button">
-              <Text style={styles.retryText}>Tentar de novo</Text>
-            </Pressable>
+            <LinkTexto texto="Tentar de novo" rotulo="Tentar de novo" aoTocar={recarregarConversa} />
           </View>
         )}
         {sendError && (
-          <Text style={[styles.statusBanner, styles.bannerText]} accessibilityLiveRegion="polite">
-            {sendError}
-          </Text>
+          <View style={styles.statusBanner}>
+            <AvisoErro mensagem={sendError} />
+          </View>
         )}
 
         <FlatList
@@ -211,41 +224,55 @@ export default function ChatScreen() {
           contentContainerStyle={styles.messageListContent}
           data={messages}
           keyExtractor={(item) => item.id}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
-          // A resposta leva de 2 a 7 segundos: sem este balão a tela parece travada.
-          ListFooterComponent={
-            isSending ? <MessageBubble author="tutor" text="Luma está pensando…" /> : null
-          }
+          ListFooterComponent={isSending ? <LumaPensando /> : null}
         />
 
         <View style={styles.inputBar}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, emFoco && styles.inputFoco, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
             placeholder="Escreva sua dúvida"
-            placeholderTextColor={Night.dust}
+            placeholderTextColor="#A9B6CC"
+            accessibilityLabel="Escreva sua dúvida"
             value={inputText}
             onChangeText={(text) => {
               setInputText(text);
               setSendError(null);
             }}
+            onFocus={() => setEmFoco(true)}
+            onBlur={() => setEmFoco(false)}
             onSubmitEditing={handleSendMessage}
             returnKeyType="send"
             multiline={false}
           />
           <Pressable
-            style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+            style={({ pressed }) => [
+              styles.sendButton,
+              !canSend && styles.sendButtonDisabled,
+              pressed && styles.pressionado,
+            ]}
             onPress={handleSendMessage}
             disabled={!canSend}
             accessibilityRole="button"
             accessibilityLabel={isSending ? 'Enviando mensagem' : 'Enviar mensagem'}
             accessibilityState={{ disabled: !canSend, busy: isSending }}
           >
-            <IconSymbol name="paperplane.fill" size={20} color={Night.sky} />
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7Z"
+                stroke={canSend ? Horizonte.onAction : Horizonte.action}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
           </Pressable>
         </View>
-      </View>
+      </Surgir>
     </KeyboardAvoidingView>
   );
 }
@@ -254,32 +281,40 @@ const styles = StyleSheet.create({
   wrapper: {
     // Regra 1: Nenhuma altura fixa. Ocupa 100% da tela disponível pelo flexbox do pai.
     flex: 1,
+    overflow: 'hidden',
+    backgroundColor: Horizonte.bg,
   },
-  container: {
+  horizonte: { position: 'absolute', left: 0, right: 0 },
+  coluna: {
     // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
     flex: 1,
-    backgroundColor: Night.sky,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
-  stars: {
-    // Regra 3: absolute só na decoração, atrás de tudo.
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+  pressionado: { opacity: 0.85 },
+  cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 6, paddingRight: 12, minHeight: 48 },
+  voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  titulo: {
+    marginLeft: 6,
+    fontFamily: FontesHorizonte.display,
+    fontSize: 18,
+    lineHeight: 24,
+    color: Horizonte.text,
   },
   privacyNotice: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    fontSize: 14,
+    marginTop: 26,
+    paddingHorizontal: 20,
+    fontFamily: FontesHorizonte.corpo,
+    fontSize: 13,
+    lineHeight: 18,
     textAlign: 'center',
-    color: Night.dust,
+    color: Horizonte.textMuted,
   },
   statusBanner: {
     // Altura natural, como a barra de digitar: a lista abaixo absorve o resto.
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    textAlign: 'center',
+    paddingTop: 10,
   },
   statusBannerRow: {
     // Mesma altura natural do statusBanner, mas em row pra caber o botão de retry ao lado.
@@ -287,65 +322,71 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    columnGap: 12,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: 10,
   },
   bannerText: {
     // Regra 2: texto em row encolhe em vez de vazar.
     flexShrink: 1,
     minWidth: 0,
+    fontFamily: FontesHorizonte.corpo,
     fontSize: 14,
+    lineHeight: 20,
     textAlign: 'center',
-    color: Night.starlight,
-  },
-  retryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-    color: Night.guide,
+    color: Horizonte.text,
   },
   messageList: {
     // Regra 1: a lista come o espaço que sobra; com o teclado aberto, ela é quem encolhe.
     flex: 1,
   },
   messageListContent: {
-    // Regra 4: Espaçamento entre os balões utilizando gap no container em vez de margens individuais.
-    padding: 16,
-    gap: 14,
+    // flexGrow e flex-end: com poucas falas, a conversa fica perto do campo de digitar.
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 12,
   },
   inputBar: {
     // A barra de digitar NÃO leva flex: altura natural, a FlatList acima absorve o espaço livre.
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10, // Regra 4: gap entre o input e o botão.
+    gap: 8,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 16,
   },
   input: {
     // Estica e preenche o espaço horizontal livre da row.
     flex: 1,
     minWidth: 0,
-    borderWidth: 1,
-    borderColor: 'rgba(124, 137, 166, 0.35)',
-    backgroundColor: 'rgba(231, 236, 245, 0.05)',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: Night.starlight,
+    height: 48,
+    borderWidth: 1.5,
+    borderColor: Horizonte.fieldBorder,
+    backgroundColor: Horizonte.fieldBg,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    fontFamily: FontesHorizonte.corpo,
+    // 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
+    fontSize: 16,
+    color: Horizonte.text,
   },
+  inputFoco: { borderWidth: 2, borderColor: Horizonte.action },
   sendButton: {
-    // Tamanho fixo por natureza (é um ícone), exceção da regra 1; 44px é o alvo mínimo de toque.
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    // Tamanho fixo por natureza (é um ícone), exceção da regra 1.
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Night.spark,
+    backgroundColor: Horizonte.action,
   },
   sendButtonDisabled: {
-    opacity: 0.4,
+    // Escuro com contorno dourado: mostra que não aceita toque, sem perder o contraste.
+    borderWidth: 1.5,
+    borderColor: Horizonte.action,
+    backgroundColor: Horizonte.studentBubble,
   },
 });

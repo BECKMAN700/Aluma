@@ -49,6 +49,9 @@ export const Horizonte = {
   action: '#FFC766',
   onAction: '#0A0D16',
   luma: '#8BE3FF',
+  lumaText: '#BDEEFF',
+  studentBubble: '#2A2110',
+  studentText: '#FFF3DC',
   star: '#FFF6E0',
   error: '#FFB4A8',
 } as const;

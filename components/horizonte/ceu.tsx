@@ -40,6 +40,8 @@ const ESTRELAS_LARGAS: readonly Estrela[] = [
   [300, 320, 1, 0.5], [1090, 290, 1.3, 0.6], [1230, 240, 1, 0.5], [50, 380, 1, 0.5], [920, 240, 1, 0.5],
 ];
 
+export const CAMINHO_ESTRELA = 'M28 0C30 18 38 26 56 28C38 30 30 38 28 56C26 38 18 30 0 28C18 26 26 18 28 0Z';
+
 // Linha do horizonte dentro de cada desenho: 320 × 720 no celular e 1280 × 800 na tela larga.
 const LINHA_DO_HORIZONTE = 222;
 const LINHA_DO_HORIZONTE_LARGA = 470;
@@ -173,7 +175,10 @@ function CurvaLarga() {
   );
 }
 
-/** Estrela de quatro pontas com a curva do planeta atrás, alinhada ao centro da estrela. */
+/**
+ * Estrela de quatro pontas com a curva do planeta atrás, alinhada ao centro da estrela.
+ * Com tamanho 0, só a curva aparece; a estrela renasce pequena ao voltar para uma tela que a tem.
+ */
 export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
   const { width, height } = useWindowDimensions();
   const largo = useTelaDividida();
@@ -198,7 +203,7 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
         // Calcula antes de atualizar: o React Compiler troca um apelido da variável do módulo pela
         // própria variável, e o valor lido depois já seria o novo.
         const inicioY = estrelaAnterior ? estrelaAnterior.centroY - centroY : 0;
-        const inicioEscala = estrelaAnterior ? estrelaAnterior.tamanho / tamanho : 1;
+        const inicioEscala = estrelaAnterior && tamanho > 0 ? estrelaAnterior.tamanho / tamanho : 1;
         estrelaAnterior = { centroY, tamanho };
         opacidade.set(1);
         if (semMovimento) return;
@@ -234,11 +239,13 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
           {largo ? <CurvaLarga /> : <CurvaCelular escala={escala} />}
         </View>
         {/* A View garante a estrela acima da curva na web, onde um svg solto fica atrás do que é absolute. */}
-        <Animated.View style={estiloEstrela}>
-          <Svg width={tamanho} height={tamanho} viewBox="0 0 56 56">
-            <Path d="M28 0C30 18 38 26 56 28C38 30 30 38 28 56C26 38 18 30 0 28C18 26 26 18 28 0Z" fill={Horizonte.star} />
-          </Svg>
-        </Animated.View>
+        {tamanho > 0 && (
+          <Animated.View style={estiloEstrela}>
+            <Svg width={tamanho} height={tamanho} viewBox="0 0 56 56">
+              <Path d={CAMINHO_ESTRELA} fill={Horizonte.star} />
+            </Svg>
+          </Animated.View>
+        )}
       </Animated.View>
     </View>
   );

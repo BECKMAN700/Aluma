@@ -28,7 +28,7 @@ import { FontesHorizonte, Horizonte } from '@/constants/theme';
 
 // O foco já é mostrado na caixa: sem isto, a web desenha um retângulo em volta do input.
 // O tipo do React Native não aceita 'none', mas a web aceita.
-const SEM_CONTORNO_WEB = { outlineStyle: 'none' } as object;
+export const SEM_CONTORNO_WEB ={ outlineStyle: 'none' } as object;
 
 /** Moldura das telas de formulário: céu, área segura, teclado e coluna de até 480px. */
 export function TelaFormulario({

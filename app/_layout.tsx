@@ -70,15 +70,7 @@ function Navegacao() {
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
         <Stack.Screen name="(aluno)" options={{ headerShown: false, animation: 'none' }} />
-        <Stack.Screen
-          name="chat"
-          options={{
-            title: 'Conversar com o tutor',
-            headerStyle: { backgroundColor: Night.sky },
-            headerTintColor: Night.starlight,
-            headerShadowVisible: false,
-          }}
-        />
+        <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={usuario?.papel === 'professor'}>
