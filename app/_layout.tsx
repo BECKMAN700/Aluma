@@ -5,17 +5,24 @@
  * volta para a primeira tela que pode ver — é assim que o aluno não abre tela de professor.
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
  */
-import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { TelaAuth } from '@/components/auth/screen-auth';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { Night } from '@/constants/theme';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  BotaoPrincipal,
+  CabecalhoMarca,
+  LinkTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
+import { Horizonte } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessaoProvider, useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
@@ -42,7 +49,7 @@ export default function RootLayout() {
       <SessaoProvider>
         <Navegacao />
       </SessaoProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }
@@ -82,14 +89,16 @@ function Navegacao() {
 
 function TelaEspera() {
   return (
-    <TelaAuth titulo="Carregando…" subtitulo="Se o servidor estiver dormindo, isso leva até um minuto.">
-      <ActivityIndicator size="large" color={Night.starlight} accessibilityLabel="Carregando" />
-    </TelaAuth>
+    <TelaSessao
+      titulo="Carregando…"
+      subtitulo="Se o servidor estiver dormindo, isso leva até um minuto."
+    >
+      <ActivityIndicator size="large" color={Horizonte.textMuted} accessibilityLabel="Carregando" />
+    </TelaSessao>
   );
 }
 
 function TelaErro({ erro }: { erro: string }) {
-  const s = useEstilosAuth();
   const { recarregar } = useSessao();
   const [tentando, setTentando] = useState(false);
 
@@ -103,22 +112,43 @@ function TelaErro({ erro }: { erro: string }) {
   };
 
   return (
-    <TelaAuth titulo="Não deu para abrir sua conta">
-      <View style={s.erroBanner}>
-        <Text style={s.erroTexto} accessibilityRole="alert">{erro}</Text>
+    <TelaSessao titulo="Não deu para abrir sua conta">
+      <AvisoErro mensagem={erro} />
+      <View style={styles.acoes}>
+        <BotaoPrincipal texto="Tentar de novo" textoOcupado="Tentando…" ocupado={tentando} aoTocar={tentarDeNovo} />
+        <LinkTexto texto="Sair" rotulo="Sair" aoTocar={sair} />
       </View>
-      <Pressable
-        style={[s.botao, tentando && s.botaoDesativado]}
-        onPress={tentarDeNovo}
-        disabled={tentando}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: tentando, busy: tentando }}
-      >
-        <Text style={s.botaoTexto}>{tentando ? 'Tentando…' : 'Tentar de novo'}</Text>
-      </Pressable>
-      <Pressable style={s.link} onPress={sair} accessibilityRole="button">
-        <Text style={s.linkTexto}>Sair</Text>
-      </Pressable>
-    </TelaAuth>
+    </TelaSessao>
   );
 }
+
+function TelaSessao({
+  titulo,
+  subtitulo,
+  children,
+}: {
+  titulo: string;
+  subtitulo?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <TelaFormulario topo={20}>
+      <Surgir style={styles.camada}>
+        <CabecalhoMarca />
+      </Surgir>
+      <TituloTela titulo={titulo} subtitulo={subtitulo} style={styles.textos} />
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={44} />
+      </View>
+      <Surgir style={[styles.conteudo, styles.camada]}>{children}</Surgir>
+    </TelaFormulario>
+  );
+}
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+  textos: { marginTop: 16, gap: 6 },
+  estrela: { marginTop: 47, marginBottom: 30 },
+  conteudo: { gap: 16 },
+  acoes: { marginTop: 8, gap: 8 },
+});

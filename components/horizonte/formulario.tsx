@@ -1,6 +1,6 @@
 /**
- * Peças do Design System para as telas de formulário: moldura, título, cabeçalhos, campos,
- * botão, link e avisos. Substituem as de components/auth conforme as telas migram.
+ * Peças do Design System para as telas do app: moldura, título, cabeçalhos, campos, botão,
+ * link e avisos.
  */
 
 import React, { useState } from 'react';
