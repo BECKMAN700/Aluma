@@ -148,7 +148,7 @@ export default function ChatScreen() {
       <StatusBar style="light" />
       <CeuEstrelado />
       {/* Fora da lista: o horizonte fica parado enquanto as falas rolam. */}
-      <View style={[styles.horizonte, { top: margens.top + 64 }]} pointerEvents="none">
+      <View style={[styles.horizonte, { top: margens.top + 64 }]}>
         <EstrelaNoHorizonte tamanho={0} />
       </View>
 
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: Horizonte.bg,
   },
-  horizonte: { position: 'absolute', left: 0, right: 0 },
+  horizonte: { position: 'absolute', left: 0, right: 0, pointerEvents: 'none' },
   coluna: {
     // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
     flex: 1,

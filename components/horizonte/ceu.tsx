@@ -76,7 +76,7 @@ export function CeuEstrelado() {
   // O desenho de 320px esticado viraria bolas grandes, que aparecem atrás dos títulos.
   if (width >= 600) {
     return (
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
         <Svg width="100%" height="100%" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMin slice">
           <Estrelas lista={ESTRELAS_LARGAS} cor="#FFFFFF" />
         </Svg>
@@ -85,7 +85,7 @@ export function CeuEstrelado() {
   }
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
       <Svg width="100%" height="100%" viewBox="0 0 320 720" preserveAspectRatio="xMidYMin slice">
         <Estrelas lista={ESTRELAS_BRANCAS} cor="#FFFFFF" />
         <Estrelas lista={ESTRELAS_CIANAS} cor="#8BE3FF" />
@@ -226,7 +226,7 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
 
   return (
     <View ref={caixa} collapsable={false} style={{ width: tamanho, height: tamanho, alignSelf: 'center' }}>
-      <Animated.View style={[StyleSheet.absoluteFill, estiloHorizonte]} pointerEvents="none">
+      <Animated.View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }, estiloHorizonte]}>
         <View
           style={{
             position: 'absolute',
@@ -259,7 +259,7 @@ export function HorizonteLargoFixo() {
   const centroY = height - (800 - LINHA_DO_HORIZONTE_LARGA) * escala;
 
   return (
-    <View style={{ position: 'absolute', top: centroY - tamanho / 2, left: 0, right: 0 }} pointerEvents="none">
+    <View style={{ position: 'absolute', top: centroY - tamanho / 2, left: 0, right: 0, pointerEvents: 'none' }}>
       <EstrelaNoHorizonte tamanho={tamanho} />
     </View>
   );
