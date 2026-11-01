@@ -5,16 +5,23 @@
  */
 
 import React, { useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { CampoTexto } from '@/components/auth/campo-text';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { TelaAuth } from '@/components/auth/screen-auth';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  BotaoPrincipal,
+  CabecalhoVoltar,
+  CampoTexto,
+  LinkTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
+import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { emailValido, entrar, type CampoComErro, type Perfil } from '@/services/auth';
 
 export default function EntrarScreen() {
   const router = useRouter();
-  const s = useEstilosAuth();
   const params = useLocalSearchParams<{ perfil?: string }>();
   const perfil: Perfil = params.perfil === 'professor' ? 'professor' : 'aluno';
 
@@ -58,67 +65,83 @@ export default function EntrarScreen() {
   };
 
   return (
-    <TelaAuth
-      titulo="Entrar"
-      subtitulo={`Entre com sua conta de ${perfil}.`}
-      voltar={() => router.replace('/')}
-    >
-      {!!erroGeral && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {erroGeral}
-          </Text>
+    <TelaFormulario>
+      <Surgir style={styles.camada}>
+        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+      </Surgir>
+
+      <TituloTela titulo="Entrar" subtitulo={`Entre com sua conta de ${perfil}.`} style={styles.textos} />
+
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={36} />
+      </View>
+
+      <Surgir style={[styles.formulario, styles.camada]}>
+        {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+        <CampoTexto
+          rotulo="E-mail"
+          value={email}
+          onChangeText={(t) => { setEmail(t); setErros((e) => ({ ...e, email: undefined })); setErroGeral(null); }}
+          erro={erros.email}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => senhaRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Senha"
+          senha
+          inputRef={senhaRef}
+          value={senha}
+          onChangeText={(t) => { setSenha(t); setErros((e) => ({ ...e, senha: undefined })); setErroGeral(null); }}
+          erro={erros.senha}
+          autoComplete="current-password"
+          textContentType="password"
+          returnKeyType="send"
+          onSubmitEditing={enviar}
+          editable={!enviando}
+        />
+
+        <View style={styles.acoes}>
+          <BotaoPrincipal texto="Entrar" textoOcupado="Entrando…" ocupado={enviando} aoTocar={enviar} />
+          {/* Só aluno cria conta pelo app; a conta de professor é criada pela equipe. */}
+          {perfil === 'aluno' && (
+            <LinkTexto
+              texto="Não tem conta? Criar conta"
+              rotulo="Criar conta"
+              aoTocar={() => router.push('/criar-conta')}
+            />
+          )}
         </View>
-      )}
+      </Surgir>
 
-      <CampoTexto
-        rotulo="E-mail"
-        value={email}
-        onChangeText={(t) => { setEmail(t); setErros((e) => ({ ...e, email: undefined })); setErroGeral(null); }}
-        erro={erros.email}
-        keyboardType="email-address"
-        autoComplete="email"
-        textContentType="emailAddress"
-        returnKeyType="next"
-        onSubmitEditing={() => senhaRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="Senha"
-        senha
-        inputRef={senhaRef}
-        value={senha}
-        onChangeText={(t) => { setSenha(t); setErros((e) => ({ ...e, senha: undefined })); setErroGeral(null); }}
-        erro={erros.senha}
-        autoComplete="current-password"
-        textContentType="password"
-        returnKeyType="send"
-        onSubmitEditing={enviar}
-        editable={!enviando}
-      />
-
-      <Pressable
-        style={[s.botao, enviando && s.botaoDesativado]}
-        onPress={enviar}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityLabel={enviando ? 'Entrando' : 'Entrar'}
-        accessibilityState={{ disabled: enviando, busy: enviando }}
-      >
-        <Text style={s.botaoTexto}>{enviando ? 'Entrando…' : 'Entrar'}</Text>
-      </Pressable>
-
-      {/* Só aluno cria conta pelo app; a conta de professor é criada pela equipe. */}
-      {perfil === 'aluno' && (
-        <Pressable
-          style={s.link}
-          onPress={() => router.push('/criar-conta')}
-          accessibilityRole="button"
-          accessibilityLabel="Criar conta"
-        >
-          <Text style={s.linkTexto}>Não tem conta? Criar conta</Text>
-        </Pressable>
-      )}
-    </TelaAuth>
+      <View style={styles.espaco} />
+      <Surgir style={styles.camada}>
+        <Text style={styles.frase}>Aprender é descobrir a própria luz.</Text>
+      </Surgir>
+    </TelaFormulario>
   );
 }
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+
+  textos: { marginTop: 10, gap: 6 },
+
+  estrela: { marginTop: 41, marginBottom: 28 },
+
+  formulario: { gap: 16 },
+  acoes: { marginTop: 8, gap: 8 },
+
+  espaco: { flexGrow: 1, minHeight: 24 },
+  frase: {
+    fontFamily: FontesHorizonte.displayMedio,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    color: Horizonte.textMuted,
+  },
+});
