@@ -26,6 +26,7 @@ const FONTES = {
   Sora_700Bold: require('@expo-google-fonts/sora/700Bold/Sora_700Bold.ttf'),
   Figtree_400Regular: require('@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf'),
   Figtree_500Medium: require('@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf'),
+  Figtree_600SemiBold: require('@expo-google-fonts/figtree/600SemiBold/Figtree_600SemiBold.ttf'),
 };
 
 export default function RootLayout() {

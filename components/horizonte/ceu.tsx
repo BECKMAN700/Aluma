@@ -96,7 +96,7 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
           <Circle cx="160" cy="640" r="470" fill="url(#atm)" />
           <Circle cx="160" cy="222" r="170" fill="url(#sol)" />
           <Circle cx="160" cy="640" r="420" fill="url(#chao)" />
-          <Circle cx="160" cy="640" r="420" fill="none" stroke="url(#borda)" strokeWidth={1.6} />
+          <Circle cx="160" cy="640" r="420" fill="none" stroke="url(#borda)" strokeWidth={Math.min(1.6, 2 / escala)} />
         </Svg>
       </View>
       {/* A View garante a estrela acima da curva na web, onde um svg solto fica atrás do que é absolute. */}
