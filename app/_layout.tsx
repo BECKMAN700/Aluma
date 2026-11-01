@@ -74,7 +74,7 @@ function Navegacao() {
       </Stack.Protected>
 
       <Stack.Protected guard={usuario?.papel === 'professor'}>
-        <Stack.Screen name="(professor)" options={{ headerShown: false }} />
+        <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
     </Stack>
   );

@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -74,7 +75,7 @@ export function TituloTela({
   style,
 }: {
   titulo: string;
-  subtitulo: string;
+  subtitulo?: string;
   /** O subtítulo é uma fala da Luma: ganha a cor dela. */
   falaDaLuma?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -84,12 +85,21 @@ export function TituloTela({
       <Text style={styles.titulo} accessibilityRole="header">
         {titulo}
       </Text>
-      <Text style={falaDaLuma ? styles.falaDaLuma : styles.subtitulo}>{subtitulo}</Text>
+      {!!subtitulo && <Text style={falaDaLuma ? styles.falaDaLuma : styles.subtitulo}>{subtitulo}</Text>}
     </Surgir>
   );
 }
 
-export function CabecalhoSair({ legenda, aoSair }: { legenda?: string; aoSair: () => void }) {
+export function CabecalhoSair({
+  legenda,
+  comMarca = false,
+  aoSair,
+}: {
+  legenda?: string;
+  /** Mostra "Aluma" ao lado do logo, em vez da legenda. */
+  comMarca?: boolean;
+  aoSair: () => void;
+}) {
   return (
     <View style={styles.cabecalhoSair}>
       <Image
@@ -97,8 +107,8 @@ export function CabecalhoSair({ legenda, aoSair }: { legenda?: string; aoSair: (
         style={styles.logo}
         accessibilityLabel="Logo do Aluma"
       />
-      <Text style={styles.legenda} numberOfLines={1}>
-        {legenda}
+      <Text style={comMarca ? styles.marcaPequena : styles.legenda} numberOfLines={1}>
+        {comMarca ? 'Aluma' : legenda}
       </Text>
       <Pressable
         style={({ pressed }) => [styles.sair, pressed && styles.pressionado]}
@@ -333,6 +343,15 @@ export function LinkTexto({ texto, rotulo, aoTocar }: { texto: string; rotulo: s
   );
 }
 
+export function AvisoCarregando({ texto }: { texto: string }) {
+  return (
+    <View style={styles.carregando} accessibilityLiveRegion="polite">
+      <ActivityIndicator color={Horizonte.textMuted} />
+      <Text style={styles.carregandoTexto}>{texto}</Text>
+    </View>
+  );
+}
+
 export function AvisoErro({ mensagem }: { mensagem: string }) {
   return (
     <View style={styles.aviso}>
@@ -376,6 +395,9 @@ const styles = StyleSheet.create({
 
   cabecalhoSair: { flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: -8 },
   legenda: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted, flexShrink: 1 },
+  marcaPequena: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: Horizonte.text },
+  carregando: { alignItems: 'center', gap: 10, paddingVertical: 24 },
+  carregandoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, textAlign: 'center', color: Horizonte.textMuted },
   sair: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
 
   partida: {

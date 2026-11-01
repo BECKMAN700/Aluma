@@ -21,7 +21,7 @@ export default function ProfessorLayout() {
           contentStyle: { backgroundColor: Auth.fundo },
         }}
       >
-        <Stack.Screen name="turmas" options={{ title: 'Minhas turmas' }} />
+        <Stack.Screen name="turmas" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="nova-turma" options={{ title: 'Criar turma' }} />
         <Stack.Screen name="turma/[id]" options={{ title: 'Turma' }} />
       </Stack>
