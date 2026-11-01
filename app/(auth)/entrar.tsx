@@ -18,7 +18,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CeuEstrelado, EstrelaNoHorizonte } from '@/components/horizonte/ceu';
+import { CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import { AvisoErro, BotaoPrincipal, CabecalhoVoltar, CampoTexto, LinkTexto } from '@/components/horizonte/formulario';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { emailValido, entrar, type CampoComErro, type Perfil } from '@/services/auth';
@@ -88,22 +88,22 @@ export default function EntrarScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.camada}>
+        <Surgir style={styles.camada}>
           <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
-        </View>
+        </Surgir>
 
-        <View style={[styles.textos, styles.camada]}>
+        <Surgir style={[styles.textos, styles.camada]}>
           <Text style={styles.titulo} accessibilityRole="header">
             Entrar
           </Text>
           <Text style={styles.subtitulo}>{`Entre com sua conta de ${perfil}.`}</Text>
-        </View>
+        </Surgir>
 
         <View style={styles.estrela}>
           <EstrelaNoHorizonte tamanho={36} />
         </View>
 
-        <View style={[styles.formulario, styles.camada]}>
+        <Surgir style={[styles.formulario, styles.camada]}>
           {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
 
           <CampoTexto
@@ -143,10 +143,12 @@ export default function EntrarScreen() {
               />
             )}
           </View>
-        </View>
+        </Surgir>
 
         <View style={styles.espaco} />
-        <Text style={[styles.frase, styles.camada]}>Aprender é descobrir a própria luz.</Text>
+        <Surgir style={styles.camada}>
+          <Text style={styles.frase}>Aprender é descobrir a própria luz.</Text>
+        </Surgir>
       </ScrollView>
     </KeyboardAvoidingView>
   );

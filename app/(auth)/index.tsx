@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { CeuEstrelado, CeuLargo, EstrelaNoHorizonte } from '@/components/horizonte/ceu';
+import { CeuEstrelado, EstrelaNoHorizonte, HorizonteLargoFixo, Surgir } from '@/components/horizonte/ceu';
 import { useTelaDividida } from '@/constants/auth-theme';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import type { Perfil } from '@/services/auth';
@@ -29,7 +29,8 @@ export default function EscolherPerfilScreen() {
   return (
     <View style={styles.tela}>
       <StatusBar style="light" />
-      {largo ? <CeuLargo /> : <CeuEstrelado />}
+      <CeuEstrelado />
+      {largo && <HorizonteLargoFixo />}
 
       <ScrollView
         style={styles.rolagem}
@@ -44,29 +45,29 @@ export default function EscolherPerfilScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.marca, largo && styles.marcaLarga]}>
+        <Surgir style={[styles.marca, largo && styles.marcaLarga]}>
           <Image
             source={require('../../assets/images/aluma_logo.jpg')}
             style={largo ? styles.logoLargo : styles.logo}
             accessibilityLabel="Logo do Aluma"
           />
           <Text style={[styles.marcaTexto, largo && styles.marcaTextoLargo]}>Aluma</Text>
-        </View>
+        </Surgir>
 
-        <View style={[styles.textos, largo && styles.textosLargos]}>
+        <Surgir style={[styles.textos, largo && styles.textosLargos]}>
           <Text style={[styles.titulo, largo && styles.tituloLargo]} accessibilityRole="header">
             Qual é o seu perfil?
           </Text>
           <Text style={[styles.subtitulo, largo && styles.subtituloLargo]}>
             Escolha o seu módulo para entrar com a sua conta.
           </Text>
-        </View>
+        </Surgir>
 
         <View style={[styles.espaco, styles.espacoEstrela]}>
           {!largo && <EstrelaNoHorizonte tamanho={56} />}
         </View>
 
-        <View style={[styles.cartoes, largo && styles.cartoesLargos]}>
+        <Surgir style={[styles.cartoes, largo && styles.cartoesLargos]}>
           {PERFIS.map((perfil) => {
             const aluno = perfil.id === 'aluno';
             return (
@@ -110,10 +111,12 @@ export default function EscolherPerfilScreen() {
               </Pressable>
             );
           })}
-        </View>
+        </Surgir>
 
         <View style={largo ? styles.espacoFraseLargo : [styles.espaco, styles.espacoFrase]} />
-        <Text style={[styles.frase, largo && styles.fraseLarga]}>Aprender é descobrir a própria luz.</Text>
+        <Surgir>
+          <Text style={[styles.frase, largo && styles.fraseLarga]}>Aprender é descobrir a própria luz.</Text>
+        </Surgir>
       </ScrollView>
     </View>
   );

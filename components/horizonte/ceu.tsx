@@ -1,11 +1,24 @@
 /**
  * Fundo da direção Horizonte: céu estrelado, curva do planeta e estrela-guia.
  * Desenhado com react-native-svg porque o Metro não importa .svg como imagem sem configuração extra.
+ *
+ * Movimento entre telas: cada tela desenha o próprio céu, igual ao da anterior, e a troca é sem
+ * animação do Stack. Ao abrir, a curva e a estrela começam onde a tela anterior as deixou e
+ * deslizam até o próprio lugar. Por isso o céu parece parado e só o horizonte anda.
  */
 
-import React from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import React, { useCallback, useId, useRef } from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle, useWindowDimensions } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
+import { useTelaDividida } from '@/constants/auth-theme';
 import { Horizonte } from '@/constants/theme';
 
 type Estrela = readonly [cx: number, cy: number, r: number, opacidade: number];
@@ -27,8 +40,22 @@ const ESTRELAS_LARGAS: readonly Estrela[] = [
   [300, 320, 1, 0.5], [1090, 290, 1.3, 0.6], [1230, 240, 1, 0.5], [50, 380, 1, 0.5], [920, 240, 1, 0.5],
 ];
 
-// Posição da linha do horizonte dentro do desenho de 320 × 720.
+// Linha do horizonte dentro de cada desenho: 320 × 720 no celular e 1280 × 800 na tela larga.
 const LINHA_DO_HORIZONTE = 222;
+const LINHA_DO_HORIZONTE_LARGA = 470;
+
+const MOVIMENTO_HORIZONTE = { duration: 320, easing: Easing.bezier(0.2, 0.8, 0.2, 1) };
+const MOVIMENTO_SURGIR = { duration: 260, easing: Easing.out(Easing.ease) };
+
+// Onde a última tela deixou a estrela, na altura da janela: a próxima tela parte daqui.
+// shortcut: guarda a posição de quando a tela abriu, sem a rolagem; se a pessoa rolar antes de
+// sair, o movimento começa um pouco deslocado. Medir também na saída resolve, se incomodar.
+let estrelaAnterior: { centroY: number; tamanho: number } | null = null;
+
+/** Escala do desenho largo: é a mesma em todas as telas, para a curva não mudar de forma ao trocar. */
+function escalaLarga(width: number, height: number) {
+  return Math.max(width / 1280, height / 800);
+}
 
 function Estrelas({ lista, cor }: { lista: readonly Estrela[]; cor: string }) {
   return (
@@ -66,95 +93,184 @@ export function CeuEstrelado() {
   );
 }
 
-/** Estrela de quatro pontas com a curva do planeta atrás, alinhada ao centro da estrela. */
-export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
-  const { width } = useWindowDimensions();
-  const escala = width / 320;
+/**
+ * Prefixo único para os gradientes de cada desenho. Na web, a tela anterior continua escondida na
+ * página: com ids repetidos, a curva usaria o gradiente da tela escondida e não apareceria.
+ */
+function useIdGradiente() {
+  return useId().replace(/[^a-zA-Z0-9]/g, '');
+}
+
+function CurvaCelular({ escala }: { escala: number }) {
+  const id = useIdGradiente();
 
   return (
-    <View style={{ width: tamanho, height: tamanho, alignSelf: 'center' }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          top: tamanho / 2 - LINHA_DO_HORIZONTE * escala,
-          left: tamanho / 2 - width / 2,
-          width,
-          height: 720 * escala,
-        }}
-      >
-        <Svg width="100%" height="100%" viewBox="0 0 320 720">
-          <Defs>
-            <RadialGradient id="sol" gradientUnits="userSpaceOnUse" cx="160" cy="222" r="170">
-              <Stop offset="0" stopColor="#FFC766" stopOpacity={0.75} />
-              <Stop offset="0.3" stopColor="#FF9E45" stopOpacity={0.28} />
-              <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
-            </RadialGradient>
-            <RadialGradient id="atm" gradientUnits="userSpaceOnUse" cx="160" cy="640" r="470">
-              <Stop offset="0.893" stopColor="#3CCBFF" stopOpacity={0.5} />
-              <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
-            </RadialGradient>
-            <LinearGradient id="chao" gradientUnits="userSpaceOnUse" x1="0" y1="220" x2="0" y2="620">
-              <Stop offset="0" stopColor="#0B2236" />
-              <Stop offset="0.45" stopColor={Horizonte.surface} />
-              <Stop offset="1" stopColor={Horizonte.bg} />
-            </LinearGradient>
-            <LinearGradient id="borda" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0">
-              <Stop offset="0" stopColor="#3CCBFF" />
-              <Stop offset="0.42" stopColor="#FFE1A3" />
-              <Stop offset="0.58" stopColor="#FFE1A3" />
-              <Stop offset="1" stopColor="#3CCBFF" />
-            </LinearGradient>
-          </Defs>
-          <Circle cx="160" cy="640" r="470" fill="url(#atm)" />
-          <Circle cx="160" cy="222" r="170" fill="url(#sol)" />
-          <Circle cx="160" cy="640" r="420" fill="url(#chao)" />
-          <Circle cx="160" cy="640" r="420" fill="none" stroke="url(#borda)" strokeWidth={Math.min(1.6, 2 / escala)} />
-        </Svg>
-      </View>
-      {/* A View garante a estrela acima da curva na web, onde um svg solto fica atrás do que é absolute. */}
-      <View>
-        <Svg width={tamanho} height={tamanho} viewBox="0 0 56 56">
-          <Path d="M28 0C30 18 38 26 56 28C38 30 30 38 28 56C26 38 18 30 0 28C18 26 26 18 28 0Z" fill={Horizonte.star} />
-        </Svg>
-      </View>
+    <Svg width="100%" height="100%" viewBox="0 0 320 720">
+      <Defs>
+        <RadialGradient id={`sol${id}`} gradientUnits="userSpaceOnUse" cx="160" cy="222" r="170">
+          <Stop offset="0" stopColor="#FFC766" stopOpacity={0.75} />
+          <Stop offset="0.3" stopColor="#FF9E45" stopOpacity={0.28} />
+          <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`atm${id}`} gradientUnits="userSpaceOnUse" cx="160" cy="640" r="470">
+          <Stop offset="0.893" stopColor="#3CCBFF" stopOpacity={0.5} />
+          <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
+        </RadialGradient>
+        <LinearGradient id={`chao${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="220" x2="0" y2="620">
+          <Stop offset="0" stopColor="#0B2236" />
+          <Stop offset="0.45" stopColor={Horizonte.surface} />
+          <Stop offset="1" stopColor={Horizonte.bg} />
+        </LinearGradient>
+        <LinearGradient id={`borda${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0">
+          <Stop offset="0" stopColor="#3CCBFF" />
+          <Stop offset="0.42" stopColor="#FFE1A3" />
+          <Stop offset="0.58" stopColor="#FFE1A3" />
+          <Stop offset="1" stopColor="#3CCBFF" />
+        </LinearGradient>
+      </Defs>
+      <Circle cx="160" cy="640" r="470" fill={`url(#atm${id})`} />
+      <Circle cx="160" cy="222" r="170" fill={`url(#sol${id})`} />
+      <Circle cx="160" cy="640" r="420" fill={`url(#chao${id})`} />
+      <Circle cx="160" cy="640" r="420" fill="none" stroke={`url(#borda${id})`} strokeWidth={Math.min(1.6, 2 / escala)} />
+    </Svg>
+  );
+}
+
+function CurvaLarga() {
+  const id = useIdGradiente();
+
+  return (
+    <Svg width="100%" height="100%" viewBox="0 0 1280 800">
+      <Defs>
+        <RadialGradient id={`sol${id}`} gradientUnits="userSpaceOnUse" cx="640" cy="470" r="520">
+          <Stop offset="0" stopColor="#FFC766" stopOpacity={0.7} />
+          <Stop offset="0.25" stopColor="#FF9E45" stopOpacity={0.26} />
+          <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`atm${id}`} gradientUnits="userSpaceOnUse" cx="640" cy="1570" r="1190">
+          <Stop offset="0.924" stopColor="#3CCBFF" stopOpacity={0.5} />
+          <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
+        </RadialGradient>
+        <LinearGradient id={`chao${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="470" x2="0" y2="760">
+          <Stop offset="0" stopColor="#0B2236" />
+          <Stop offset="1" stopColor={Horizonte.bg} />
+        </LinearGradient>
+        <LinearGradient id={`borda${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0">
+          <Stop offset="0" stopColor="#3CCBFF" />
+          <Stop offset="0.42" stopColor="#FFE1A3" />
+          <Stop offset="0.58" stopColor="#FFE1A3" />
+          <Stop offset="1" stopColor="#3CCBFF" />
+        </LinearGradient>
+      </Defs>
+      <Circle cx="640" cy="1570" r="1190" fill={`url(#atm${id})`} />
+      <Circle cx="640" cy="470" r="520" fill={`url(#sol${id})`} />
+      <Circle cx="640" cy="1570" r="1100" fill={`url(#chao${id})`} />
+      <Circle cx="640" cy="1570" r="1100" fill="none" stroke={`url(#borda${id})`} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+/** Estrela de quatro pontas com a curva do planeta atrás, alinhada ao centro da estrela. */
+export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
+  const { width, height } = useWindowDimensions();
+  const largo = useTelaDividida();
+  const semMovimento = useReducedMotion();
+
+  const escala = largo ? escalaLarga(width, height) : width / 320;
+  const larguraDesenho = (largo ? 1280 : 320) * escala;
+  const alturaDesenho = (largo ? 800 : 720) * escala;
+  const linha = (largo ? LINHA_DO_HORIZONTE_LARGA : LINHA_DO_HORIZONTE) * escala;
+
+  const caixa = useRef<View>(null);
+  const deslocamento = useSharedValue(0);
+  const escalaEstrela = useSharedValue(1);
+  // Escondido até medir: sem isso, a curva pisca no lugar final antes de voltar para o início do movimento.
+  const opacidade = useSharedValue(estrelaAnterior ? 0 : 1);
+
+  useFocusEffect(
+    useCallback(() => {
+      caixa.current?.measureInWindow((_x, y) => {
+        const centroY = y + tamanho / 2;
+        // Calcula antes de atualizar: o React Compiler troca um apelido da variável do módulo pela
+        // própria variável, e o valor lido depois já seria o novo.
+        const inicioY = estrelaAnterior ? estrelaAnterior.centroY - centroY : 0;
+        const inicioEscala = estrelaAnterior ? estrelaAnterior.tamanho / tamanho : 1;
+        estrelaAnterior = { centroY, tamanho };
+        opacidade.set(1);
+        if (semMovimento) return;
+        deslocamento.set(inicioY);
+        escalaEstrela.set(inicioEscala);
+        deslocamento.set(withTiming(0, MOVIMENTO_HORIZONTE));
+        escalaEstrela.set(withTiming(1, MOVIMENTO_HORIZONTE));
+      });
+      return () => {
+        opacidade.set(0);
+      };
+    }, [tamanho, semMovimento, deslocamento, escalaEstrela, opacidade]),
+  );
+
+  const estiloHorizonte = useAnimatedStyle(() => ({
+    opacity: opacidade.get(),
+    transform: [{ translateY: deslocamento.get() }],
+  }));
+  const estiloEstrela = useAnimatedStyle(() => ({ transform: [{ scale: escalaEstrela.get() }] }));
+
+  return (
+    <View ref={caixa} collapsable={false} style={{ width: tamanho, height: tamanho, alignSelf: 'center' }}>
+      <Animated.View style={[StyleSheet.absoluteFill, estiloHorizonte]} pointerEvents="none">
+        <View
+          style={{
+            position: 'absolute',
+            top: tamanho / 2 - linha,
+            left: tamanho / 2 - larguraDesenho / 2,
+            width: larguraDesenho,
+            height: alturaDesenho,
+          }}
+        >
+          {largo ? <CurvaLarga /> : <CurvaCelular escala={escala} />}
+        </View>
+        {/* A View garante a estrela acima da curva na web, onde um svg solto fica atrás do que é absolute. */}
+        <Animated.View style={estiloEstrela}>
+          <Svg width={tamanho} height={tamanho} viewBox="0 0 56 56">
+            <Path d="M28 0C30 18 38 26 56 28C38 30 30 38 28 56C26 38 18 30 0 28C18 26 26 18 28 0Z" fill={Horizonte.star} />
+          </Svg>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
 }
 
-/** Versão para tela larga: céu, planeta e estrela em um desenho só. Preenche o container pai. */
-export function CeuLargo() {
+/** Horizonte da tela larga de perfil, preso ao fim da tela em vez de seguir o conteúdo. */
+export function HorizonteLargoFixo() {
+  const { width, height } = useWindowDimensions();
+  const escala = escalaLarga(width, height);
+  const tamanho = 80 * escala;
+  const centroY = height - (800 - LINHA_DO_HORIZONTE_LARGA) * escala;
+
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Svg width="100%" height="100%" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMax slice">
-        <Defs>
-          <RadialGradient id="sol-largo" gradientUnits="userSpaceOnUse" cx="640" cy="470" r="520">
-            <Stop offset="0" stopColor="#FFC766" stopOpacity={0.7} />
-            <Stop offset="0.25" stopColor="#FF9E45" stopOpacity={0.26} />
-            <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
-          </RadialGradient>
-          <RadialGradient id="atm-largo" gradientUnits="userSpaceOnUse" cx="640" cy="1570" r="1190">
-            <Stop offset="0.924" stopColor="#3CCBFF" stopOpacity={0.5} />
-            <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
-          </RadialGradient>
-          <LinearGradient id="chao-largo" gradientUnits="userSpaceOnUse" x1="0" y1="470" x2="0" y2="800">
-            <Stop offset="0" stopColor="#0B2236" />
-            <Stop offset="1" stopColor={Horizonte.bg} />
-          </LinearGradient>
-          <LinearGradient id="borda-largo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0">
-            <Stop offset="0" stopColor="#3CCBFF" />
-            <Stop offset="0.42" stopColor="#FFE1A3" />
-            <Stop offset="0.58" stopColor="#FFE1A3" />
-            <Stop offset="1" stopColor="#3CCBFF" />
-          </LinearGradient>
-        </Defs>
-        <Estrelas lista={ESTRELAS_LARGAS} cor="#FFFFFF" />
-        <Circle cx="640" cy="1570" r="1190" fill="url(#atm-largo)" />
-        <Circle cx="640" cy="470" r="520" fill="url(#sol-largo)" />
-        <Circle cx="640" cy="1570" r="1100" fill="url(#chao-largo)" />
-        <Circle cx="640" cy="1570" r="1100" fill="none" stroke="url(#borda-largo)" strokeWidth={2} />
-        <Path d="M640 430C643 456 654 467 680 470C654 473 643 484 640 510C637 484 626 473 600 470C626 467 637 456 640 430Z" fill={Horizonte.star} />
-      </Svg>
+    <View style={{ position: 'absolute', top: centroY - tamanho / 2, left: 0, right: 0 }} pointerEvents="none">
+      <EstrelaNoHorizonte tamanho={tamanho} />
     </View>
   );
+}
+
+/** Conteúdo da tela: aparece subindo de leve sempre que a tela abre. */
+export function Surgir({ style, children }: { style?: StyleProp<ViewStyle>; children: React.ReactNode }) {
+  const semMovimento = useReducedMotion();
+  const progresso = useSharedValue(semMovimento ? 1 : 0);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (semMovimento) return;
+      progresso.set(0);
+      progresso.set(withTiming(1, MOVIMENTO_SURGIR));
+    }, [semMovimento, progresso]),
+  );
+
+  const estilo = useAnimatedStyle(() => ({
+    opacity: progresso.get(),
+    transform: [{ translateY: (1 - progresso.get()) * 10 }],
+  }));
+
+  return <Animated.View style={[style, estilo]}>{children}</Animated.View>;
 }

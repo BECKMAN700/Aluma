@@ -16,7 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CeuEstrelado, EstrelaNoHorizonte } from '@/components/horizonte/ceu';
+import { CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import {
   AvisoErro,
   AvisoInfo,
@@ -105,22 +105,22 @@ export default function CriarContaScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.camada}>
+        <Surgir style={styles.camada}>
           <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
-        </View>
+        </Surgir>
 
-        <View style={[styles.textos, styles.camada]}>
+        <Surgir style={[styles.textos, styles.camada]}>
           <Text style={styles.titulo} accessibilityRole="header">
             Criar conta
           </Text>
           <Text style={styles.subtitulo}>Cadastro de aluno.</Text>
-        </View>
+        </Surgir>
 
         <View style={styles.estrela}>
           <EstrelaNoHorizonte tamanho={28} />
         </View>
 
-        <View style={[styles.formulario, styles.camada]}>
+        <Surgir style={[styles.formulario, styles.camada]}>
           {!!aviso && <AvisoInfo mensagem={aviso} />}
           {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
 
@@ -184,7 +184,7 @@ export default function CriarContaScreen() {
               aoTocar={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
             />
           </View>
-        </View>
+        </Surgir>
       </ScrollView>
     </KeyboardAvoidingView>
   );
