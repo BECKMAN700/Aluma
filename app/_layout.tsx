@@ -6,7 +6,8 @@
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
  */
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { StatusBar } from 'expo-status-bar';
@@ -19,8 +20,21 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessaoProvider, useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
 
+// Caminho de cada arquivo, e não o pacote inteiro: assim só estes pesos entram no app.
+const FONTES = {
+  Sora_600SemiBold: require('@expo-google-fonts/sora/600SemiBold/Sora_600SemiBold.ttf'),
+  Sora_700Bold: require('@expo-google-fonts/sora/700Bold/Sora_700Bold.ttf'),
+  Figtree_400Regular: require('@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf'),
+  Figtree_500Medium: require('@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf'),
+};
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontesProntas, erroFontes] = useFonts(FONTES);
+
+  // No celular, o texto só pode aparecer com a fonte pronta. Na web, o navegador troca sozinho,
+  // e esperar deixaria a tela em branco na internet lenta. Se falhar, segue com a fonte do sistema.
+  if (Platform.OS !== 'web' && !fontesProntas && !erroFontes) return null;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

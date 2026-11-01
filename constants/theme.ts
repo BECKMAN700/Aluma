@@ -37,6 +37,26 @@ export const Night = {
   dust: '#7C89A6',
 } as const;
 
+// Direção visual Horizonte, valores do Design System. As telas migram para cá uma de cada vez.
+export const Horizonte = {
+  bg: '#04060D',
+  surface: '#071120',
+  text: '#F4F6FB',
+  textMuted: '#C4CEE2',
+  action: '#FFC766',
+  onAction: '#0A0D16',
+  luma: '#8BE3FF',
+  star: '#FFF6E0',
+} as const;
+
+// No celular, o peso da fonte faz parte do nome da família: não combinar com fontWeight.
+export const FontesHorizonte = {
+  display: 'Sora_700Bold',
+  displayMedio: 'Sora_600SemiBold',
+  corpo: 'Figtree_400Regular',
+  corpoMedio: 'Figtree_500Medium',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
