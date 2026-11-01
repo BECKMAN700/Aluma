@@ -3,11 +3,29 @@
  * Só existe para aluno: a conta de professor é criada pela equipe (arquitetura.md §4).
  */
 import React, { useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { CampoTexto } from '@/components/auth/campo-text';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { TelaAuth } from '@/components/auth/screen-auth';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CeuEstrelado, EstrelaNoHorizonte } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  AvisoInfo,
+  BotaoPrincipal,
+  CabecalhoVoltar,
+  CampoTexto,
+  LinkTexto,
+} from '@/components/horizonte/formulario';
+import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { criarConta, emailValido, validarSenha, type CampoComErro } from '@/services/auth';
 
 // O campo "confirmar senha" só existe na tela; o servidor nunca devolve erro nele.
@@ -15,7 +33,8 @@ type CampoForm = CampoComErro | 'confirmar';
 
 export default function CriarContaScreen() {
   const router = useRouter();
-  const s = useEstilosAuth();
+  const margens = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -68,97 +87,128 @@ export default function CriarContaScreen() {
   };
 
   return (
-    <TelaAuth
-      titulo="Criar conta"
-      subtitulo="Cadastro de aluno."
-      voltar={() => router.replace('/')}
-    >
-      {!!aviso && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {aviso}
-          </Text>
-        </View>
-      )}
-      {!!erroGeral && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {erroGeral}
-          </Text>
-        </View>
-      )}
+    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style="light" />
+      <CeuEstrelado />
 
-      <CampoTexto
-        rotulo="Nome"
-        value={nome}
-        onChangeText={(t) => { setNome(t); limpar('nome'); }}
-        erro={erros.nome}
-        autoCapitalize="words"
-        autoComplete="name"
-        textContentType="name"
-        returnKeyType="next"
-        onSubmitEditing={() => emailRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="E-mail"
-        inputRef={emailRef}
-        value={email}
-        onChangeText={(t) => { setEmail(t); limpar('email'); }}
-        erro={erros.email}
-        keyboardType="email-address"
-        autoComplete="email"
-        textContentType="emailAddress"
-        returnKeyType="next"
-        onSubmitEditing={() => senhaRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="Senha"
-        senha
-        inputRef={senhaRef}
-        value={senha}
-        onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
-        erro={erros.senha}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="next"
-        onSubmitEditing={() => confirmarRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="Confirmar senha"
-        senha
-        inputRef={confirmarRef}
-        value={confirmar}
-        onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
-        erro={erros.confirmar}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="send"
-        onSubmitEditing={enviar}
-        editable={!enviando}
-      />
-
-      <Pressable
-        style={[s.botao, enviando && s.botaoDesativado]}
-        onPress={enviar}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityLabel={enviando ? 'Criando conta' : 'Criar conta'}
-        accessibilityState={{ disabled: enviando, busy: enviando }}
+      <ScrollView
+        style={styles.rolagem}
+        contentContainerStyle={[
+          styles.conteudo,
+          {
+            paddingTop: margens.top + 12,
+            paddingBottom: margens.bottom + 24,
+            // Coluna de até 480px no celular grande, no tablet e no computador.
+            paddingHorizontal: Math.max(20, (width - 480) / 2),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={s.botaoTexto}>{enviando ? 'Criando conta…' : 'Criar conta'}</Text>
-      </Pressable>
+        <View style={styles.camada}>
+          <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+        </View>
 
-      <Pressable
-        style={s.link}
-        onPress={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
-        accessibilityRole="button"
-        accessibilityLabel="Já tenho conta, entrar"
-      >
-        <Text style={s.linkTexto}>Já tem conta? Entrar</Text>
-      </Pressable>
-    </TelaAuth>
+        <View style={[styles.textos, styles.camada]}>
+          <Text style={styles.titulo} accessibilityRole="header">
+            Criar conta
+          </Text>
+          <Text style={styles.subtitulo}>Cadastro de aluno.</Text>
+        </View>
+
+        <View style={styles.estrela}>
+          <EstrelaNoHorizonte tamanho={28} />
+        </View>
+
+        <View style={[styles.formulario, styles.camada]}>
+          {!!aviso && <AvisoInfo mensagem={aviso} />}
+          {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+          <CampoTexto
+            rotulo="Nome"
+            value={nome}
+            onChangeText={(t) => { setNome(t); limpar('nome'); }}
+            erro={erros.nome}
+            autoCapitalize="words"
+            autoComplete="name"
+            textContentType="name"
+            returnKeyType="next"
+            onSubmitEditing={() => emailRef.current?.focus()}
+            editable={!enviando}
+          />
+          <CampoTexto
+            rotulo="E-mail"
+            inputRef={emailRef}
+            value={email}
+            onChangeText={(t) => { setEmail(t); limpar('email'); }}
+            erro={erros.email}
+            keyboardType="email-address"
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            onSubmitEditing={() => senhaRef.current?.focus()}
+            editable={!enviando}
+          />
+          <CampoTexto
+            rotulo="Senha"
+            senha
+            inputRef={senhaRef}
+            value={senha}
+            onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
+            erro={erros.senha}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="next"
+            onSubmitEditing={() => confirmarRef.current?.focus()}
+            editable={!enviando}
+          />
+          <CampoTexto
+            rotulo="Confirmar senha"
+            senha
+            inputRef={confirmarRef}
+            value={confirmar}
+            onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
+            erro={erros.confirmar}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="send"
+            onSubmitEditing={enviar}
+            editable={!enviando}
+          />
+
+          <View style={styles.acoes}>
+            <BotaoPrincipal texto="Criar conta" textoOcupado="Criando conta…" ocupado={enviando} aoTocar={enviar} />
+            <LinkTexto
+              texto="Já tem conta? Entrar"
+              rotulo="Já tenho conta, entrar"
+              aoTocar={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  tela: { flex: 1, overflow: 'hidden', backgroundColor: Horizonte.bg },
+  rolagem: { flex: 1 },
+  // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
+  conteudo: { flexGrow: 1, overflow: 'hidden' },
+  camada: { zIndex: 1 },
+
+  textos: { marginTop: 4, gap: 2 },
+  titulo: {
+    fontFamily: FontesHorizonte.display,
+    fontSize: 31,
+    lineHeight: 37,
+    letterSpacing: -0.5,
+    color: Horizonte.text,
+  },
+  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+
+  estrela: { marginTop: 11, marginBottom: 16 },
+
+  formulario: { gap: 12 },
+  acoes: { marginTop: 8, gap: 4 },
+});

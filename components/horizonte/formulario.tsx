@@ -140,6 +140,17 @@ export function AvisoErro({ mensagem }: { mensagem: string }) {
   );
 }
 
+/** Aviso que não é erro, como "Conta criada!": sem a cor de erro. */
+export function AvisoInfo({ mensagem }: { mensagem: string }) {
+  return (
+    <View style={[styles.aviso, styles.avisoInfo]}>
+      <Text style={[styles.avisoTexto, styles.avisoInfoTexto]} accessibilityRole="alert" accessibilityLiveRegion="polite">
+        {mensagem}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   pressionado: { opacity: 0.85 },
 
@@ -212,4 +223,6 @@ const styles = StyleSheet.create({
     backgroundColor: Horizonte.fieldBg,
   },
   avisoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.error },
+  avisoInfo: { borderColor: Horizonte.fieldBorder },
+  avisoInfoTexto: { color: Horizonte.text },
 });

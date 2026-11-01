@@ -42,6 +42,19 @@ function Estrelas({ lista, cor }: { lista: readonly Estrela[]; cor: string }) {
 
 /** Estrelas paradas, atrás de tudo. Preenche o container pai. */
 export function CeuEstrelado() {
+  const { width } = useWindowDimensions();
+
+  // O desenho de 320px esticado viraria bolas grandes, que aparecem atrás dos títulos.
+  if (width >= 600) {
+    return (
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Svg width="100%" height="100%" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMin slice">
+          <Estrelas lista={ESTRELAS_LARGAS} cor="#FFFFFF" />
+        </Svg>
+      </View>
+    );
+  }
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%" viewBox="0 0 320 720" preserveAspectRatio="xMidYMin slice">
