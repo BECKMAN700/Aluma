@@ -43,6 +43,7 @@ export const Horizonte = {
   surface: '#071120',
   fieldBg: '#0A1626',
   fieldBorder: '#6D88A6',
+  hairline: '#2B3D55',
   text: '#F4F6FB',
   textMuted: '#C4CEE2',
   action: '#FFC766',

@@ -70,10 +70,13 @@ export function TelaFormulario({
 export function TituloTela({
   titulo,
   subtitulo,
+  falaDaLuma = false,
   style,
 }: {
   titulo: string;
   subtitulo: string;
+  /** O subtítulo é uma fala da Luma: ganha a cor dela. */
+  falaDaLuma?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
@@ -81,8 +84,47 @@ export function TituloTela({
       <Text style={styles.titulo} accessibilityRole="header">
         {titulo}
       </Text>
-      <Text style={styles.subtitulo}>{subtitulo}</Text>
+      <Text style={falaDaLuma ? styles.falaDaLuma : styles.subtitulo}>{subtitulo}</Text>
     </Surgir>
+  );
+}
+
+export function CabecalhoSair({ legenda, aoSair }: { legenda?: string; aoSair: () => void }) {
+  return (
+    <View style={styles.cabecalhoSair}>
+      <Image
+        source={require('../../assets/images/aluma_logo.jpg')}
+        style={styles.logo}
+        accessibilityLabel="Logo do Aluma"
+      />
+      <Text style={styles.legenda} numberOfLines={1}>
+        {legenda}
+      </Text>
+      <Pressable
+        style={({ pressed }) => [styles.sair, pressed && styles.pressionado]}
+        onPress={aoSair}
+        accessibilityRole="button"
+        accessibilityLabel="Sair da conta"
+      >
+        <Text style={styles.legenda}>Sair</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+export function BotaoPartida({ texto, aoTocar }: { texto: string; aoTocar: () => void }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.partida, pressed && styles.pressionado]}
+      onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={texto}
+    >
+      <Text style={styles.partidaTexto}>{texto}</Text>
+      <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+        <Path d="M9 5l7 7-7 7" stroke={Horizonte.luma} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </Pressable>
   );
 }
 
@@ -246,19 +288,27 @@ export function CodigoTurma({
 
 export function BotaoPrincipal({
   texto,
-  textoOcupado,
+  textoOcupado = texto,
   ocupado = false,
+  alto = false,
   aoTocar,
 }: {
   texto: string;
-  textoOcupado: string;
+  textoOcupado?: string;
   ocupado?: boolean;
+  /** 60px em vez de 56px: só em "Conversar com o tutor". */
+  alto?: boolean;
   aoTocar: () => void;
 }) {
   const atual = ocupado ? textoOcupado : texto;
   return (
     <Pressable
-      style={({ pressed }) => [styles.botao, pressed && styles.pressionado, ocupado && styles.botaoOcupado]}
+      style={({ pressed }) => [
+        styles.botao,
+        alto && styles.botaoAlto,
+        pressed && styles.pressionado,
+        ocupado && styles.botaoOcupado,
+      ]}
       onPress={aoTocar}
       disabled={ocupado}
       accessibilityRole="button"
@@ -321,6 +371,28 @@ const styles = StyleSheet.create({
     color: Horizonte.text,
   },
   subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+
+  falaDaLuma: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, lineHeight: 23, color: Horizonte.luma },
+
+  cabecalhoSair: { flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: -8 },
+  legenda: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted, flexShrink: 1 },
+  sair: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
+
+  partida: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingLeft: 20,
+    paddingRight: 16,
+    borderWidth: 1.5,
+    borderColor: Horizonte.luma,
+    borderRadius: 24,
+    backgroundColor: Horizonte.surface,
+  },
+  partidaTexto: { flex: 1, minWidth: 0, fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 22, color: Horizonte.text },
 
   marca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 44 },
   marcaLogo: { width: 40, height: 40, borderRadius: 20 },
@@ -387,6 +459,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Horizonte.action,
   },
+  botaoAlto: { minHeight: 60, borderRadius: 30 },
   botaoOcupado: { opacity: 0.6 },
   botaoTexto: {
     fontFamily: FontesHorizonte.display,

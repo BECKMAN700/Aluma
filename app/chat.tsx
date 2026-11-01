@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -10,8 +10,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageBubble } from '@/components/balao-mensagem';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { textoDaPartida } from '@/constants/partidas';
 import { Night } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
@@ -48,6 +50,8 @@ const SAUDACAO: Message = {
 };
 
 export default function ChatScreen() {
+  const router = useRouter();
+  const { partida } = useLocalSearchParams<{ partida?: string }>();
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
   const listRef = useRef<FlatList<Message>>(null);
@@ -94,8 +98,8 @@ export default function ChatScreen() {
       animated: true,
     });
 
-  const handleSendMessage = async () => {
-    const trimmedText = inputText.trim();
+  const enviarTexto = async (texto: string) => {
+    const trimmedText = texto.trim();
     if (!trimmedText || !canSend) return;
 
     const userMessage: Message = {
@@ -125,6 +129,20 @@ export default function ChatScreen() {
 
     setIsSending(false);
   };
+
+  const handleSendMessage = () => enviarTexto(inputText);
+
+  // Veio de um atalho do início: envia a frase assim que o tutor e a conversa estiverem prontos.
+  // Tira o atalho do endereço para recarregar a página não enviar de novo.
+  const textoPartida = textoDaPartida(partida);
+  const enviarPartida = useEffectEvent((texto: string) => {
+    router.setParams({ partida: undefined });
+    enviarTexto(texto);
+  });
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- é o envio ao servidor, um efeito de verdade; acontece uma vez só.
+    if (textoPartida && canSend) enviarPartida(textoPartida);
+  }, [textoPartida, canSend]);
 
   return (
     <KeyboardAvoidingView

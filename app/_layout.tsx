@@ -69,7 +69,7 @@ function Navegacao() {
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
-        <Stack.Screen name="(aluno)" options={{ headerShown: false }} />
+        <Stack.Screen name="(aluno)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen
           name="chat"
           options={{
