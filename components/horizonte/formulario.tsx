@@ -299,15 +299,21 @@ export function CodigoTurma({
 export function BotaoPrincipal({
   texto,
   textoOcupado = texto,
+  rotulo,
   ocupado = false,
   alto = false,
+  compacto = false,
   aoTocar,
 }: {
   texto: string;
   textoOcupado?: string;
+  /** Para o leitor de tela, quando o texto sozinho não diz o que o botão faz. */
+  rotulo?: string;
   ocupado?: boolean;
   /** 60px em vez de 56px: só em "Conversar com o tutor". */
   alto?: boolean;
+  /** 52px, para ficar ao lado de outro botão. */
+  compacto?: boolean;
   aoTocar: () => void;
 }) {
   const atual = ocupado ? textoOcupado : texto;
@@ -316,16 +322,17 @@ export function BotaoPrincipal({
       style={({ pressed }) => [
         styles.botao,
         alto && styles.botaoAlto,
+        compacto && styles.botaoCompacto,
         pressed && styles.pressionado,
         ocupado && styles.botaoOcupado,
       ]}
       onPress={aoTocar}
       disabled={ocupado}
       accessibilityRole="button"
-      accessibilityLabel={atual}
+      accessibilityLabel={rotulo ?? atual}
       accessibilityState={{ disabled: ocupado, busy: ocupado }}
     >
-      <Text style={styles.botaoTexto}>{atual}</Text>
+      <Text style={[styles.botaoTexto, compacto && styles.botaoCompactoTexto]}>{atual}</Text>
     </Pressable>
   );
 }
@@ -482,6 +489,8 @@ const styles = StyleSheet.create({
     backgroundColor: Horizonte.action,
   },
   botaoAlto: { minHeight: 60, borderRadius: 30 },
+  botaoCompacto: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 26 },
+  botaoCompactoTexto: { fontSize: 15, lineHeight: 22 },
   botaoOcupado: { opacity: 0.6 },
   botaoTexto: {
     fontFamily: FontesHorizonte.display,

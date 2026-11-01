@@ -23,7 +23,7 @@ export default function ProfessorLayout() {
       >
         <Stack.Screen name="turmas" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="nova-turma" options={{ title: 'Criar turma' }} />
-        <Stack.Screen name="turma/[id]" options={{ title: 'Turma' }} />
+        <Stack.Screen name="turma/[id]" options={{ headerShown: false, animation: 'none' }} />
       </Stack>
     </CoresAuthContext.Provider>
   );
