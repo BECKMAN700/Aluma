@@ -113,6 +113,8 @@ function CurvaCelular({ escala }: { escala: number }) {
           <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
         </RadialGradient>
         <RadialGradient id={`atm${id}`} gradientUnits="userSpaceOnUse" cx="160" cy="640" r="470">
+          {/* Transparente por baixo do chão: senão, o brilho vaza como uma linha no fim do desenho. */}
+          <Stop offset="0.87" stopColor="#3CCBFF" stopOpacity={0} />
           <Stop offset="0.893" stopColor="#3CCBFF" stopOpacity={0.5} />
           <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
         </RadialGradient>
@@ -140,7 +142,7 @@ function CurvaLarga() {
   const id = useIdGradiente();
 
   return (
-    <Svg width="100%" height="100%" viewBox="0 0 1280 800">
+    <Svg width="100%" height="100%" viewBox="0 0 1280 1000">
       <Defs>
         <RadialGradient id={`sol${id}`} gradientUnits="userSpaceOnUse" cx="640" cy="470" r="520">
           <Stop offset="0" stopColor="#FFC766" stopOpacity={0.7} />
@@ -148,6 +150,7 @@ function CurvaLarga() {
           <Stop offset="1" stopColor="#FF9E45" stopOpacity={0} />
         </RadialGradient>
         <RadialGradient id={`atm${id}`} gradientUnits="userSpaceOnUse" cx="640" cy="1570" r="1190">
+          <Stop offset="0.9" stopColor="#3CCBFF" stopOpacity={0} />
           <Stop offset="0.924" stopColor="#3CCBFF" stopOpacity={0.5} />
           <Stop offset="1" stopColor="#3CCBFF" stopOpacity={0} />
         </RadialGradient>
@@ -178,7 +181,8 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
 
   const escala = largo ? escalaLarga(width, height) : width / 320;
   const larguraDesenho = (largo ? 1280 : 320) * escala;
-  const alturaDesenho = (largo ? 800 : 720) * escala;
+  // No largo, 1000 e não 800: o brilho do sol vai até 990 e não pode ser cortado por baixo do chão.
+  const alturaDesenho = (largo ? 1000 : 720) * escala;
   const linha = (largo ? LINHA_DO_HORIZONTE_LARGA : LINHA_DO_HORIZONTE) * escala;
 
   const caixa = useRef<View>(null);

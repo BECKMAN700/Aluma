@@ -3,20 +3,9 @@
  * Só existe para aluno: a conta de professor é criada pela equipe (arquitetura.md §4).
  */
 import React, { useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import {
   AvisoErro,
   AvisoInfo,
@@ -24,8 +13,9 @@ import {
   CabecalhoVoltar,
   CampoTexto,
   LinkTexto,
+  TelaFormulario,
+  TituloTela,
 } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { criarConta, emailValido, validarSenha, type CampoComErro } from '@/services/auth';
 
 // O campo "confirmar senha" só existe na tela; o servidor nunca devolve erro nele.
@@ -33,8 +23,6 @@ type CampoForm = CampoComErro | 'confirmar';
 
 export default function CriarContaScreen() {
   const router = useRouter();
-  const margens = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -87,125 +75,90 @@ export default function CriarContaScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar style="light" />
-      <CeuEstrelado />
+    <TelaFormulario rodape={24}>
+      <Surgir style={styles.camada}>
+        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+      </Surgir>
 
-      <ScrollView
-        style={styles.rolagem}
-        contentContainerStyle={[
-          styles.conteudo,
-          {
-            paddingTop: margens.top + 12,
-            paddingBottom: margens.bottom + 24,
-            // Coluna de até 480px no celular grande, no tablet e no computador.
-            paddingHorizontal: Math.max(20, (width - 480) / 2),
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <Surgir style={styles.camada}>
-          <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
-        </Surgir>
+      <TituloTela titulo="Criar conta" subtitulo="Cadastro de aluno." style={styles.textos} />
 
-        <Surgir style={[styles.textos, styles.camada]}>
-          <Text style={styles.titulo} accessibilityRole="header">
-            Criar conta
-          </Text>
-          <Text style={styles.subtitulo}>Cadastro de aluno.</Text>
-        </Surgir>
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={28} />
+      </View>
 
-        <View style={styles.estrela}>
-          <EstrelaNoHorizonte tamanho={28} />
+      <Surgir style={[styles.formulario, styles.camada]}>
+        {!!aviso && <AvisoInfo mensagem={aviso} />}
+        {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+        <CampoTexto
+          rotulo="Nome"
+          value={nome}
+          onChangeText={(t) => { setNome(t); limpar('nome'); }}
+          erro={erros.nome}
+          autoCapitalize="words"
+          autoComplete="name"
+          textContentType="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="E-mail"
+          inputRef={emailRef}
+          value={email}
+          onChangeText={(t) => { setEmail(t); limpar('email'); }}
+          erro={erros.email}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => senhaRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Senha"
+          senha
+          inputRef={senhaRef}
+          value={senha}
+          onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
+          erro={erros.senha}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="next"
+          onSubmitEditing={() => confirmarRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Confirmar senha"
+          senha
+          inputRef={confirmarRef}
+          value={confirmar}
+          onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
+          erro={erros.confirmar}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="send"
+          onSubmitEditing={enviar}
+          editable={!enviando}
+        />
+
+        <View style={styles.acoes}>
+          <BotaoPrincipal texto="Criar conta" textoOcupado="Criando conta…" ocupado={enviando} aoTocar={enviar} />
+          <LinkTexto
+            texto="Já tem conta? Entrar"
+            rotulo="Já tenho conta, entrar"
+            aoTocar={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
+          />
         </View>
-
-        <Surgir style={[styles.formulario, styles.camada]}>
-          {!!aviso && <AvisoInfo mensagem={aviso} />}
-          {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
-
-          <CampoTexto
-            rotulo="Nome"
-            value={nome}
-            onChangeText={(t) => { setNome(t); limpar('nome'); }}
-            erro={erros.nome}
-            autoCapitalize="words"
-            autoComplete="name"
-            textContentType="name"
-            returnKeyType="next"
-            onSubmitEditing={() => emailRef.current?.focus()}
-            editable={!enviando}
-          />
-          <CampoTexto
-            rotulo="E-mail"
-            inputRef={emailRef}
-            value={email}
-            onChangeText={(t) => { setEmail(t); limpar('email'); }}
-            erro={erros.email}
-            keyboardType="email-address"
-            autoComplete="email"
-            textContentType="emailAddress"
-            returnKeyType="next"
-            onSubmitEditing={() => senhaRef.current?.focus()}
-            editable={!enviando}
-          />
-          <CampoTexto
-            rotulo="Senha"
-            senha
-            inputRef={senhaRef}
-            value={senha}
-            onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
-            erro={erros.senha}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="next"
-            onSubmitEditing={() => confirmarRef.current?.focus()}
-            editable={!enviando}
-          />
-          <CampoTexto
-            rotulo="Confirmar senha"
-            senha
-            inputRef={confirmarRef}
-            value={confirmar}
-            onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
-            erro={erros.confirmar}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="send"
-            onSubmitEditing={enviar}
-            editable={!enviando}
-          />
-
-          <View style={styles.acoes}>
-            <BotaoPrincipal texto="Criar conta" textoOcupado="Criando conta…" ocupado={enviando} aoTocar={enviar} />
-            <LinkTexto
-              texto="Já tem conta? Entrar"
-              rotulo="Já tenho conta, entrar"
-              aoTocar={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
-            />
-          </View>
-        </Surgir>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </Surgir>
+    </TelaFormulario>
   );
 }
 
 const styles = StyleSheet.create({
-  tela: { flex: 1, overflow: 'hidden', backgroundColor: Horizonte.bg },
-  rolagem: { flex: 1 },
-  // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
-  conteudo: { flexGrow: 1, overflow: 'hidden' },
   camada: { zIndex: 1 },
 
   textos: { marginTop: 4, gap: 2 },
-  titulo: {
-    fontFamily: FontesHorizonte.display,
-    fontSize: 31,
-    lineHeight: 37,
-    letterSpacing: -0.5,
-    color: Horizonte.text,
-  },
-  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
 
   estrela: { marginTop: 11, marginBottom: 16 },
 

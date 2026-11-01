@@ -1,17 +1,103 @@
 /**
- * Peças do Design System para as telas de formulário: cabeçalho com Voltar, campo, botão,
- * link e aviso de erro. Substituem as de components/auth conforme as telas migram.
+ * Peças do Design System para as telas de formulário: moldura, título, cabeçalhos, campos,
+ * botão, link e avisos. Substituem as de components/auth conforme as telas migram.
  */
 
 import React, { useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { IconeOlho } from '@/components/auth/icone-olho';
+import { CeuEstrelado, Surgir } from '@/components/horizonte/ceu';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 
 // O foco já é mostrado na caixa: sem isto, a web desenha um retângulo em volta do input.
 // O tipo do React Native não aceita 'none', mas a web aceita.
 const SEM_CONTORNO_WEB = { outlineStyle: 'none' } as object;
+
+/** Moldura das telas de formulário: céu, área segura, teclado e coluna de até 480px. */
+export function TelaFormulario({
+  topo = 12,
+  rodape = 36,
+  children,
+}: {
+  topo?: number;
+  rodape?: number;
+  children: React.ReactNode;
+}) {
+  const margens = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
+  return (
+    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style="light" />
+      <CeuEstrelado />
+
+      <ScrollView
+        style={styles.rolagem}
+        contentContainerStyle={[
+          styles.conteudo,
+          {
+            paddingTop: margens.top + topo,
+            paddingBottom: margens.bottom + rodape,
+            paddingHorizontal: Math.max(20, (width - 480) / 2),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+export function TituloTela({
+  titulo,
+  subtitulo,
+  style,
+}: {
+  titulo: string;
+  subtitulo: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <Surgir style={[styles.camada, style]}>
+      <Text style={styles.titulo} accessibilityRole="header">
+        {titulo}
+      </Text>
+      <Text style={styles.subtitulo}>{subtitulo}</Text>
+    </Surgir>
+  );
+}
+
+export function CabecalhoMarca() {
+  return (
+    <View style={styles.marca}>
+      <Image
+        source={require('../../assets/images/aluma_logo.jpg')}
+        style={styles.marcaLogo}
+        accessibilityLabel="Logo do Aluma"
+      />
+      <Text style={styles.marcaTexto}>Aluma</Text>
+    </View>
+  );
+}
 
 export function CabecalhoVoltar({ texto, aoVoltar }: { texto: string; aoVoltar: () => void }) {
   return (
@@ -91,6 +177,73 @@ export function CampoTexto({ rotulo, erro, senha = false, inputRef, onFocus, onB
   );
 }
 
+const CELULAS_DO_CODIGO = [0, 1, 2, 3, 4, 5];
+
+/**
+ * Seis células para o código da turma. Um único campo invisível fica por cima e recebe a digitação:
+ * o teclado e o leitor de tela enxergam um campo só, e o toque vale para o grupo inteiro.
+ */
+export function CodigoTurma({
+  rotulo,
+  valor,
+  erro,
+  aoMudar,
+  aoEnviar,
+  editavel,
+}: {
+  rotulo: string;
+  valor: string;
+  erro?: string | null;
+  aoMudar: (texto: string) => void;
+  aoEnviar: () => void;
+  editavel: boolean;
+}) {
+  const [emFoco, setEmFoco] = useState(false);
+  const atual = Math.min(valor.length, CELULAS_DO_CODIGO.length - 1);
+
+  return (
+    <View style={styles.campoCodigo}>
+      <Text style={styles.rotulo}>{rotulo}</Text>
+      <View style={styles.celulas}>
+        {CELULAS_DO_CODIGO.map((i) => {
+          const naVez = emFoco && i === atual;
+          return (
+            <View
+              key={i}
+              style={[styles.celula, naVez && styles.celulaFoco, !!erro && styles.celulaErro]}
+            >
+              <Text style={[styles.celulaTexto, naVez && !valor[i] && styles.celulaCursor]}>
+                {valor[i]?.toUpperCase() ?? (naVez ? '|' : '')}
+              </Text>
+            </View>
+          );
+        })}
+        <TextInput
+          style={[styles.codigoInvisivel, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
+          value={valor}
+          onChangeText={aoMudar}
+          onFocus={() => setEmFoco(true)}
+          onBlur={() => setEmFoco(false)}
+          onSubmitEditing={aoEnviar}
+          accessibilityLabel={rotulo}
+          accessibilityHint={erro ?? undefined}
+          maxLength={CELULAS_DO_CODIGO.length}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          autoComplete="off"
+          returnKeyType="send"
+          editable={editavel}
+        />
+      </View>
+      {!!erro && (
+        <Text style={styles.erro} accessibilityRole="alert" accessibilityLiveRegion="polite">
+          {erro}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 export function BotaoPrincipal({
   texto,
   textoOcupado,
@@ -153,6 +306,45 @@ export function AvisoInfo({ mensagem }: { mensagem: string }) {
 
 const styles = StyleSheet.create({
   pressionado: { opacity: 0.85 },
+
+  tela: { flex: 1, overflow: 'hidden', backgroundColor: Horizonte.bg },
+  rolagem: { flex: 1 },
+  // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
+  conteudo: { flexGrow: 1, overflow: 'hidden' },
+  camada: { zIndex: 1 },
+
+  titulo: {
+    fontFamily: FontesHorizonte.display,
+    fontSize: 31,
+    lineHeight: 37,
+    letterSpacing: -0.5,
+    color: Horizonte.text,
+  },
+  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+
+  marca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 44 },
+  marcaLogo: { width: 40, height: 40, borderRadius: 20 },
+  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: Horizonte.text },
+
+  campoCodigo: { gap: 8 },
+  celulas: { flexDirection: 'row', gap: 6, height: 60 },
+  celula: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: Horizonte.fieldBorder,
+    borderRadius: 14,
+    backgroundColor: Horizonte.fieldBg,
+  },
+  // Só a cor muda: uma borda mais grossa empurraria as células vizinhas a cada letra digitada.
+  celulaFoco: { borderColor: Horizonte.action },
+  celulaErro: { borderColor: Horizonte.error },
+  celulaTexto: { fontFamily: FontesHorizonte.display, fontSize: 22, color: Horizonte.text },
+  celulaCursor: { color: Horizonte.action },
+  // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
+  codigoInvisivel: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, fontSize: 16 },
 
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   voltar: { flexDirection: 'row', flexShrink: 1, alignItems: 'center', gap: 4, minHeight: 44, marginLeft: -8, paddingRight: 8 },

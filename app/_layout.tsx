@@ -64,7 +64,8 @@ function Navegacao() {
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !usuario.turma}>
-        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false }} />
+        {/* Sem animação do Stack: quem se move é o horizonte (components/horizonte/ceu.tsx). */}
+        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
