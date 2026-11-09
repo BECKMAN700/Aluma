@@ -3,17 +3,22 @@
  * Criou, vai direto para a tela da turma, onde está o código para passar aos alunos.
  */
 import React, { useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { CampoTexto } from '@/components/auth/campo-text';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { TelaProfessor } from '@/components/professor/tela-professor';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  BotaoPrincipal,
+  CabecalhoVoltar,
+  CampoTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
 import { sair } from '@/services/auth';
 import { criarTurma } from '@/services/turmas';
 
 export default function NovaTurmaScreen() {
-  const s = useEstilosAuth();
   const [nome, setNome] = useState('');
   const [serie, setSerie] = useState('');
   const [erroNome, setErroNome] = useState<string | null>(null);
@@ -49,49 +54,64 @@ export default function NovaTurmaScreen() {
   };
 
   return (
-    <TelaProfessor>
-      {erroGeral && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert">
-            {erroGeral}
-          </Text>
+    <TelaFormulario>
+      <Surgir style={styles.camada}>
+        <CabecalhoVoltar
+          texto="Voltar para as turmas"
+          aoVoltar={() => (router.canGoBack() ? router.back() : router.replace('/turmas'))}
+        />
+      </Surgir>
+
+      <TituloTela titulo="Criar turma" style={styles.textos} />
+
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={36} />
+      </View>
+
+      <Surgir style={[styles.formulario, styles.camada]}>
+        {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+        <CampoTexto
+          rotulo="Nome da turma"
+          placeholder="Ex.: 8º ano B"
+          value={nome}
+          onChangeText={(t) => {
+            setNome(t);
+            setErroNome(null);
+          }}
+          erro={erroNome}
+          maxLength={60}
+          autoCapitalize="sentences"
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Série"
+          placeholder="Ex.: 8º ano"
+          value={serie}
+          onChangeText={(t) => {
+            setSerie(t);
+            setErroSerie(null);
+          }}
+          erro={erroSerie}
+          maxLength={30}
+          autoCapitalize="sentences"
+          returnKeyType="done"
+          onSubmitEditing={enviar}
+          editable={!enviando}
+        />
+
+        <View style={styles.acoes}>
+          <BotaoPrincipal texto="Criar turma" textoOcupado="Criando…" ocupado={enviando} aoTocar={enviar} />
         </View>
-      )}
-      <CampoTexto
-        rotulo="Nome da turma"
-        placeholder="Ex.: 8º ano B"
-        value={nome}
-        onChangeText={(t) => {
-          setNome(t);
-          setErroNome(null);
-        }}
-        erro={erroNome}
-        maxLength={60}
-        autoCapitalize="sentences"
-      />
-      <CampoTexto
-        rotulo="Série"
-        placeholder="Ex.: 8º ano"
-        value={serie}
-        onChangeText={(t) => {
-          setSerie(t);
-          setErroSerie(null);
-        }}
-        erro={erroSerie}
-        maxLength={30}
-        autoCapitalize="sentences"
-        returnKeyType="done"
-        onSubmitEditing={enviar}
-      />
-      <Pressable
-        style={[s.botao, enviando && s.botaoDesativado]}
-        onPress={enviar}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: enviando, busy: enviando }}
-      >
-        <Text style={s.botaoTexto}>{enviando ? 'Criando…' : 'Criar turma'}</Text>
-      </Pressable>
-    </TelaProfessor>
+      </Surgir>
+    </TelaFormulario>
   );
 }
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+  textos: { marginTop: 10 },
+  estrela: { marginTop: 41, marginBottom: 28 },
+  formulario: { gap: 16 },
+  acoes: { marginTop: 8 },
+});

@@ -5,29 +5,51 @@
  * volta para a primeira tela que pode ver — é assim que o aluno não abre tela de professor.
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
  */
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { TelaAuth } from '@/components/auth/screen-auth';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { Night } from '@/constants/theme';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  BotaoPrincipal,
+  CabecalhoMarca,
+  LinkTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
+import { Horizonte } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessaoProvider, useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
 
+// Caminho de cada arquivo, e não o pacote inteiro: assim só estes pesos entram no app.
+const FONTES = {
+  Sora_600SemiBold: require('@expo-google-fonts/sora/600SemiBold/Sora_600SemiBold.ttf'),
+  Sora_700Bold: require('@expo-google-fonts/sora/700Bold/Sora_700Bold.ttf'),
+  Figtree_400Regular: require('@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf'),
+  Figtree_500Medium: require('@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf'),
+  Figtree_600SemiBold: require('@expo-google-fonts/figtree/600SemiBold/Figtree_600SemiBold.ttf'),
+};
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontesProntas, erroFontes] = useFonts(FONTES);
+
+  // No celular, o texto só pode aparecer com a fonte pronta. Na web, o navegador troca sozinho,
+  // e esperar deixaria a tela em branco na internet lenta. Se falhar, segue com a fonte do sistema.
+  if (Platform.OS !== 'web' && !fontesProntas && !erroFontes) return null;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <SessaoProvider>
         <Navegacao />
       </SessaoProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }
@@ -49,24 +71,17 @@ function Navegacao() {
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !usuario.turma}>
-        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false }} />
+        {/* Sem animação do Stack: quem se move é o horizonte (components/horizonte/ceu.tsx). */}
+        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
-        <Stack.Screen name="(aluno)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="chat"
-          options={{
-            title: 'Conversar com o tutor',
-            headerStyle: { backgroundColor: Night.sky },
-            headerTintColor: Night.starlight,
-            headerShadowVisible: false,
-          }}
-        />
+        <Stack.Screen name="(aluno)" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={usuario?.papel === 'professor'}>
-        <Stack.Screen name="(professor)" options={{ headerShown: false }} />
+        <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
     </Stack>
   );
@@ -74,14 +89,16 @@ function Navegacao() {
 
 function TelaEspera() {
   return (
-    <TelaAuth titulo="Carregando…" subtitulo="Se o servidor estiver dormindo, isso leva até um minuto.">
-      <ActivityIndicator size="large" color={Night.starlight} accessibilityLabel="Carregando" />
-    </TelaAuth>
+    <TelaSessao
+      titulo="Carregando…"
+      subtitulo="Se o servidor estiver dormindo, isso leva até um minuto."
+    >
+      <ActivityIndicator size="large" color={Horizonte.textMuted} accessibilityLabel="Carregando" />
+    </TelaSessao>
   );
 }
 
 function TelaErro({ erro }: { erro: string }) {
-  const s = useEstilosAuth();
   const { recarregar } = useSessao();
   const [tentando, setTentando] = useState(false);
 
@@ -95,22 +112,43 @@ function TelaErro({ erro }: { erro: string }) {
   };
 
   return (
-    <TelaAuth titulo="Não deu para abrir sua conta">
-      <View style={s.erroBanner}>
-        <Text style={s.erroTexto} accessibilityRole="alert">{erro}</Text>
+    <TelaSessao titulo="Não deu para abrir sua conta">
+      <AvisoErro mensagem={erro} />
+      <View style={styles.acoes}>
+        <BotaoPrincipal texto="Tentar de novo" textoOcupado="Tentando…" ocupado={tentando} aoTocar={tentarDeNovo} />
+        <LinkTexto texto="Sair" rotulo="Sair" aoTocar={sair} />
       </View>
-      <Pressable
-        style={[s.botao, tentando && s.botaoDesativado]}
-        onPress={tentarDeNovo}
-        disabled={tentando}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: tentando, busy: tentando }}
-      >
-        <Text style={s.botaoTexto}>{tentando ? 'Tentando…' : 'Tentar de novo'}</Text>
-      </Pressable>
-      <Pressable style={s.link} onPress={sair} accessibilityRole="button">
-        <Text style={s.linkTexto}>Sair</Text>
-      </Pressable>
-    </TelaAuth>
+    </TelaSessao>
   );
 }
+
+function TelaSessao({
+  titulo,
+  subtitulo,
+  children,
+}: {
+  titulo: string;
+  subtitulo?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <TelaFormulario topo={20}>
+      <Surgir style={styles.camada}>
+        <CabecalhoMarca />
+      </Surgir>
+      <TituloTela titulo={titulo} subtitulo={subtitulo} style={styles.textos} />
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={44} />
+      </View>
+      <Surgir style={[styles.conteudo, styles.camada]}>{children}</Surgir>
+    </TelaFormulario>
+  );
+}
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+  textos: { marginTop: 16, gap: 6 },
+  estrela: { marginTop: 47, marginBottom: 30 },
+  conteudo: { gap: 16 },
+  acoes: { marginTop: 8, gap: 8 },
+});

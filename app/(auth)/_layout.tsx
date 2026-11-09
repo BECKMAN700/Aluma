@@ -4,15 +4,16 @@
  */
 
 import { Stack } from 'expo-router';
-import { Night } from '@/constants/theme';
+import { Horizonte } from '@/constants/theme';
 
 export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'fade',
-        contentStyle: { backgroundColor: Night.sky },
+        // Sem animação do Stack: quem se move é o horizonte (components/horizonte/ceu.tsx).
+        animation: 'none',
+        contentStyle: { backgroundColor: Horizonte.bg },
       }}
     />
   );

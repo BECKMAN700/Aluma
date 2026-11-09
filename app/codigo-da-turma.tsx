@@ -4,17 +4,24 @@
  * Depois disso o layout raiz recarrega o /api/me e leva o aluno para o início.
  */
 import React, { useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { CampoTexto } from '@/components/auth/campo-text';
-import { TelaAuth } from '@/components/auth/screen-auth';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  BotaoPrincipal,
+  CabecalhoMarca,
+  CodigoTurma,
+  LinkTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
+import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { useSessao } from '@/hooks/use-sessao';
 import { entrarNaTurma } from '@/services/api';
 import { sair } from '@/services/auth';
 
 export default function CodigoDaTurmaScreen() {
-  const s = useEstilosAuth();
   const { sessao, recarregar } = useSessao();
   const nome = sessao.estado === 'pronto' ? sessao.usuario.nome : '';
 
@@ -55,45 +62,60 @@ export default function CodigoDaTurmaScreen() {
   };
 
   return (
-    <TelaAuth
-      titulo={nome ? `Olá, ${nome}!` : 'Entrar na turma'}
-      subtitulo="Digite o código da turma que o seu professor passou."
-    >
-      {!!erroGeral && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {erroGeral}
-          </Text>
-        </View>
-      )}
+    <TelaFormulario topo={20}>
+      <Surgir style={styles.camada}>
+        <CabecalhoMarca />
+      </Surgir>
 
-      <CampoTexto
-        rotulo="Código da turma"
-        value={codigo}
-        onChangeText={(t) => { setCodigo(t); setErroCampo(null); setErroGeral(null); }}
-        erro={erroCampo}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        maxLength={6}
-        returnKeyType="send"
-        onSubmitEditing={enviar}
-        editable={!enviando}
+      <TituloTela
+        titulo={nome ? `Olá, ${nome}!` : 'Entrar na turma'}
+        subtitulo="Digite o código da turma que o seu professor passou."
+        style={styles.textos}
       />
 
-      <Pressable
-        style={[s.botao, enviando && s.botaoDesativado]}
-        onPress={enviar}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityLabel={enviando ? 'Entrando na turma' : 'Entrar na turma'}
-        accessibilityState={{ disabled: enviando, busy: enviando }}
-      >
-        <Text style={s.botaoTexto}>{enviando ? 'Entrando…' : 'Entrar na turma'}</Text>
-      </Pressable>
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={44} />
+      </View>
 
-      <Pressable style={s.link} onPress={sair} accessibilityRole="button" accessibilityLabel="Sair da conta">
-        <Text style={s.linkTexto}>Não é você? Sair</Text>
-      </Pressable>
-    </TelaAuth>
+      <Surgir style={[styles.formulario, styles.camada]}>
+        {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+        <CodigoTurma
+          rotulo="Código da turma"
+          valor={codigo}
+          // Sem espaços: um espaço ocuparia uma célula e pareceria uma letra faltando.
+          aoMudar={(t) => { setCodigo(t.replace(/\s/g, '')); setErroCampo(null); setErroGeral(null); }}
+          erro={erroCampo}
+          aoEnviar={enviar}
+          editavel={!enviando}
+        />
+
+        <View style={styles.acoes}>
+          <BotaoPrincipal texto="Entrar na turma" textoOcupado="Entrando…" ocupado={enviando} aoTocar={enviar} />
+          <LinkTexto texto="Não é você? Sair" rotulo="Sair da conta" aoTocar={sair} />
+        </View>
+      </Surgir>
+
+      <View style={styles.espaco} />
+      <Surgir style={styles.camada}>
+        <Text style={styles.frase}>Aprender é descobrir a própria luz.</Text>
+      </Surgir>
+    </TelaFormulario>
   );
 }
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+  textos: { marginTop: 16, gap: 6 },
+  estrela: { marginTop: 47, marginBottom: 30 },
+  formulario: { gap: 24 },
+  acoes: { gap: 8 },
+  espaco: { flexGrow: 1, minHeight: 24 },
+  frase: {
+    fontFamily: FontesHorizonte.displayMedio,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    color: Horizonte.textMuted,
+  },
+});

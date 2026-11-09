@@ -3,11 +3,19 @@
  * Só existe para aluno: a conta de professor é criada pela equipe (arquitetura.md §4).
  */
 import React, { useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CampoTexto } from '@/components/auth/campo-text';
-import { useEstilosAuth } from '@/components/auth/styles-auth';
-import { TelaAuth } from '@/components/auth/screen-auth';
+import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import {
+  AvisoErro,
+  AvisoInfo,
+  BotaoPrincipal,
+  CabecalhoVoltar,
+  CampoTexto,
+  LinkTexto,
+  TelaFormulario,
+  TituloTela,
+} from '@/components/horizonte/formulario';
 import { criarConta, emailValido, validarSenha, type CampoComErro } from '@/services/auth';
 
 // O campo "confirmar senha" só existe na tela; o servidor nunca devolve erro nele.
@@ -15,7 +23,6 @@ type CampoForm = CampoComErro | 'confirmar';
 
 export default function CriarContaScreen() {
   const router = useRouter();
-  const s = useEstilosAuth();
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -68,97 +75,93 @@ export default function CriarContaScreen() {
   };
 
   return (
-    <TelaAuth
-      titulo="Criar conta"
-      subtitulo="Cadastro de aluno."
-      voltar={() => router.replace('/')}
-    >
-      {!!aviso && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {aviso}
-          </Text>
+    <TelaFormulario rodape={24}>
+      <Surgir style={styles.camada}>
+        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+      </Surgir>
+
+      <TituloTela titulo="Criar conta" subtitulo="Cadastro de aluno." style={styles.textos} />
+
+      <View style={styles.estrela}>
+        <EstrelaNoHorizonte tamanho={28} />
+      </View>
+
+      <Surgir style={[styles.formulario, styles.camada]}>
+        {!!aviso && <AvisoInfo mensagem={aviso} />}
+        {!!erroGeral && <AvisoErro mensagem={erroGeral} />}
+
+        <CampoTexto
+          rotulo="Nome"
+          value={nome}
+          onChangeText={(t) => { setNome(t); limpar('nome'); }}
+          erro={erros.nome}
+          autoCapitalize="words"
+          autoComplete="name"
+          textContentType="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="E-mail"
+          inputRef={emailRef}
+          value={email}
+          onChangeText={(t) => { setEmail(t); limpar('email'); }}
+          erro={erros.email}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => senhaRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Senha"
+          senha
+          inputRef={senhaRef}
+          value={senha}
+          onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
+          erro={erros.senha}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="next"
+          onSubmitEditing={() => confirmarRef.current?.focus()}
+          editable={!enviando}
+        />
+        <CampoTexto
+          rotulo="Confirmar senha"
+          senha
+          inputRef={confirmarRef}
+          value={confirmar}
+          onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
+          erro={erros.confirmar}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="send"
+          onSubmitEditing={enviar}
+          editable={!enviando}
+        />
+
+        <View style={styles.acoes}>
+          <BotaoPrincipal texto="Criar conta" textoOcupado="Criando conta…" ocupado={enviando} aoTocar={enviar} />
+          <LinkTexto
+            texto="Já tem conta? Entrar"
+            rotulo="Já tenho conta, entrar"
+            aoTocar={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
+          />
         </View>
-      )}
-      {!!erroGeral && (
-        <View style={s.erroBanner}>
-          <Text style={s.erroTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
-            {erroGeral}
-          </Text>
-        </View>
-      )}
-
-      <CampoTexto
-        rotulo="Nome"
-        value={nome}
-        onChangeText={(t) => { setNome(t); limpar('nome'); }}
-        erro={erros.nome}
-        autoCapitalize="words"
-        autoComplete="name"
-        textContentType="name"
-        returnKeyType="next"
-        onSubmitEditing={() => emailRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="E-mail"
-        inputRef={emailRef}
-        value={email}
-        onChangeText={(t) => { setEmail(t); limpar('email'); }}
-        erro={erros.email}
-        keyboardType="email-address"
-        autoComplete="email"
-        textContentType="emailAddress"
-        returnKeyType="next"
-        onSubmitEditing={() => senhaRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="Senha"
-        senha
-        inputRef={senhaRef}
-        value={senha}
-        onChangeText={(t) => { setSenha(t); limpar('senha'); limpar('confirmar'); }}
-        erro={erros.senha}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="next"
-        onSubmitEditing={() => confirmarRef.current?.focus()}
-        editable={!enviando}
-      />
-      <CampoTexto
-        rotulo="Confirmar senha"
-        senha
-        inputRef={confirmarRef}
-        value={confirmar}
-        onChangeText={(t) => { setConfirmar(t); limpar('confirmar'); }}
-        erro={erros.confirmar}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="send"
-        onSubmitEditing={enviar}
-        editable={!enviando}
-      />
-
-      <Pressable
-        style={[s.botao, enviando && s.botaoDesativado]}
-        onPress={enviar}
-        disabled={enviando}
-        accessibilityRole="button"
-        accessibilityLabel={enviando ? 'Criando conta' : 'Criar conta'}
-        accessibilityState={{ disabled: enviando, busy: enviando }}
-      >
-        <Text style={s.botaoTexto}>{enviando ? 'Criando conta…' : 'Criar conta'}</Text>
-      </Pressable>
-
-      <Pressable
-        style={s.link}
-        onPress={() => router.replace({ pathname: '/entrar', params: { perfil: 'aluno' } })}
-        accessibilityRole="button"
-        accessibilityLabel="Já tenho conta, entrar"
-      >
-        <Text style={s.linkTexto}>Já tem conta? Entrar</Text>
-      </Pressable>
-    </TelaAuth>
+      </Surgir>
+    </TelaFormulario>
   );
 }
+
+const styles = StyleSheet.create({
+  camada: { zIndex: 1 },
+
+  textos: { marginTop: 4, gap: 2 },
+
+  estrela: { marginTop: 11, marginBottom: 16 },
+
+  formulario: { gap: 12 },
+  acoes: { marginTop: 8, gap: 4 },
+});

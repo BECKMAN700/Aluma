@@ -1,30 +1,26 @@
 /**
- * Layout do grupo do professor: visual claro e sóbrio, diferente do céu noturno do aluno.
+ * Layout do grupo do professor. Sem animação do Stack: quem se move é o horizonte
+ * (components/horizonte/ceu.tsx).
  */
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 
-import { Auth, CoresAuthContext } from '@/constants/auth-theme';
+import { Horizonte } from '@/constants/theme';
 
 // Recarregar a página numa turma ainda deixa o "voltar" levando para a lista.
 export const unstable_settings = { initialRouteName: 'turmas' };
 
 export default function ProfessorLayout() {
   return (
-    <CoresAuthContext.Provider value={Auth}>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: Auth.fundo },
-          headerTintColor: Auth.link,
-          headerShadowVisible: false,
-          contentStyle: { backgroundColor: Auth.fundo },
-        }}
-      >
-        <Stack.Screen name="turmas" options={{ title: 'Minhas turmas' }} />
-        <Stack.Screen name="nova-turma" options={{ title: 'Criar turma' }} />
-        <Stack.Screen name="turma/[id]" options={{ title: 'Turma' }} />
-      </Stack>
-    </CoresAuthContext.Provider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'none',
+        contentStyle: { backgroundColor: Horizonte.bg },
+      }}
+    >
+      <Stack.Screen name="turmas" />
+      <Stack.Screen name="nova-turma" />
+      <Stack.Screen name="turma/[id]" />
+    </Stack>
   );
 }
