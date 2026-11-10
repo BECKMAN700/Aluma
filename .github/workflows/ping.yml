@@ -1,0 +1,24 @@
+name: Ping
+
+# O Render gratuito dorme após 15 min sem acesso e leva cerca de 1 min para acordar.
+# Este ping mantém o backend de produção acordado no horário de uso.
+# Só produção: pingar também o de develop estouraria as 750 horas grátis por mês (2 x 496 h).
+
+on:
+  schedule:
+    # A cada 10 min, das 7h às 23h de Palmas (UTC-3). O cron do GitHub é em UTC.
+    - cron: '*/10 10-23,0-1 * * *'
+  # Botão "Run workflow": acorda o servidor na hora, antes de uma demonstração.
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: Acordar o backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Chamar /health
+        # --max-time 120: servidor dormindo demora cerca de 1 min para responder.
+        run: curl --fail --silent --show-error --max-time 120 --retry 2 https://aluma-backend-ydss.onrender.com/health
