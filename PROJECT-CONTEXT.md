@@ -56,7 +56,7 @@ escola, anti-cola testada, simplicidade, preço e suporte local.
 | 2 | Professor cria turma; aluno entra por código | Sprint 3 |
 | 3 | Chat de tutoria socrática, com a conversa salva | Feito na Sprint 2; salvo na Sprint 3 |
 | 4 | Professor cadastra matéria, tópicos e o material (PDF) de cada tópico | Sprint 4 |
-| 5 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | Sprint 4 |
+| 5 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | Sprint 4; *dominado* no refinamento |
 | 6 | Chat ligado ao tópico, usando o material do professor | Sprint 4 |
 | 7 | Painel do professor: onde a turma está travando | Refinamento |
 | 8 | Aluno pede questões e o tutor corrige guiando | Refinamento |
@@ -172,7 +172,7 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 | Custo de IA por aluno não medido (estimativa de R$ 2 a 9/mês, com 25 mil tokens por conversa) | Média | A margem do preço depende disso; medir no painel da Anthropic com conversas reais |
 | Painel do professor prometido no pitch ainda não existe | **Alta** | Sempre falar no futuro; construir antes do Demo Day |
 | Cold start do Render (cerca de 1 min) | Média | O app avisa que o tutor está acordando; ping agendado das 7h às 23h |
-| Supabase pausa o projeto após 7 dias sem uso | Média | O mesmo ping toca o banco |
+| Supabase pausa o projeto após 7 dias sem uso | Média | O ping não toca o banco; quem mantém o banco ativo é o uso do app. Conferir no checklist de véspera |
 | Sem recuperação de senha | Baixa na demo | Contas de demonstração; ligar exige domínio próprio |
 | IA alucinar em conteúdo escolar | Média | Restringir ao material do professor; bateria anti-cola a cada mudança de prompt |
 | Material do professor tentar dar ordens à IA | Média | O material entra como conteúdo, não como instrução; caso de teste na bateria |
@@ -254,7 +254,7 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 | Encontro 13 | Integração com API real (alinha com a Sprint #3, ver `docs/sprints.md`) |
 | 28/set–18/out | Sprint #3 → Release 3 |
 | 19/out–01/nov | Sprint #4 → Release 4 |
-| 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais |
+| 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais. Em 16/11, apresentação de treino que vale ponto: a Release 4 precisa estar publicada |
 | 23/11 e 30/11 | Banca de apresentação final — parte técnica |
 | Encontro 16 | Entrega final: demo, distribuição, documentação, retrospectiva |
 | 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa (da disciplina, não do Supernova) |

@@ -69,7 +69,8 @@ referência de calendário para as duas frentes, já que o código é o mesmo na
 | #4 | 19/out | 01/nov | Release 4 |
 
 Depois da Sprint #4 vem uma fase fora das 4 sprints: refinamento do produto (09 e 16/nov),
-banca de apresentação técnica (23 e 30/nov) e o Demo Day / pitch final (07/dez).
+banca de apresentação técnica (23 e 30/nov) e o Demo Day / pitch final (07/dez). Em 16/nov há
+uma apresentação de treino que vale ponto.
 
 Os marcos da Supernova ligados a esse calendário estão registrados no
 [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) §12; o que foi entregue, em
@@ -84,7 +85,7 @@ Cada sprint tem o seu arquivo. Para trabalhar, abra só o da sprint atual.
 | #1 | Fundação: projeto Expo, tema, tipos, tela inicial | Concluída (não aceita como release) | [`sprint-1.md`](sprints/sprint-1.md) |
 | #2 | Chat com o tutor socrático, com IA de verdade, publicado | Concluída | [`sprint-2.md`](sprints/sprint-2.md) |
 | #3 | Entrar: login, papéis, turma por código, conversa salva | Concluída em 31/10, com atraso: Release 3 publicada (`v0.3.0`) | [`sprint-3.md`](sprints/sprint-3.md) |
-| #4 | Matéria e material: tópicos, PDF do professor, trilha | Não iniciada (sem issues em 28/10) | [`sprint-4.md`](sprints/sprint-4.md) |
+| #4 | Matéria e material: tópicos, PDF do professor, trilha | Em andamento, com atraso: replanejada em 10/11, pronta até 13/11 | [`sprint-4.md`](sprints/sprint-4.md) |
 
 Depois da Sprint #4 vem o refinamento (painel do professor e acabamento), descrito no fim do
 [`sprint-4.md`](sprints/sprint-4.md).

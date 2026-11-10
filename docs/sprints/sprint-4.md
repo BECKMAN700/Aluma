@@ -1,8 +1,11 @@
-# Sprint #4 (19/out–01/nov) — Release 4: matéria e material 🔶 proposta
+# Sprint #4 — Release 4: matéria e material (replanejada em 10/11)
 
 > Índice em [`../sprints.md`](../sprints.md). Desenho técnico em
-> [`../arquitetura.md`](../arquitetura.md). Os responsáveis abaixo são **proposta**: fecham no
-> planejamento de 19/10, conforme a Sprint #3 terminar.
+> [`../arquitetura.md`](../arquitetura.md).
+>
+> A sprint não começou na data prevista (19/out–01/nov). Foi replanejada em 10/11: tudo pronto
+> na **sexta, 13/11, às 18h**, para a apresentação de **segunda, 16/11**, que é treino mas vale
+> ponto.
 
 Com login e turma no lugar, a Sprint #4 entrega o que faz o tutor falar **da matéria daquela
 turma**: o professor organiza a matéria em tópicos e envia o material; o aluno vê a trilha e
@@ -18,35 +21,53 @@ conversa sobre um tópico.
    entregar a resposta.
 5. O aluno volta para a trilha: o tópico está *em andamento*. Em outro aparelho, com a mesma
    conta, o status é o mesmo.
-6. O aluno marca o tópico como *dominado*.
+6. _(Fica para o refinamento.)_ O aluno marca o tópico como *dominado*.
 7. Um aluno de outra turma não vê essa matéria nem esse material.
 
 ## 2. Entregas
 
-| Entrega | Descrição | Pasta | Responsável proposto |
-|---|---|---|---|
-| Matéria e tópicos | Tabelas e rotas para o professor criar, ordenar e listar | `materiais/` | Flávio |
-| Envio de PDF | Recebe o arquivo, confere tipo e tamanho, extrai o texto com `pypdf` e guarda o texto ligado ao tópico | `materiais/` | Giordano |
-| Chat por tópico | `POST /api/chat` aceita `topico_id`; o texto do material entra no prompt, com limite de tamanho medido contra o teto de US$ 3/mês | `chat/` | Thales |
-| Progresso | Status por aluno e tópico guardado no servidor | `materiais/` | _a redistribuir_ (a Anna saiu do grupo) |
-| Bateria anti-cola com material | As perguntas-armadilha rodam em script, agora com material no prompt (inclusive material que tenta dar ordens à IA) | `chat/testes/` | Gustavo |
-| Trilha do aluno | Caminho visual com os tópicos e o progresso | `app/(aluno)/` | Iagor |
-| Matéria e material no app | Telas do professor para criar matéria, tópicos e enviar o PDF | `app/(professor)/` | Antonio |
-| Ping agendado, Release e ficha | GitHub Actions chamando `/health` das 7h às 23h, para o Render não dormir e o Supabase não pausar | `.github/workflows/` | João |
+O caminho que trava a demonstração fica com o João. Quatro colegas fazem uma peça pequena de
+código cada um, com prazo um dia antes de ela ser usada.
 
-A matriz de review é montada junto com os responsáveis, no formato da Sprint #3.
+| Entrega | Descrição | Onde | Responsável | Prazo |
+|---|---|---|---|---|
+| Ping agendado | GitHub Actions chama `/health` do backend de produção a cada 10 min, das 7h às 23h, para o Render não dormir | `.github/workflows/` | João | Ter 10/11 |
+| Matéria e tópicos | Tabelas e rotas para o professor criar e listar; telas do professor | `materiais/`, `app/(professor)/` | João | Qua 11/11 |
+| Texto do PDF | Função que recebe o PDF e devolve o texto; recusa o que não é PDF, o grande demais e o escaneado | `materiais/pdf.py` | Gustavo | Qua 11/11 |
+| Escolher PDF no app | Componente que abre o seletor de arquivos e devolve o PDF | `components/` | Antonio | Qua 11/11 |
+| Material no prompt | `montar_prompt(material)`: o texto do PDF entra como conteúdo delimitado, nunca como instrução | `chat/prompt.py` | Thales | Qua 11/11 |
+| Linha da trilha | Componente de um tópico da trilha: ordem, nome e status | `components/` | Iagor | Qua 11/11 |
+| Roteiro da apresentação | Ordem de fala, demonstração passo a passo e plano B | fora do repositório | Flávio | Qua 11/11 |
+| Envio de PDF | Rota que recebe o arquivo e guarda o texto ligado ao tópico; tela de envio | `materiais/`, `app/(professor)/` | João | Qui 12/11 |
+| Trilha e chat por tópico | `POST /api/chat` aceita `topico_id`; trilha do aluno com o status de cada tópico | `chat/`, `app/(aluno)/` | João | Sex 13/11 |
+| Bateria anti-cola com material | As perguntas-armadilha com material no prompt, inclusive material que tenta dar ordens à IA | `docs/bateria-anti-cola.md` | João | Sex 13/11 |
+| Ensaio da demonstração | Percorre o roteiro no app e abre issue para cada defeito | — | Giordano | Sex 13/11, 18h |
+| Slides | Feitos a partir do roteiro | fora do repositório | João | Sex 13/11 |
 
-**Release 4** = roteiro da seção 1 passando inteiro na URL pública. Fecha as 4 sprints.
+**Status do tópico nesta sprint:** sai da conversa salva. Se o aluno já conversou sobre o
+tópico, ele está *em andamento*; senão, *não iniciado*. A tabela `progresso` e o status
+*dominado* ficam para o refinamento.
 
-## 3. Depois: refinamento (02/nov–16/nov)
+### Regras de prazo
+
+1. **Aceite: terça, 10/11, 22h.** O responsável comenta "peguei" na issue.
+2. **Prazo dos colegas: quarta, 11/11, 23h59**, com o PR aberto.
+3. **Quinta, 8h:** a peça sem PR aberto passa para o João, com registro na issue.
+4. **Congelamento: sexta, 13/11, 18h.** Depois disso só entra conserto de defeito que quebra a
+   demonstração. Sábado é folga do plano; domingo é só ensaio.
+
+**Release 4** = roteiro da seção 1 passando na URL pública, menos o passo 6. Fecha as 4 sprints.
+
+## 3. Depois: refinamento (16/nov–06/dez)
 
 Fase prevista no plano de ensino para refinar o produto antes da banca técnica (23 e 30/nov) e
 do Demo Day (07/dez).
 
-| Entrega | Descrição |
-|---|---|
-| Painel do professor | Em que tópico a turma mais trava e em quê. Ao fim da conversa, a IA resume a dificuldade do aluno e o painel soma por tópico |
-| Aluno pede questões | O tutor propõe exercícios do tópico e corrige guiando |
-| Visual do aluno | Acabamento da trilha e do chat para o público do fundamental |
-| Checklist de véspera de demo | Crédito da IA, chave válida, créditos do Netlify, servidor acordado, banco ativo, contas de demonstração |
-| Testes ponta a ponta | O roteiro inteiro, do login ao painel, contra os serviços publicados |
+| Entrega | Descrição | Para quando |
+|---|---|---|
+| Painel do professor | Em que tópico a turma mais trava e em quê. A IA resume a dificuldade e o painel soma por tópico | Banca de 23/11 |
+| Tópico dominado | O aluno marca o tópico como dominado (tabela `progresso`) | Banca de 23/11 |
+| Aluno pede questões | O tutor propõe exercícios do tópico e corrige guiando | Demo Day |
+| Visual do aluno | Acabamento da trilha e do chat para o público do fundamental | Demo Day |
+| Checklist de véspera de demo | Crédito da IA, chave válida, créditos do Netlify, servidor acordado, banco ativo, contas de demonstração | Antes de cada apresentação |
+| Testes ponta a ponta | O roteiro inteiro, do login ao painel, contra os serviços publicados | Banca de 23/11 |
