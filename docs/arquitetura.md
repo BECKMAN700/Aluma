@@ -96,12 +96,15 @@ Tabelas em português, minúsculas, plural. Toda tabela tem `id uuid` (gerado pe
 | `materias` | `turma_id`, `nome` |
 | `topicos` | `materia_id`, `nome`, `ordem` |
 | `materiais` | `topico_id`, `nome_arquivo`, `texto` (extraído do PDF) |
-| `progresso` | `aluno_id`, `topico_id`, `status` (`nao_iniciado`, `em_andamento`, `dominado`) |
+
+Na Sprint 4 o status do tópico não tem tabela: sai de `conversas`. Aluno com conversa naquele
+tópico está `em_andamento`; sem conversa, `nao_iniciado` (decisão de 10/11).
 
 ### Refinamento
 
 | Tabela | Colunas |
 |---|---|
+| `progresso` | `aluno_id`, `topico_id`, `status` (`nao_iniciado`, `em_andamento`, `dominado`) |
 | `dificuldades` | `aluno_id`, `topico_id`, `resumo` |
 
 **Tranca no banco:** todas as tabelas com RLS ligado e **nenhuma** política. A chave pública do
@@ -165,15 +168,20 @@ anti-cola. O campo continua aceito para o app antigo não quebrar. A troca só �
 IA responde. O professor, que só testa o tutor, segue mandando o histórico pelo app e não grava
 nada.
 
-### Sprint 4 (a detalhar no planejamento de 19/10)
+### Sprint 4 (cada rota é detalhada aqui no PR que a cria)
 
 | Rota | Quem pode |
 |---|---|
-| `POST /api/turmas/{id}/materias`, `GET /api/turmas/{id}/materias` | Professor dono; o `GET` também para aluno da turma |
+| `POST /api/turmas/{id}/materias`, `GET /api/turmas/{id}/materias` | Professor dono; o `GET` também para aluno da turma, com o status de cada tópico |
 | `POST /api/materias/{id}/topicos` | Professor dono |
 | `POST /api/topicos/{id}/materiais` (envio de PDF) | Professor dono |
-| `PUT /api/topicos/{id}/progresso` | Aluno da turma |
 | `POST /api/chat` com `topico_id` | Aluno da turma daquele tópico |
+
+### Refinamento
+
+| Rota | Quem pode |
+|---|---|
+| `PUT /api/topicos/{id}/progresso` | Aluno da turma |
 
 ## 6. Permissões
 
@@ -213,8 +221,8 @@ script de administração, na máquina de quem cria as contas de professor.
 
 | Serviço | Limite | O que fazemos |
 |---|---|---|
-| Render | Dorme após 15 min sem uso; cerca de 1 min para acordar; 750 horas por mês | O app avisa que o tutor está acordando; ping agendado das 7h às 23h (Sprint 4) |
-| Supabase | Banco de 500 MB; pausa após 7 dias sem uso | O mesmo ping toca o banco |
+| Render | Dorme após 15 min sem uso; cerca de 1 min para acordar; 750 horas por mês | O app avisa que o tutor está acordando; ping agendado das 7h às 23h, só no backend de produção (`.github/workflows/ping.yml`) |
+| Supabase | Banco de 500 MB; pausa após 7 dias sem uso | O ping chama só `/health`, que não toca o banco: quem mantém o banco ativo é o uso do app. Conferir no checklist de véspera |
 | Supabase, e-mail | 2 a 3 e-mails por hora, só para e-mails da equipe | Confirmação de e-mail desligada; sem "esqueci a senha" |
 | Netlify | 300 créditos por mês; cada publicação da `main` gasta 15 | Publicar a `main` só em release |
 | Claude | Teto de US$ 3 por mês | Limite de tamanho do material no prompt; o Gemini assume quando o crédito acaba |
