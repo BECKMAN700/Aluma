@@ -21,6 +21,7 @@ export default function ProfessorLayout() {
       <Stack.Screen name="turmas" />
       <Stack.Screen name="nova-turma" />
       <Stack.Screen name="turma/[id]" />
+      <Stack.Screen name="materia/[id]" />
     </Stack>
   );
 }
