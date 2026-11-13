@@ -58,3 +58,18 @@ def test_topicos_voltam_em_ordem_dentro_da_materia_certa(db):
     ]
     assert permissao.professor_dono_da_materia(db, vazia["id"], professor, escola)
     assert not permissao.professor_dono_da_materia(db, vazia["id"], str(uuid.uuid4()), escola)
+
+
+def test_reenviar_material_substitui_e_aparece_na_lista(db):
+    turma, professor, escola = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática")
+    topico = consultas.criar_topico(db, mat["id"], "Frações")
+
+    consultas.guardar_material(db, topico["id"], "v1.pdf", "texto antigo")
+    salvo = consultas.guardar_material(db, topico["id"], "v2.pdf", "texto novo")
+
+    assert salvo["caracteres"] == len("texto novo")
+    assert db.execute("select count(*) as n from materiais where topico_id = %s", (topico["id"],)).fetchone()["n"] == 1
+    assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["material"] == "v2.pdf"
+    assert permissao.professor_dono_do_topico(db, topico["id"], professor, escola)
+    assert not permissao.professor_dono_do_topico(db, topico["id"], str(uuid.uuid4()), escola)

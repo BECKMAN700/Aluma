@@ -73,6 +73,15 @@ export interface Topico {
   id: string;
   nome: string;
   ordem: number;
+  /** Nome do PDF do tópico; null enquanto o professor não enviou. */
+  material: string | null;
+}
+
+/** Contrato de POST /api/topicos/{id}/materiais. */
+export interface MaterialEnviado {
+  topico_id: string;
+  nome_arquivo: string;
+  caracteres: number;
 }
 
 export interface Materia {

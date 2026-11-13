@@ -1,5 +1,6 @@
 """Rotas de matéria e tópico com as permissões de verdade; só o banco é trocado."""
 
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -8,13 +9,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 
 from main import http_exception_handler, validation_exception_handler
-from materiais import rotas
+from materiais import pdf, rotas
 from nucleo import consultas as permissao
 from nucleo.auth import Usuario, usuario_atual
 from nucleo.db import conexao
 
 TURMA = UUID("dddddddd-dddd-dddd-dddd-dddddddddddd")
 MATERIA = UUID("aaaaaaaa-0000-0000-0000-000000000001")
+TOPICO = UUID("bbbbbbbb-0000-0000-0000-000000000001")
+PDFS = Path(__file__).parent / "pdfs"
 ESCOLA = "cccccccc-cccc-cccc-cccc-cccccccccccc"
 PROFESSOR = Usuario(id="11111111-1111-1111-1111-111111111111", papel="professor", escola_id=ESCOLA)
 OUTRO_PROFESSOR = Usuario(id="22222222-2222-2222-2222-222222222222", papel="professor", escola_id=ESCOLA)
@@ -32,10 +35,17 @@ def cliente(monkeypatch):
         permissao, "professor_dono_da_materia", lambda db, m, p, e: (m, p) == (MATERIA, PROFESSOR.id)
     )
     monkeypatch.setattr(
+        permissao, "professor_dono_do_topico", lambda db, t, p, e: (t, p) == (TOPICO, PROFESSOR.id)
+    )
+    monkeypatch.setattr(
         permissao, "aluno_matriculado_na_turma", lambda db, t, a: (t, a) == (TURMA, ALUNO.id)
     )
     monkeypatch.setattr(rotas, "criar_materia", lambda **k: {"id": str(MATERIA), "nome": k["nome"], "topicos": []})
     monkeypatch.setattr(rotas, "materias_da_turma", lambda **k: [{"id": str(MATERIA), "nome": "Matemática", "topicos": []}])
+    monkeypatch.setattr(
+        rotas, "guardar_material",
+        lambda **k: {"topico_id": str(k["topico_id"]), "nome_arquivo": k["nome_arquivo"], "caracteres": len(k["texto"])},
+    )
     monkeypatch.setattr(rotas, "criar_topico", lambda **k: {"id": "t1", "nome": k["nome"], "ordem": 1})
 
     app = FastAPI()
@@ -122,3 +132,48 @@ def test_sem_login_retorna_401():
     r = TestClient(app).get(f"/api/turmas/{TURMA}/materias")
 
     assert r.status_code == 401
+
+
+def enviar(cliente, usuario, conteudo: bytes, nome: str = "Fra%C3%A7%C3%B5es.pdf"):
+    return cliente(usuario).post(
+        f"/api/topicos/{TOPICO}/materiais",
+        content=conteudo,
+        headers={"Content-Type": "application/pdf", "X-Nome-Arquivo": nome},
+    )
+
+
+def test_professor_dono_envia_pdf_com_texto(cliente):
+    r = enviar(cliente, PROFESSOR, (PDFS / "com_texto.pdf").read_bytes())
+
+    assert r.status_code == 201
+    assert r.json()["nome_arquivo"] == "Frações.pdf"
+    assert r.json()["caracteres"] > 0
+
+
+@pytest.mark.parametrize(
+    "arquivo, erro",
+    [("escaneado.pdf", "não contém texto selecionável"), (None, "não é um PDF válido")],
+)
+def test_pdf_escaneado_ou_falso_e_recusado_com_mensagem(cliente, arquivo, erro):
+    conteudo = (PDFS / arquivo).read_bytes() if arquivo else b"isto nao e pdf"
+
+    r = enviar(cliente, PROFESSOR, conteudo)
+
+    assert r.status_code == 422
+    assert erro in r.json()["erro"]
+
+
+def test_pdf_grande_demais_para_de_ler_e_devolve_413(cliente, monkeypatch):
+    monkeypatch.setattr(pdf, "TAMANHO_MAXIMO_BYTES", 100)
+
+    r = enviar(cliente, PROFESSOR, b"%PDF-" + b"0" * 200)
+
+    assert r.status_code == 413
+    assert r.json() == {"erro": "O PDF deve ter no máximo 5 MB."}
+
+
+@pytest.mark.parametrize("usuario, status", [(OUTRO_PROFESSOR, 404), (ALUNO, 403)])
+def test_so_o_dono_do_topico_envia_pdf(cliente, usuario, status):
+    r = enviar(cliente, usuario, (PDFS / "com_texto.pdf").read_bytes())
+
+    assert r.status_code == status
