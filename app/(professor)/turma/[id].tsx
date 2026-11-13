@@ -12,6 +12,7 @@ import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import {
   AvisoCarregando,
   AvisoErro,
+  BotaoPartida,
   BotaoPrincipal,
   LinkTexto,
   TelaFormulario,
@@ -104,6 +105,12 @@ export default function TurmaScreen() {
         {dados.estado === 'pronto' && dados.dados && (
           <>
             <AcoesDoCodigo nomeDaTurma={dados.dados.turma.nome} codigo={dados.dados.turma.codigo} />
+            <View style={styles.painel}>
+              <BotaoPartida
+                texto="Ver onde a turma trava"
+                aoTocar={() => router.push({ pathname: '/painel/[id]', params: { id } })}
+              />
+            </View>
             <MateriasDaTurma turmaId={dados.dados.turma.id} />
 
             <Text style={styles.titulo} accessibilityRole="header">
@@ -184,6 +191,7 @@ function AcoesDoCodigo({ nomeDaTurma, codigo }: { nomeDaTurma: string; codigo: s
 
 const styles = StyleSheet.create({
   camada: { zIndex: 1 },
+  painel: { marginTop: 16 },
   pressionado: { opacity: 0.85 },
 
   // Margem negativa: a seta fica mais perto da borda que o resto da coluna, como no desenho.

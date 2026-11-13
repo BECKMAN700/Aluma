@@ -106,3 +106,26 @@ export interface Materia {
 export interface ListaDeMaterias {
   materias: Materia[];
 }
+
+/** Contrato de GET /api/turmas/{id}/painel (backend/painel/rotas.py). */
+export interface TopicoNoPainel {
+  id: string;
+  nome: string;
+  ordem: number;
+  materia: string;
+  dominado: number;
+  em_andamento: number;
+  nao_iniciado: number;
+  /** Uma dúvida por linha, começando com "- ". Null até o professor pedir. */
+  resumo: string | null;
+  resumo_em: string | null;
+}
+
+export interface PainelDaTurma {
+  topicos: TopicoNoPainel[];
+}
+
+export interface ResumoDeDuvidas {
+  resumo: string;
+  resumo_em: string;
+}
