@@ -1,5 +1,5 @@
 import { chamar, type ResultadoApi } from '@/services/api';
-import type { ListaDeMaterias, MaterialEnviado, Materia, Topico } from '@/types/api';
+import type { ListaDeMaterias, MaterialEnviado, Materia, ResultadoDominar, Topico } from '@/types/api';
 
 /** Matérias da turma, cada uma com os tópicos em ordem. Turma de outro professor: 404. */
 export function listarMaterias(turmaId: string): Promise<ResultadoApi<ListaDeMaterias>> {
@@ -42,4 +42,9 @@ export async function enviarMaterial(
     // Cabeçalho HTTP não aceita acento: o nome vai codificado e o servidor decodifica.
     headers: { 'Content-Type': 'application/pdf', 'X-Nome-Arquivo': encodeURIComponent(nomeArquivo) },
   });
+}
+
+/** Pede ao servidor para avaliar o desafio do tópico. Quem julga é uma IA no servidor, não o app. */
+export function dominarTopico(topicoId: string): Promise<ResultadoApi<ResultadoDominar>> {
+  return chamar<ResultadoDominar>(`/api/topicos/${encodeURIComponent(topicoId)}/dominar`, { method: 'POST' });
 }

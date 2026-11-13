@@ -10,6 +10,7 @@ import type { StatusDoTopico } from '@/types/api';
 const TEXTO_DO_STATUS: Record<StatusDoTopico, string> = {
   nao_iniciado: 'Não iniciado',
   em_andamento: 'Em andamento',
+  dominado: 'Dominado',
 };
 
 export function LinhaDaTrilha({
@@ -24,6 +25,7 @@ export function LinhaDaTrilha({
   aoTocar: () => void;
 }) {
   const andando = status === 'em_andamento';
+  const dominado = status === 'dominado';
   return (
     <Pressable
       style={({ pressed }) => [styles.linha, pressed && styles.pressionado]}
@@ -31,12 +33,12 @@ export function LinhaDaTrilha({
       accessibilityRole="button"
       accessibilityLabel={`Tópico ${ordem}: ${nome}. ${TEXTO_DO_STATUS[status]}. Conversar com o tutor.`}
     >
-      <View style={[styles.ordem, andando && styles.ordemAndando]}>
-        <Text style={[styles.ordemTexto, andando && styles.ordemTextoAndando]}>{ordem}</Text>
+      <View style={[styles.ordem, andando && styles.ordemAndando, dominado && styles.ordemDominado]}>
+        <Text style={[styles.ordemTexto, dominado && styles.ordemTextoDominado]}>{ordem}</Text>
       </View>
       <View style={styles.texto}>
         <Text style={styles.nome}>{nome}</Text>
-        <Text style={[styles.status, andando && styles.statusAndando]}>{TEXTO_DO_STATUS[status]}</Text>
+        <Text style={[styles.status, (andando || dominado) && styles.statusAndando]}>{TEXTO_DO_STATUS[status]}</Text>
       </View>
     </Pressable>
   );
@@ -61,9 +63,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ordemAndando: { borderColor: Horizonte.luma, backgroundColor: Horizonte.luma },
+  // Em andamento: contorno da Luma. Dominado: a "estrela" acende por inteiro.
+  ordemAndando: { borderColor: Horizonte.luma },
+  ordemDominado: { borderColor: Horizonte.luma, backgroundColor: Horizonte.luma },
   ordemTexto: { fontFamily: FontesHorizonte.display, fontSize: 15, color: Horizonte.text },
-  ordemTextoAndando: { color: Horizonte.bg },
+  ordemTextoDominado: { color: Horizonte.bg },
   texto: { flex: 1, minWidth: 0, gap: 2 },
   nome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 22, color: Horizonte.text },
   status: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },

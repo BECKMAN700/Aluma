@@ -28,6 +28,10 @@ def materias_da_turma(
                            'status', case
                                when %(aluno)s::uuid is null then null
                                when exists (
+                                   select 1 from progresso as p
+                                   where p.aluno_id = %(aluno)s::uuid and p.topico_id = t.id
+                               ) then 'dominado'
+                               when exists (
                                    select 1
                                    from conversas as c
                                    join mensagens as msg on msg.conversa_id = c.id

@@ -60,6 +60,24 @@ def gravar_troca(
         )
 
 
-def material_do_topico(db: psycopg.Connection, topico_id: UUID) -> str | None:
-    linha = db.execute("select texto from materiais where topico_id = %s", (topico_id,)).fetchone()
-    return linha["texto"] if linha else None
+def topico_do_chat(db: psycopg.Connection, topico_id: UUID) -> dict:
+    """Nome do tópico e o texto do PDF (None se o professor ainda não enviou)."""
+    return db.execute(
+        """
+        select tp.nome, mat.texto as material
+        from topicos as tp
+        left join materiais as mat on mat.topico_id = tp.id
+        where tp.id = %s
+        """,
+        (topico_id,),
+    ).fetchone()
+
+
+def marcar_dominado(db: psycopg.Connection, aluno_id: str, topico_id: UUID) -> None:
+    db.execute(
+        """
+        insert into progresso (aluno_id, topico_id, status) values (%s, %s, 'dominado')
+        on conflict (aluno_id, topico_id) do nothing
+        """,
+        (aluno_id, topico_id),
+    )
