@@ -42,8 +42,8 @@ backend/
     rate_limit.py      limite de requisições
   chat/              rotas.py, esquemas.py, consultas.py, prompt.py, claude.py, gemini.py, testes/
   turmas/            rotas.py, esquemas.py, consultas.py, testes/
-  materiais/         (Sprint 4) mesmo formato
-  migrations/        001_inicial.sql, 002_...sql — o banco, em ordem
+  materiais/         rotas.py, esquemas.py, consultas.py, pdf.py, testes/ (matéria, tópico e PDF)
+  migrations/        001_inicial.sql, 002_materias.sql — o banco, em ordem
   scripts/           criar_professor.py, seed_demo.py — administração, roda só na máquina da equipe
 app/
   _layout.tsx        lê a sessão e manda cada papel para o seu grupo
@@ -51,7 +51,7 @@ app/
   (aluno)/           código da turma, início, chat, trilha
   (professor)/       turmas, turma, materiais, painel
 components/          peças de tela reaproveitadas
-services/            api.ts (endereço + token), auth.ts, turmas.ts, chat.ts
+services/            api.ts (endereço + token), auth.ts, turmas.ts, materias.ts
 types/api.ts         os formatos que a API devolve
 docs/                este mapa, decisões, sprints
 ```
@@ -94,8 +94,11 @@ Tabelas em português, minúsculas, plural. Toda tabela tem `id uuid` (gerado pe
 | Tabela | Colunas |
 |---|---|
 | `materias` | `turma_id`, `nome` |
-| `topicos` | `materia_id`, `nome`, `ordem` |
-| `materiais` | `topico_id`, `nome_arquivo`, `texto` (extraído do PDF) |
+| `topicos` | `materia_id`, `nome`, `ordem` (começa em 1; quem define é o servidor: o tópico novo vai para o fim) |
+| `materiais` | `topico_id` (único: um material por tópico), `nome_arquivo`, `texto` (extraído do PDF) |
+
+A `002_materias.sql` também liga `conversas.topico_id` a `topicos` (chave estrangeira; continua
+podendo ficar vazio).
 
 Na Sprint 4 o status do tópico não tem tabela: sai de `conversas`. Aluno com conversa naquele
 tópico está `em_andamento`; sem conversa, `nao_iniciado` (decisão de 10/11).
@@ -170,10 +173,16 @@ nada.
 
 ### Sprint 4 (cada rota é detalhada aqui no PR que a cria)
 
+| Rota | Quem pode | Entra | Sai |
+|---|---|---|---|
+| `POST /api/turmas/{id}/materias` | Professor dono | `{"nome"}` (até 60) | `201` `{"id", "nome", "topicos": []}` |
+| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem"}]}]}`, matérias na ordem de criação e tópicos em ordem, numa chamada só. O status de cada tópico para o aluno entra na fatia da trilha |
+| `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem"}` |
+
+Turma ou matéria de outro professor, ou turma em que o aluno não está: `404`, nunca `403`.
+
 | Rota | Quem pode |
 |---|---|
-| `POST /api/turmas/{id}/materias`, `GET /api/turmas/{id}/materias` | Professor dono; o `GET` também para aluno da turma, com o status de cada tópico |
-| `POST /api/materias/{id}/topicos` | Professor dono |
 | `POST /api/topicos/{id}/materiais` (envio de PDF) | Professor dono |
 | `POST /api/chat` com `topico_id` | Aluno da turma daquele tópico |
 
@@ -194,6 +203,8 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `exige_aluno` | `papel == "aluno"` |
 | `exige_dono_da_turma(turma_id)` | A turma existe **e** o professor dela é o usuário. Turma de outro professor responde `404`, não `403`: quem não é dono não fica sabendo que ela existe |
 | `exige_aluno_da_turma(turma_id)` | O aluno está matriculado naquela turma |
+| `exige_membro_da_turma(turma_id)` | Professor dono **ou** aluno matriculado; usa as duas regras de cima |
+| `exige_dono_da_materia(materia_id)` | A matéria existe **e** é de uma turma do professor. De outro professor: `404` |
 | `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |
 
 **Nos testes** não existe Supabase: o `usuario_atual` é trocado por um usuário de mentira, com

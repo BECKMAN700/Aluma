@@ -16,6 +16,7 @@ import {
   LinkTexto,
   TelaFormulario,
 } from '@/components/horizonte/formulario';
+import { MateriasDaTurma } from '@/components/materias-da-turma';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import type { ResultadoApi } from '@/services/api';
@@ -103,6 +104,7 @@ export default function TurmaScreen() {
         {dados.estado === 'pronto' && dados.dados && (
           <>
             <AcoesDoCodigo nomeDaTurma={dados.dados.turma.nome} codigo={dados.dados.turma.codigo} />
+            <MateriasDaTurma turmaId={dados.dados.turma.id} />
 
             <Text style={styles.titulo} accessibilityRole="header">
               Alunos ({dados.dados.alunos.length})

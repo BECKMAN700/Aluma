@@ -67,3 +67,21 @@ export interface AlunoDaTurma {
 export interface ListaDeAlunos {
   alunos: AlunoDaTurma[];
 }
+
+/** Contrato de /api/turmas/{id}/materias e /api/materias/{id}/topicos (backend/materiais/rotas.py). */
+export interface Topico {
+  id: string;
+  nome: string;
+  ordem: number;
+}
+
+export interface Materia {
+  id: string;
+  nome: string;
+  /** Já em ordem: a tela não reordena. */
+  topicos: Topico[];
+}
+
+export interface ListaDeMaterias {
+  materias: Materia[];
+}

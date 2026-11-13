@@ -75,3 +75,34 @@ def exige_usuario_do_chat(
     if not matriculado:
         raise HTTPException(status_code=403, detail="voce precisa estar em uma turma")
     return usuario
+
+def exige_membro_da_turma(
+    id: UUID,
+    usuario: Usuario = Depends(usuario_atual),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    """Professor dono ou aluno matriculado. Os dois casos reaproveitam as regras de cima."""
+    if usuario.papel == "professor":
+        return exige_dono_da_turma(id, usuario, db)
+    return exige_aluno_da_turma(id, exige_aluno(usuario), db)
+
+
+def exige_dono_da_materia(
+    id: UUID,
+    usuario: Usuario = Depends(exige_professor),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    """A matéria existe e é de uma turma do professor. De outra turma: 404, como a turma."""
+    if not usuario.escola_id:
+        raise HTTPException(status_code=404, detail="materia nao encontrada")
+    try:
+        autorizado = consultas.professor_dono_da_materia(
+            db, id, usuario.id, usuario.escola_id
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=503, detail="nao foi possivel verificar a permissao"
+        ) from None
+    if not autorizado:
+        raise HTTPException(status_code=404, detail="materia nao encontrada")
+    return usuario

@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
+from materiais.rotas import router as materiais_router
 from turmas.rotas_matriculas import router as matriculas_router
 from nucleo.db import BancoIndisponivel
 
@@ -118,3 +119,4 @@ def health_check():
 app.include_router(chat_router)
 app.include_router(turmas_router)
 app.include_router(matriculas_router)
+app.include_router(materiais_router)
