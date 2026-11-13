@@ -49,9 +49,11 @@ def test_topicos_voltam_em_ordem_dentro_da_materia_certa(db):
 
     materias = consultas.materias_da_turma(db, turma)
 
-    assert [m["nome"] for m in materias] == ["Português", "Matemática"]
-    assert materias[0]["topicos"] == []
-    assert [(t["nome"], t["ordem"]) for t in materias[1]["topicos"]] == [
+    # As duas nascem na mesma transação do teste (mesmo now()): a ordem entre elas é empate.
+    por_nome = {m["nome"]: m for m in materias}
+    assert sorted(por_nome) == ["Matemática", "Português"]
+    assert por_nome["Português"]["topicos"] == []
+    assert [(t["nome"], t["ordem"]) for t in por_nome["Matemática"]["topicos"]] == [
         ("Frações", 1),
         ("Decimais", 2),
         ("Porcentagem", 3),
