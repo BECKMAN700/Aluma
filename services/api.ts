@@ -117,7 +117,8 @@ export async function chamar<T>(caminho: string, init: RequestInit = {}): Promis
   try {
     const response = await fetch(`${API_URL}${caminho}`, {
       ...init,
-      headers: await cabecalhos(),
+      // Quem chama pode trocar o Content-Type (o envio de PDF manda o arquivo cru).
+      headers: { ...(await cabecalhos()), ...(init.headers as Record<string, string> | undefined) },
       signal: controller.signal,
     });
     if (response.ok) return { ok: true, dados: (await response.json()) as T };

@@ -87,22 +87,36 @@ def exige_membro_da_turma(
     return exige_aluno_da_turma(id, exige_aluno(usuario), db)
 
 
-def exige_dono_da_materia(
-    id: UUID,
-    usuario: Usuario = Depends(exige_professor),
-    db: psycopg.Connection = Depends(conexao),
-) -> Usuario:
-    """A matéria existe e é de uma turma do professor. De outra turma: 404, como a turma."""
+def _exige_dono(consulta, id: UUID, usuario: Usuario, db, erro: str) -> Usuario:
+    """Dono pela turma de cima. De outro professor: 404, como a turma."""
     if not usuario.escola_id:
-        raise HTTPException(status_code=404, detail="materia nao encontrada")
+        raise HTTPException(status_code=404, detail=erro)
     try:
-        autorizado = consultas.professor_dono_da_materia(
-            db, id, usuario.id, usuario.escola_id
-        )
+        autorizado = consulta(db, id, usuario.id, usuario.escola_id)
     except Exception:
         raise HTTPException(
             status_code=503, detail="nao foi possivel verificar a permissao"
         ) from None
     if not autorizado:
-        raise HTTPException(status_code=404, detail="materia nao encontrada")
+        raise HTTPException(status_code=404, detail=erro)
     return usuario
+
+
+def exige_dono_da_materia(
+    id: UUID,
+    usuario: Usuario = Depends(exige_professor),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    return _exige_dono(
+        consultas.professor_dono_da_materia, id, usuario, db, "materia nao encontrada"
+    )
+
+
+def exige_dono_do_topico(
+    id: UUID,
+    usuario: Usuario = Depends(exige_professor),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    return _exige_dono(
+        consultas.professor_dono_do_topico, id, usuario, db, "topico nao encontrado"
+    )
