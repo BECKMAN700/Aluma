@@ -11,15 +11,30 @@ def criar_materia(db: psycopg.Connection, turma_id: UUID, nome: str) -> dict:
     return {**materia, "topicos": []}
 
 
-def materias_da_turma(db: psycopg.Connection, turma_id: UUID) -> list[dict]:
-    """Cada matéria já com os tópicos em ordem: a tela faz uma chamada só."""
+def materias_da_turma(
+    db: psycopg.Connection, turma_id: UUID, aluno_id: str | None = None
+) -> list[dict]:
+    """
+    Cada matéria já com os tópicos em ordem: a tela faz uma chamada só. Com `aluno_id`, cada
+    tópico ganha o status dele: em andamento se já houve troca com o tutor naquele tópico.
+    """
     return db.execute(
         """
         select m.id, m.nome,
                coalesce(
                    json_agg(
                        json_build_object(
-                           'id', t.id, 'nome', t.nome, 'ordem', t.ordem, 'material', mat.nome_arquivo
+                           'id', t.id, 'nome', t.nome, 'ordem', t.ordem, 'material', mat.nome_arquivo,
+                           'status', case
+                               when %(aluno)s::uuid is null then null
+                               when exists (
+                                   select 1
+                                   from conversas as c
+                                   join mensagens as msg on msg.conversa_id = c.id
+                                   where c.aluno_id = %(aluno)s::uuid and c.topico_id = t.id
+                               ) then 'em_andamento'
+                               else 'nao_iniciado'
+                           end
                        )
                        order by t.ordem, t.criado_em
                    ) filter (where t.id is not null),
@@ -28,11 +43,11 @@ def materias_da_turma(db: psycopg.Connection, turma_id: UUID) -> list[dict]:
         from materias as m
         left join topicos as t on t.materia_id = m.id
         left join materiais as mat on mat.topico_id = t.id
-        where m.turma_id = %s
+        where m.turma_id = %(turma)s
         group by m.id
         order by m.criado_em
         """,
-        (turma_id,),
+        {"turma": turma_id, "aluno": aluno_id},
     ).fetchall()
 
 

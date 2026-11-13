@@ -43,7 +43,7 @@ def _log_indisponivel(motivo: str) -> None:
     print(f"[gemini] tutor indisponivel: {motivo}")
 
 
-def chat_com_gemini(mensagem: str, historico: list) -> str:
+def chat_com_gemini(mensagem: str, historico: list, system: str = SYSTEM_PROMPT) -> str:
     """
     Comunica-se com o Gemini para obter a resposta do tutor.
 
@@ -79,7 +79,7 @@ def chat_com_gemini(mensagem: str, historico: list) -> str:
             if restante_ms < 1000:
                 raise TutorIndisponivel()
             config = types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
+                system_instruction=system,
                 temperature=TEMPERATURE,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
                 http_options=types.HttpOptions(timeout=min(TEMPO_POR_MODELO_MS, restante_ms)),

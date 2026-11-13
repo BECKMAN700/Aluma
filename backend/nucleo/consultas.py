@@ -78,3 +78,17 @@ def professor_dono_do_topico(
         (topico_id, professor_id, escola_id),
     ).fetchone()
     return linha is not None
+
+
+def aluno_da_turma_do_topico(db: psycopg.Connection, topico_id: UUID, aluno_id: str) -> bool:
+    linha = db.execute(
+        """
+        select 1
+        from topicos as tp
+        join materias as m on m.id = tp.materia_id
+        join matriculas as mt on mt.turma_id = m.turma_id
+        where tp.id = %s and mt.aluno_id = %s
+        """,
+        (topico_id, aluno_id),
+    ).fetchone()
+    return linha is not None

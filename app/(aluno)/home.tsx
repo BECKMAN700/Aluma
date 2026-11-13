@@ -47,6 +47,9 @@ export default function HomeScreen() {
 
       <Surgir style={styles.camada}>
         <BotaoPrincipal texto="Conversar com o tutor" alto aoTocar={() => router.push('/chat')} />
+        <View style={styles.trilha}>
+          <BotaoPartida texto="Ver a trilha da matéria" aoTocar={() => router.push('/trilha')} />
+        </View>
 
         <Text style={styles.chamada} accessibilityRole="header">
           Por onde começar?
@@ -83,6 +86,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  trilha: { marginTop: 12 },
   camada: { zIndex: 1 },
   textos: { marginTop: 6, gap: 4 },
   estrela: { marginTop: 40, marginBottom: 28 },
