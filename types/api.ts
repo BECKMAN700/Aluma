@@ -79,6 +79,8 @@ export interface Topico {
   material: string | null;
   /** Só para o aluno: sai da conversa salva (já conversou sobre o tópico = em andamento). */
   status?: StatusDoTopico | null;
+  /** Só para o aluno: hora da última mensagem dele no tópico (ISO). Null se nunca conversou. */
+  atividade_em?: string | null;
 }
 
 export type StatusDoTopico = 'nao_iniciado' | 'em_andamento' | 'dominado';

@@ -179,7 +179,7 @@ nada.
 | Rota | Quem pode | Entra | Sai |
 |---|---|---|---|
 | `POST /api/turmas/{id}/materias` | Professor dono | `{"nome"}` (até 60) | `201` `{"id", "nome", "topicos": []}` |
-| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem", "material", "status"}]}]}` (`material` = nome do PDF ou null; `status` = `nao_iniciado` ou `em_andamento` para o aluno, null para o professor), matérias na ordem de criação e tópicos em ordem, numa chamada só |
+| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem", "material", "status"}]}]}` (`material` = nome do PDF ou null; `status` = `nao_iniciado`, `em_andamento` ou `dominado` para o aluno, null para o professor; `atividade_em` = hora da última mensagem do aluno no tópico, usada no "Continuar" do início), matérias na ordem de criação e tópicos em ordem, numa chamada só |
 | `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem", "material": null}` |
 | `POST /api/topicos/{id}/materiais` | Professor dono da turma do tópico | O PDF cru no corpo (`Content-Type: application/pdf`) e o nome em `X-Nome-Arquivo`, codificado com `encodeURIComponent` | `201` `{"topico_id", "nome_arquivo", "caracteres"}` · `413` mais de 5 MB (o servidor para de ler no limite) · `422` não é PDF, tem senha, escaneado ou texto demais, com a frase para o professor. Reenviar substitui |
 
