@@ -77,6 +77,10 @@ function Navegacao() {
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
         <Stack.Screen name="(aluno)" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      {/* O professor abre o chat para testar a Luma num tópico dele; nada é gravado. */}
+      <Stack.Protected guard={(aluno && !!usuario.turma) || usuario?.papel === 'professor'}>
         <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 

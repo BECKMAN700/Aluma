@@ -11,7 +11,12 @@ from chat.gemini import TutorIndisponivel, chat_com_gemini
 from chat.prompt import PROMPT_JUIZ, montar_pedido_ao_juiz, montar_prompt
 from nucleo.auth import Usuario
 from nucleo.db import conexao
-from nucleo.permissoes import confere_topico_do_aluno, exige_aluno, exige_usuario_do_chat
+from nucleo.permissoes import (
+    confere_topico_do_aluno,
+    confere_topico_do_chat,
+    exige_aluno,
+    exige_usuario_do_chat,
+)
 from nucleo.rate_limit import check_rate_limit
 
 router = APIRouter()
@@ -41,7 +46,7 @@ def chat(
     topico_id = payload.topico_id
     # Fora do try: o 403/404 da permissão não pode virar "erro interno".
     if topico_id:
-        confere_topico_do_aluno(db, topico_id, usuario)
+        confere_topico_do_chat(db, topico_id, usuario)
     try:
         system = montar_prompt(consultas.topico_do_chat(db, topico_id) if topico_id else None)
         if usuario.papel == "aluno":

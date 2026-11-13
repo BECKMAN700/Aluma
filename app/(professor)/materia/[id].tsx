@@ -83,12 +83,19 @@ export default function MateriaScreen() {
                   <View style={styles.topicoTexto}>
                     <Text style={styles.topicoNome}>{topico.nome}</Text>
                     <Text style={styles.topicoMaterial}>{topico.material ? `PDF: ${topico.material}` : 'Sem PDF'}</Text>
-                    <EnviarPdf
-                      topicoId={topico.id}
-                      nomeTopico={topico.nome}
-                      temMaterial={!!topico.material}
-                      aoEnviar={tentarDeNovo}
-                    />
+                    <View style={styles.acoes}>
+                      <EnviarPdf
+                        topicoId={topico.id}
+                        nomeTopico={topico.nome}
+                        temMaterial={!!topico.material}
+                        aoEnviar={tentarDeNovo}
+                      />
+                      <LinkTexto
+                        texto="Testar a Luma"
+                        rotulo={`Testar a Luma no tópico ${topico.nome}`}
+                        aoTocar={() => router.push({ pathname: '/chat', params: { topico: topico.id, nome: topico.nome } })}
+                      />
+                    </View>
                   </View>
                 </View>
               ))
@@ -123,6 +130,7 @@ const styles = StyleSheet.create({
   },
   topico: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 },
   topicoTexto: { flex: 1, minWidth: 0, gap: 6 },
+  acoes: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12 },
   topicoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
   topicoOrdem: { width: 24, fontFamily: FontesHorizonte.display, fontSize: 16, lineHeight: 22, color: Horizonte.action },
   topicoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },

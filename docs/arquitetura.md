@@ -186,8 +186,10 @@ nada.
 Turma ou matéria de outro professor, ou turma em que o aluno não está: `404`, nunca `403`.
 
 **Chat por tópico.** `POST /api/chat` aceita `"topico_id"` (opcional; sem ele, é o chat geral) e
-`GET /api/conversas/atual` aceita `?topico_id=`. Só o aluno da turma do tópico: outro aluno
-recebe `404`, professor recebe `403`. Cada aluno tem uma conversa por tópico. O texto do PDF
+`GET /api/conversas/atual` aceita `?topico_id=`. No `POST /api/chat`, vale para o aluno da turma do
+tópico e para o professor **dono**, que testa a Luma com o material sem gravar nada (o histórico
+vem do app, como no chat geral do professor). Quem é de outra turma recebe `404`. O
+`GET /api/conversas/atual` continua só para o aluno. Cada aluno tem uma conversa por tópico. O texto do PDF
 entra no fim do prompt, entre `<material>` e `</material>`, como conteúdo citado e nunca como
 instrução (`chat/prompt.py`, `montar_prompt`). O prompt vai com cache do Claude, para o
 material não pesar em cada mensagem.
@@ -218,6 +220,7 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `exige_dono_da_materia(materia_id)` | A matéria existe **e** é de uma turma do professor. De outro professor: `404` |
 | `exige_dono_do_topico(topico_id)` | O tópico existe **e** é de uma turma do professor. De outro professor: `404` |
 | `confere_topico_do_aluno(topico_id)` | O aluno está matriculado na turma do tópico. Chamada pela rota, porque o tópico vem no corpo ou na query |
+| `confere_topico_do_chat(topico_id)` | No chat: aluno da turma do tópico ou professor dono dele |
 | `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |
 
 **Nos testes** não existe Supabase: o `usuario_atual` é trocado por um usuário de mentira, com
