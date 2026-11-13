@@ -63,11 +63,25 @@ tópico, ele está *em andamento*; senão, *não iniciado*. A tabela `progresso`
 Fase prevista no plano de ensino para refinar o produto antes da banca técnica (23 e 30/nov) e
 do Demo Day (07/dez).
 
-| Entrega | Descrição | Para quando |
-|---|---|---|
-| Painel do professor | Em que tópico a turma mais trava e em quê. A IA resume a dificuldade e o painel soma por tópico | Banca de 23/11 |
-| Tópico dominado | O aluno marca o tópico como dominado (tabela `progresso`) | Banca de 23/11 |
-| Aluno pede questões | O tutor propõe exercícios do tópico e corrige guiando | Demo Day |
-| Visual do aluno | Acabamento da trilha e do chat para o público do fundamental | Demo Day |
-| Checklist de véspera de demo | Crédito da IA, chave válida, créditos do Netlify, servidor acordado, banco ativo, contas de demonstração | Antes de cada apresentação |
-| Testes ponta a ponta | O roteiro inteiro, do login ao painel, contra os serviços publicados | Banca de 23/11 |
+| Entrega | Descrição | Para quando | Estado |
+|---|---|---|---|
+| Painel do professor | Em que tópico a turma mais trava e em quê. A IA resume a dificuldade e o painel soma por tópico | Banca de 23/11 | PR #141 (12/11) |
+| Tópico dominado | O aluno resolve um desafio e uma IA juíza confirma (tabela `progresso`) | Banca de 23/11 | PR #140 (12/11) |
+| Aluno pede questões | O tutor propõe exercícios do tópico e corrige guiando ("Quero treinar") | Demo Day | PR #140 (12/11) |
+| Visual do aluno | Acabamento da trilha e do chat para o público do fundamental | Demo Day | — |
+| Checklist de véspera de demo | Crédito da IA, chave válida, créditos do Netlify, servidor acordado, banco ativo, contas de demonstração | Antes de cada apresentação | — |
+| Testes ponta a ponta | O roteiro inteiro, do login ao painel, contra os serviços publicados | Banca de 23/11 | — |
+
+### Adiantado na noite de 12/11
+
+Além das duas entregas da banca, entraram (um PR cada, em ordem de merge):
+
+| PR | O quê |
+|---|---|
+| #139 | Envio de PDF, trilha e chat por tópico na `develop` (conserto do merge empilhado) |
+| #142 | "Continuar de onde parei" no início do aluno e atalhos no chat do tópico |
+| #143 | O professor testa a Luma no tópico, sem gravar nada |
+| #144 | Renomear, reordenar e excluir (só o que está vazio) matéria e tópico |
+| #145 | Seed da demonstração com a trilha de Matemática (`seed_demo.py --trilha`) |
+
+Migração nova: `003_progresso.sql` (aplicar no Supabase antes de testar o #140 em diante).
