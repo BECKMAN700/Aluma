@@ -20,7 +20,7 @@ def _log_indisponivel(motivo: str) -> None:
     print(f"[claude] tutor indisponivel: {motivo}")
 
 
-def chat_com_claude(mensagem: str, historico: list) -> str:
+def chat_com_claude(mensagem: str, historico: list, system: str = SYSTEM_PROMPT) -> str:
     """
     Pede a resposta do tutor ao Claude.
 
@@ -48,7 +48,9 @@ def chat_com_claude(mensagem: str, historico: list) -> str:
         # Quem segura o tutor socrático é o SYSTEM_PROMPT, validado na bateria anti-cola.
         response = client.messages.create(
             model=MODELO,
-            system=SYSTEM_PROMPT,
+            # Cache do prompt: com o material do PDF, cada mensagem reenviaria milhares de tokens.
+            # Abaixo do mínimo de cache do modelo, a API só ignora a marca.
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             max_tokens=MAX_OUTPUT_TOKENS,
             messages=messages,
         )

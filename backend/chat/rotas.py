@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import psycopg
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -6,9 +8,10 @@ from chat import consultas
 from chat.claude import chat_com_claude
 from chat.esquemas import HISTORICO_MAX_ITENS, ChatRequest
 from chat.gemini import TutorIndisponivel, chat_com_gemini
+from chat.prompt import montar_prompt
 from nucleo.auth import Usuario
 from nucleo.db import conexao
-from nucleo.permissoes import exige_aluno, exige_usuario_do_chat
+from nucleo.permissoes import confere_topico_do_aluno, exige_aluno, exige_usuario_do_chat
 from nucleo.rate_limit import check_rate_limit
 
 router = APIRouter()
@@ -35,11 +38,16 @@ def chat(
     é gravada; o `historico` do corpo é ignorado, senão quem chama a API inventaria falas do tutor.
     Retorna a resposta do Claude (ou do Gemini, de reserva) ou erro se os dois falharem.
     """
+    topico_id = payload.topico_id
+    # Fora do try: o 403/404 da permissão não pode virar "erro interno".
+    if topico_id:
+        confere_topico_do_aluno(db, topico_id, usuario)
     try:
+        system = montar_prompt(consultas.material_do_topico(db, topico_id) if topico_id else None)
         if usuario.papel == "aluno":
-            conversa_id = consultas.conversa_do_aluno(db, usuario.id) or consultas.criar_conversa(
-                db, usuario.id
-            )
+            conversa_id = consultas.conversa_do_aluno(
+                db, usuario.id, topico_id
+            ) or consultas.criar_conversa(db, usuario.id, topico_id)
             historico = consultas.ultimas_mensagens(db, conversa_id, HISTORICO_MAX_ITENS)
         else:
             # Professor testando o tutor: o histórico vem do app e nada é gravado.
@@ -48,9 +56,9 @@ def chat(
 
         # Claude primeiro; sem chave, sem crédito ou fora do ar, o Gemini assume.
         try:
-            resposta = chat_com_claude(payload.mensagem, historico)
+            resposta = chat_com_claude(payload.mensagem, historico, system=system)
         except TutorIndisponivel:
-            resposta = chat_com_gemini(payload.mensagem, historico)
+            resposta = chat_com_gemini(payload.mensagem, historico, system=system)
 
         # Só grava a troca que deu certo: se o tutor caiu, o aluno manda de novo.
         if conversa_id:
@@ -70,9 +78,12 @@ def chat(
 
 @router.get("/api/conversas/atual")
 def conversa_atual(
+    topico_id: UUID | None = None,
     usuario: Usuario = Depends(exige_aluno),
     db: psycopg.Connection = Depends(conexao),
 ):
-    conversa_id = consultas.conversa_do_aluno(db, usuario.id)
+    if topico_id:
+        confere_topico_do_aluno(db, topico_id, usuario)
+    conversa_id = consultas.conversa_do_aluno(db, usuario.id, topico_id)
     mensagens = consultas.ultimas_mensagens(db, conversa_id, MENSAGENS_NA_TELA) if conversa_id else []
     return {"mensagens": mensagens}

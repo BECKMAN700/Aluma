@@ -5,6 +5,8 @@ chamar a API sem passar pelo app, e um pedido inválido não pode chegar ao Gemi
 a cota gratuita (~1.500 chamadas/dia).
 """
 
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, field_validator
 
 TEXTO_MAX_CARACTERES = 2000
@@ -40,6 +42,8 @@ class ChatRequest(BaseModel):
 
     mensagem: str
     historico: list[Mensagem] = []
+    # Vazio = chat geral, que continua existindo.
+    topico_id: UUID | None = None
 
     @field_validator("mensagem")
     @classmethod

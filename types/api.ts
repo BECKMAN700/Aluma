@@ -15,6 +15,8 @@ export interface ChatRequestBody {
   mensagem: string;
   // Só o professor manda; o histórico do aluno o servidor lê do banco.
   historico?: ChatHistoryItem[];
+  /** Sem tópico = chat geral. Com tópico, o tutor usa o PDF do professor. */
+  topico_id?: string;
 }
 
 /** Contrato de GET /api/conversas/atual: as últimas mensagens do aluno, da mais antiga à mais nova. */
@@ -75,7 +77,11 @@ export interface Topico {
   ordem: number;
   /** Nome do PDF do tópico; null enquanto o professor não enviou. */
   material: string | null;
+  /** Só para o aluno: sai da conversa salva (já conversou sobre o tópico = em andamento). */
+  status?: StatusDoTopico | null;
 }
+
+export type StatusDoTopico = 'nao_iniciado' | 'em_andamento';
 
 /** Contrato de POST /api/topicos/{id}/materiais. */
 export interface MaterialEnviado {

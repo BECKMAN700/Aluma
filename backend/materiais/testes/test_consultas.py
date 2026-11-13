@@ -73,3 +73,31 @@ def test_reenviar_material_substitui_e_aparece_na_lista(db):
     assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["material"] == "v2.pdf"
     assert permissao.professor_dono_do_topico(db, topico["id"], professor, escola)
     assert not permissao.professor_dono_do_topico(db, topico["id"], str(uuid.uuid4()), escola)
+
+
+def test_status_do_topico_sai_da_conversa_do_aluno(db):
+    from chat import consultas as chat
+
+    turma, _, _ = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática")
+    fracoes = consultas.criar_topico(db, mat["id"], "Frações")
+    consultas.criar_topico(db, mat["id"], "Decimais")
+    aluno = str(uuid.uuid4())
+    db.execute("insert into perfis (id, nome, papel) values (%s, 'Aluno', 'aluno')", (aluno,))
+    db.execute("insert into matriculas (aluno_id, turma_id) values (%s, %s)", (aluno, turma))
+
+    conversa = chat.criar_conversa(db, aluno, fracoes["id"])
+    assert chat.conversa_do_aluno(db, aluno) is None  # o chat geral é outra conversa
+    assert chat.conversa_do_aluno(db, aluno, fracoes["id"]) == conversa
+    # Conversa sem nenhuma troca (o tutor caiu) ainda não conta como começada.
+    assert [t["status"] for t in consultas.materias_da_turma(db, turma, aluno)[0]["topicos"]] == [
+        "nao_iniciado",
+        "nao_iniciado",
+    ]
+    chat.gravar_troca(db, conversa, "o que é fração?", "o que você acha?")
+
+    topicos = consultas.materias_da_turma(db, turma, aluno)[0]["topicos"]
+    assert [t["status"] for t in topicos] == ["em_andamento", "nao_iniciado"]
+    assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["status"] is None
+    assert permissao.aluno_da_turma_do_topico(db, fracoes["id"], aluno)
+    assert not permissao.aluno_da_turma_do_topico(db, fracoes["id"], str(uuid.uuid4()))

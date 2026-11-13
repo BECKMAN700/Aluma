@@ -46,7 +46,8 @@ const SAUDACAO: Message = {
 export default function ChatScreen() {
   const router = useRouter();
   const margens = useSafeAreaInsets();
-  const { partida } = useLocalSearchParams<{ partida?: string }>();
+  // `topico` vem da trilha: a conversa e o material passam a ser daquele tópico.
+  const { partida, topico, nome } = useLocalSearchParams<{ partida?: string; topico?: string; nome?: string }>();
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
   const listRef = useRef<FlatList<Message>>(null);
@@ -62,7 +63,7 @@ export default function ChatScreen() {
   // Abre de onde o aluno parou: a conversa vem do servidor, não do aparelho.
   useEffect(() => {
     let ativo = true;
-    buscarConversaAtual().then((r) => {
+    buscarConversaAtual(topico).then((r) => {
       if (!ativo) return;
       if (!r.ok) {
         setConversa('erro');
@@ -75,7 +76,7 @@ export default function ChatScreen() {
     return () => {
       ativo = false;
     };
-  }, [tentativaConversa]);
+  }, [tentativaConversa, topico]);
 
   const recarregarConversa = () => {
     setConversa('carregando');
@@ -109,7 +110,7 @@ export default function ChatScreen() {
     setSendError(null);
     setIsSending(true);
 
-    const result = await sendMessage(trimmedText);
+    const result = await sendMessage(trimmedText, topico);
 
     if (result.ok) {
       const tutorReply: Message = {
@@ -181,8 +182,8 @@ export default function ChatScreen() {
           <Svg width={22} height={22} viewBox="0 0 56 56">
             <Path d={CAMINHO_ESTRELA} fill={Horizonte.luma} />
           </Svg>
-          <Text style={styles.titulo} accessibilityRole="header">
-            Luma
+          <Text style={styles.titulo} accessibilityRole="header" numberOfLines={1}>
+            {nome ? `Luma · ${nome}` : 'Luma'}
           </Text>
         </View>
 
