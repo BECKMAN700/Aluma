@@ -87,3 +87,67 @@ def guardar_material(db: psycopg.Connection, topico_id: UUID, nome_arquivo: str,
         """,
         (topico_id, nome_arquivo, texto),
     ).fetchone()
+
+
+def renomear_materia(db: psycopg.Connection, materia_id: UUID, nome: str) -> dict:
+    return db.execute(
+        "update materias set nome = %s where id = %s returning id, nome", (nome, materia_id)
+    ).fetchone()
+
+
+def renomear_topico(db: psycopg.Connection, topico_id: UUID, nome: str) -> dict:
+    return db.execute(
+        "update topicos set nome = %s where id = %s returning id, nome, ordem", (nome, topico_id)
+    ).fetchone()
+
+
+def mover_topico(db: psycopg.Connection, topico_id: UUID, direcao: str) -> list[dict]:
+    """
+    Troca o tópico de lugar com o vizinho e renumera a matéria de 1 a n. Renumerar tudo
+    desfaz de quebra algum empate de ordem (dois tópicos criados no mesmo instante).
+    """
+    ids = [
+        linha["id"]
+        for linha in db.execute(
+            """
+            select id from topicos
+            where materia_id = (select materia_id from topicos where id = %s)
+            order by ordem, criado_em
+            """,
+            (topico_id,),
+        ).fetchall()
+    ]
+    i = ids.index(topico_id)
+    j = i - 1 if direcao == "cima" else i + 1
+    if 0 <= j < len(ids):
+        ids[i], ids[j] = ids[j], ids[i]
+    for ordem, tid in enumerate(ids, start=1):
+        db.execute("update topicos set ordem = %s where id = %s", (ordem, tid))
+    return [{"id": tid, "ordem": ordem} for ordem, tid in enumerate(ids, start=1)]
+
+
+def excluir_topico_vazio(db: psycopg.Connection, topico_id: UUID) -> bool:
+    """Só apaga tópico sem conversa e sem PDF: nada que um aluno ou o professor fez se perde."""
+    linha = db.execute(
+        """
+        delete from topicos as t
+        where t.id = %s
+          and not exists (select 1 from conversas as c where c.topico_id = t.id)
+          and not exists (select 1 from materiais as m where m.topico_id = t.id)
+        returning t.id
+        """,
+        (topico_id,),
+    ).fetchone()
+    return linha is not None
+
+
+def excluir_materia_vazia(db: psycopg.Connection, materia_id: UUID) -> bool:
+    linha = db.execute(
+        """
+        delete from materias as m
+        where m.id = %s and not exists (select 1 from topicos as t where t.materia_id = m.id)
+        returning m.id
+        """,
+        (materia_id,),
+    ).fetchone()
+    return linha is not None

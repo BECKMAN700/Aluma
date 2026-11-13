@@ -46,6 +46,11 @@ def cliente(monkeypatch):
         rotas, "guardar_material",
         lambda **k: {"topico_id": str(k["topico_id"]), "nome_arquivo": k["nome_arquivo"], "caracteres": len(k["texto"])},
     )
+    monkeypatch.setattr(rotas, "renomear_materia", lambda **k: {"id": str(MATERIA), "nome": k["nome"]})
+    monkeypatch.setattr(rotas, "renomear_topico", lambda **k: {"id": str(TOPICO), "nome": k["nome"], "ordem": 1})
+    monkeypatch.setattr(rotas, "mover_topico", lambda **k: [{"id": str(TOPICO), "ordem": 2}])
+    monkeypatch.setattr(rotas, "excluir_topico_vazio", lambda **k: True)
+    monkeypatch.setattr(rotas, "excluir_materia_vazia", lambda **k: True)
     monkeypatch.setattr(rotas, "criar_topico", lambda **k: {"id": "t1", "nome": k["nome"], "ordem": 1})
 
     app = FastAPI()
@@ -177,3 +182,38 @@ def test_so_o_dono_do_topico_envia_pdf(cliente, usuario, status):
     r = enviar(cliente, usuario, (PDFS / "com_texto.pdf").read_bytes())
 
     assert r.status_code == status
+
+
+EDICOES = [
+    ("patch", f"/api/materias/{MATERIA}", {"nome": "Matemática B"}, "materia nao encontrada"),
+    ("delete", f"/api/materias/{MATERIA}", None, "materia nao encontrada"),
+    ("patch", f"/api/topicos/{TOPICO}", {"nome": "Frações 2"}, "topico nao encontrado"),
+    ("post", f"/api/topicos/{TOPICO}/mover", {"direcao": "baixo"}, "topico nao encontrado"),
+    ("delete", f"/api/topicos/{TOPICO}", None, "topico nao encontrado"),
+]
+
+
+@pytest.mark.parametrize("metodo, caminho, corpo, erro", EDICOES)
+def test_so_o_dono_edita_e_quem_e_de_fora_recebe_404(cliente, metodo, caminho, corpo, erro):
+    assert cliente(PROFESSOR).request(metodo, caminho, json=corpo).status_code == 200
+    r = cliente(OUTRO_PROFESSOR).request(metodo, caminho, json=corpo)
+    assert (r.status_code, r.json()) == (404, {"erro": erro})
+    assert cliente(ALUNO).request(metodo, caminho, json=corpo).status_code == 403
+
+
+@pytest.mark.parametrize("corpo", [{"direcao": "lado"}, {}, {"direcao": "cima", "x": 1}])
+def test_direcao_invalida_retorna_422(cliente, corpo):
+    assert cliente(PROFESSOR).post(f"/api/topicos/{TOPICO}/mover", json=corpo).status_code == 422
+
+
+@pytest.mark.parametrize("caminho, funcao", [
+    (f"/api/topicos/{TOPICO}", "excluir_topico_vazio"),
+    (f"/api/materias/{MATERIA}", "excluir_materia_vazia"),
+])
+def test_excluir_com_conteudo_retorna_409(cliente, monkeypatch, caminho, funcao):
+    monkeypatch.setattr(rotas, funcao, lambda **k: False)
+
+    r = cliente(PROFESSOR).delete(caminho)
+
+    assert r.status_code == 409
+    assert r.json()["erro"]

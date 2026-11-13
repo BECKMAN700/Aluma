@@ -105,3 +105,27 @@ def test_status_do_topico_sai_da_conversa_do_aluno(db):
     assert consultas.materias_da_turma(db, turma, aluno)[0]["topicos"][0]["status"] == "dominado"
     assert permissao.aluno_da_turma_do_topico(db, fracoes["id"], aluno)
     assert not permissao.aluno_da_turma_do_topico(db, fracoes["id"], str(uuid.uuid4()))
+
+
+def test_mover_renumera_e_excluir_so_apaga_o_que_esta_vazio(db):
+    from chat import consultas as chat
+
+    turma, _, _ = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática")
+    a, b, c = (consultas.criar_topico(db, mat["id"], nome) for nome in ("A", "B", "C"))
+
+    consultas.mover_topico(db, c["id"], "cima")
+    consultas.mover_topico(db, a["id"], "cima")  # já é o primeiro: não muda
+    nomes = [t["nome"] for t in consultas.materias_da_turma(db, turma)[0]["topicos"]]
+    assert nomes == ["A", "C", "B"]
+    assert [t["ordem"] for t in consultas.materias_da_turma(db, turma)[0]["topicos"]] == [1, 2, 3]
+
+    aluno = str(uuid.uuid4())
+    db.execute("insert into perfis (id, nome, papel) values (%s, 'Aluno', 'aluno')", (aluno,))
+    chat.criar_conversa(db, aluno, a["id"])
+    consultas.guardar_material(db, b["id"], "b.pdf", "texto")
+    assert not consultas.excluir_topico_vazio(db, a["id"])  # tem conversa
+    assert not consultas.excluir_topico_vazio(db, b["id"])  # tem PDF
+    assert consultas.excluir_topico_vazio(db, c["id"])
+    assert not consultas.excluir_materia_vazia(db, mat["id"])  # ainda tem tópicos
+    assert consultas.renomear_materia(db, mat["id"], "Mat")["nome"] == "Mat"

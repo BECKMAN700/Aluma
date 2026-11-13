@@ -7,7 +7,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
-import { EnviarPdf } from '@/components/enviar-pdf';
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import {
   AvisoCarregando,
@@ -20,7 +19,9 @@ import {
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import type { ResultadoApi } from '@/services/api';
-import { criarTopico, listarMaterias } from '@/services/materias';
+import { criarTopico, excluirMateria, listarMaterias, renomearMateria } from '@/services/materias';
+import { TopicoDoProfessor } from '@/components/topico-do-professor';
+import { sair } from '@/services/auth';
 import type { Materia, Topico } from '@/types/api';
 
 export default function MateriaScreen() {
@@ -37,20 +38,39 @@ export default function MateriaScreen() {
   const materia = dados.estado === 'pronto' ? dados.dados : null;
   // O tópico criado entra no fim da lista na hora, sem recarregar e sem tirar o foco do campo.
   const [novos, setNovos] = useState<Topico[]>([]);
+  const [renomeando, setRenomeando] = useState(false);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState<string | null>(null);
   const topicos = materia ? [...materia.topicos, ...novos.filter((n) => !materia.topicos.some((t) => t.id === n.id))] : [];
+
+  const voltar = () =>
+    router.canGoBack()
+      ? router.back()
+      : turma
+        ? router.replace({ pathname: '/turma/[id]', params: { id: turma } })
+        : router.replace('/turmas');
+
+  // Só a matéria sem tópicos pode ser excluída (o servidor confere de novo). Dois toques confirmam.
+  const excluir = async () => {
+    if (!confirmarExclusao) {
+      setConfirmarExclusao(true);
+      return;
+    }
+    const r = await excluirMateria(id);
+    if (r.ok) voltar();
+    else if (r.status === 401) await sair();
+    else {
+      setErroExclusao(r.erro);
+      setConfirmarExclusao(false);
+    }
+  };
 
   return (
     <TelaFormulario>
       <Surgir style={styles.camada}>
         <CabecalhoVoltar
           texto="Voltar para a turma"
-          aoVoltar={() =>
-            router.canGoBack()
-              ? router.back()
-              : turma
-                ? router.replace({ pathname: '/turma/[id]', params: { id: turma } })
-                : router.replace('/turmas')
-          }
+          aoVoltar={voltar}
         />
       </Surgir>
 
@@ -71,6 +91,34 @@ export default function MateriaScreen() {
         {dados.estado === 'pronto' && !materia && <Text style={styles.vazio}>Matéria não encontrada.</Text>}
         {materia && (
           <>
+            <View style={styles.acoesMateria}>
+              <LinkTexto
+                texto={renomeando ? 'Cancelar' : 'Renomear matéria'}
+                rotulo={renomeando ? 'Cancelar a troca de nome' : 'Renomear a matéria'}
+                aoTocar={() => setRenomeando((r) => !r)}
+              />
+              {topicos.length === 0 && (
+                <LinkTexto
+                  texto={confirmarExclusao ? 'Toque de novo para excluir' : 'Excluir matéria'}
+                  rotulo="Excluir a matéria"
+                  aoTocar={excluir}
+                />
+              )}
+            </View>
+            {!!erroExclusao && <AvisoErro mensagem={erroExclusao} />}
+            {renomeando && (
+              <CriarPorNome
+                rotulo="Novo nome da matéria"
+                placeholder={materia.nome}
+                textoBotao="Salvar nome"
+                maxLength={60}
+                criar={(nome) => renomearMateria(id, nome)}
+                aoCriar={() => {
+                  setRenomeando(false);
+                  tentarDeNovo();
+                }}
+              />
+            )}
             <Text style={styles.titulo} accessibilityRole="header">
               Tópicos ({topicos.length})
             </Text>
@@ -78,26 +126,14 @@ export default function MateriaScreen() {
               <Text style={styles.vazio}>Nenhum tópico ainda. Crie o primeiro abaixo.</Text>
             ) : (
               topicos.map((topico, i, todos) => (
-                <View key={topico.id} style={[styles.topico, i < todos.length - 1 && styles.topicoComLinha]}>
-                  <Text style={styles.topicoOrdem}>{topico.ordem}</Text>
-                  <View style={styles.topicoTexto}>
-                    <Text style={styles.topicoNome}>{topico.nome}</Text>
-                    <Text style={styles.topicoMaterial}>{topico.material ? `PDF: ${topico.material}` : 'Sem PDF'}</Text>
-                    <View style={styles.acoes}>
-                      <EnviarPdf
-                        topicoId={topico.id}
-                        nomeTopico={topico.nome}
-                        temMaterial={!!topico.material}
-                        aoEnviar={tentarDeNovo}
-                      />
-                      <LinkTexto
-                        texto="Testar a Luma"
-                        rotulo={`Testar a Luma no tópico ${topico.nome}`}
-                        aoTocar={() => router.push({ pathname: '/chat', params: { topico: topico.id, nome: topico.nome } })}
-                      />
-                    </View>
-                  </View>
-                </View>
+                <TopicoDoProfessor
+                  key={topico.id}
+                  topico={topico}
+                  primeiro={i === 0}
+                  ultimo={i === todos.length - 1}
+                  comLinha={i < todos.length - 1}
+                  aoMudar={tentarDeNovo}
+                />
               ))
             )}
 
@@ -120,6 +156,7 @@ const styles = StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 10 },
   estrela: { marginTop: 41, marginBottom: 18 },
+  acoesMateria: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 8 },
 
   titulo: {
     marginBottom: 4,
@@ -128,13 +165,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Horizonte.text,
   },
-  topico: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 },
-  topicoTexto: { flex: 1, minWidth: 0, gap: 6 },
-  acoes: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12 },
-  topicoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
-  topicoOrdem: { width: 24, fontFamily: FontesHorizonte.display, fontSize: 16, lineHeight: 22, color: Horizonte.action },
-  topicoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
-  topicoMaterial: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
   vazio: {
     paddingVertical: 16,
     fontFamily: FontesHorizonte.corpo,

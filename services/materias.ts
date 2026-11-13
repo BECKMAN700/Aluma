@@ -48,3 +48,32 @@ export async function enviarMaterial(
 export function dominarTopico(topicoId: string): Promise<ResultadoApi<ResultadoDominar>> {
   return chamar<ResultadoDominar>(`/api/topicos/${encodeURIComponent(topicoId)}/dominar`, { method: 'POST' });
 }
+
+export function renomearMateria(materiaId: string, nome: string): Promise<ResultadoApi<Pick<Materia, 'id' | 'nome'>>> {
+  return chamar(`/api/materias/${encodeURIComponent(materiaId)}`, { method: 'PATCH', body: JSON.stringify({ nome }) });
+}
+
+/** 409 = a matéria ainda tem tópicos. */
+export function excluirMateria(materiaId: string): Promise<ResultadoApi<{ excluido: true }>> {
+  return chamar(`/api/materias/${encodeURIComponent(materiaId)}`, { method: 'DELETE' });
+}
+
+export function renomearTopico(topicoId: string, nome: string): Promise<ResultadoApi<Pick<Topico, 'id' | 'nome' | 'ordem'>>> {
+  return chamar(`/api/topicos/${encodeURIComponent(topicoId)}`, { method: 'PATCH', body: JSON.stringify({ nome }) });
+}
+
+/** Troca o tópico de lugar com o vizinho; o servidor renumera a matéria. */
+export function moverTopico(
+  topicoId: string,
+  direcao: 'cima' | 'baixo',
+): Promise<ResultadoApi<{ topicos: Pick<Topico, 'id' | 'ordem'>[] }>> {
+  return chamar(`/api/topicos/${encodeURIComponent(topicoId)}/mover`, {
+    method: 'POST',
+    body: JSON.stringify({ direcao }),
+  });
+}
+
+/** 409 = o tópico já tem conversa de aluno ou PDF, e não é apagado para nada se perder. */
+export function excluirTopico(topicoId: string): Promise<ResultadoApi<{ excluido: true }>> {
+  return chamar(`/api/topicos/${encodeURIComponent(topicoId)}`, { method: 'DELETE' });
+}

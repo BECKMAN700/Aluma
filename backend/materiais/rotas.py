@@ -14,8 +14,18 @@ from nucleo.permissoes import (
 )
 
 from . import pdf
-from .consultas import criar_materia, criar_topico, guardar_material, materias_da_turma
-from .esquemas import CriarMateria, CriarTopico
+from .consultas import (
+    criar_materia,
+    criar_topico,
+    excluir_materia_vazia,
+    excluir_topico_vazio,
+    guardar_material,
+    materias_da_turma,
+    mover_topico,
+    renomear_materia,
+    renomear_topico,
+)
+from .esquemas import CriarMateria, CriarTopico, MoverTopico
 
 
 router = APIRouter(prefix="/api", tags=["Materias"])
@@ -76,3 +86,61 @@ def enviar_material(
     # O app manda o nome com encodeURIComponent: cabeçalho HTTP não aceita acento.
     nome = "".join(c for c in unquote(nome_arquivo) if c.isprintable()).strip()[:120]
     return guardar_material(db=db, topico_id=id, nome_arquivo=nome or "material.pdf", texto=texto)
+
+
+
+@router.patch("/materias/{id}")
+def renomear_a_materia(
+    id: UUID,
+    dados: CriarMateria,
+    usuario: Usuario = Depends(exige_dono_da_materia),
+    db: psycopg.Connection = Depends(conexao),
+):
+    return renomear_materia(db=db, materia_id=id, nome=dados.nome)
+
+
+@router.delete("/materias/{id}")
+def excluir_a_materia(
+    id: UUID,
+    usuario: Usuario = Depends(exige_dono_da_materia),
+    db: psycopg.Connection = Depends(conexao),
+):
+    if not excluir_materia_vazia(db=db, materia_id=id):
+        raise HTTPException(
+            status_code=409, detail="Exclua os tópicos desta matéria antes de excluir a matéria."
+        )
+    return {"excluido": True}
+
+
+@router.patch("/topicos/{id}")
+def renomear_o_topico(
+    id: UUID,
+    dados: CriarTopico,
+    usuario: Usuario = Depends(exige_dono_do_topico),
+    db: psycopg.Connection = Depends(conexao),
+):
+    return renomear_topico(db=db, topico_id=id, nome=dados.nome)
+
+
+@router.post("/topicos/{id}/mover")
+def mover_o_topico(
+    id: UUID,
+    dados: MoverTopico,
+    usuario: Usuario = Depends(exige_dono_do_topico),
+    db: psycopg.Connection = Depends(conexao),
+):
+    return {"topicos": mover_topico(db=db, topico_id=id, direcao=dados.direcao)}
+
+
+@router.delete("/topicos/{id}")
+def excluir_o_topico(
+    id: UUID,
+    usuario: Usuario = Depends(exige_dono_do_topico),
+    db: psycopg.Connection = Depends(conexao),
+):
+    if not excluir_topico_vazio(db=db, topico_id=id):
+        raise HTTPException(
+            status_code=409,
+            detail="Este tópico já tem conversa de aluno ou PDF. Para não perder nada, ele não pode ser excluído.",
+        )
+    return {"excluido": True}
