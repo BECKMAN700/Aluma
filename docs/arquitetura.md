@@ -42,6 +42,7 @@ backend/
     rate_limit.py      limite de requisições
   chat/              rotas.py, esquemas.py, consultas.py, prompt.py, claude.py, gemini.py, testes/
   turmas/            rotas.py, esquemas.py, consultas.py, testes/
+  painel/            rotas.py, consultas.py, testes/ (onde a turma trava)
   materiais/         rotas.py, esquemas.py, consultas.py, pdf.py, testes/ (matéria, tópico e PDF)
   migrations/        001_inicial.sql, 002_materias.sql — o banco, em ordem
   scripts/           criar_professor.py, seed_demo.py — administração, roda só na máquina da equipe
@@ -198,6 +199,8 @@ material não pesar em cada mensagem.
 
 | Rota | Quem pode |
 |---|---|
+| `GET /api/turmas/{id}/painel` | Professor dono. Por tópico: `{"id", "nome", "ordem", "materia", "dominado", "em_andamento", "nao_iniciado", "resumo", "resumo_em"}`. Só contagens: nenhuma conversa sai daqui |
+| `POST /api/topicos/{id}/resumo-de-duvidas` | Professor dono. Junta as 60 falas de aluno mais recentes do tópico (sem quem disse, cada uma cortada em 300 caracteres), pede à IA as 3 dúvidas mais comuns (`PROMPT_RESUMO`) e guarda em `resumos_de_duvidas`. `422` com menos de 3 falas. Conta no limite de requisições |
 | `POST /api/topicos/{id}/dominar` | Aluno da turma do tópico. Uma IA **juíza**, numa chamada à parte com outro prompt (`PROMPT_JUIZ`), lê as últimas 12 mensagens do tópico e responde SIM só se o aluno resolveu dois exercícios com o próprio raciocínio. Sai `{"dominado", "mensagem"}`. Com menos de 2 falas do aluno, nem chama a IA. Conta no limite de requisições do chat |
 
 ## 6. Permissões
