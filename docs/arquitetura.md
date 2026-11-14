@@ -183,6 +183,11 @@ nada.
 | `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem", "material": null}` |
 | `POST /api/topicos/{id}/materiais` | Professor dono da turma do tópico | O PDF cru no corpo (`Content-Type: application/pdf`) e o nome em `X-Nome-Arquivo`, codificado com `encodeURIComponent` | `201` `{"topico_id", "nome_arquivo", "caracteres"}` · `413` mais de 5 MB (o servidor para de ler no limite) · `422` não é PDF, tem senha, escaneado ou texto demais, com a frase para o professor. Reenviar substitui |
 
+| `PATCH /api/materias/{id}` · `PATCH /api/topicos/{id}` | Professor dono | `{"nome"}` | Renomeia |
+| `POST /api/topicos/{id}/mover` | Professor dono | `{"direcao": "cima" ou "baixo"}` | Troca com o vizinho e renumera a matéria de 1 a n: `{"topicos": [{"id", "ordem"}]}` |
+| `DELETE /api/topicos/{id}` | Professor dono | — | Só tópico sem conversa e sem PDF; senão `409`, para nada de aluno ou do professor se perder |
+| `DELETE /api/materias/{id}` | Professor dono | — | Só matéria sem tópicos; senão `409` |
+
 Turma ou matéria de outro professor, ou turma em que o aluno não está: `404`, nunca `403`.
 
 **Chat por tópico.** `POST /api/chat` aceita `"topico_id"` (opcional; sem ele, é o chat geral) e

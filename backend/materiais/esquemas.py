@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -29,3 +31,9 @@ class CriarTopico(BaseModel):
     @classmethod
     def validar_nome(cls, valor: object) -> object:
         return _texto_obrigatorio(valor, "o nome do topico nao pode ficar vazio")
+
+
+class MoverTopico(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    direcao: Literal["cima", "baixo"]
