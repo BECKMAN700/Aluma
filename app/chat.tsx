@@ -21,6 +21,7 @@ import { textoDaPartida } from '@/constants/partidas';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { AcoesDoTopico } from '@/components/acoes-do-topico';
+import { useSessao } from '@/hooks/use-sessao';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
 import type { ChatApiAuthor } from '@/types/api';
 
@@ -58,11 +59,17 @@ export default function ChatScreen() {
   const [emFoco, setEmFoco] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [conversa, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
+  const [conversaSalva, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
   const [tentativaConversa, setTentativaConversa] = useState(0);
 
+  const { sessao } = useSessao();
+  const professor = sessao.estado === 'pronto' && sessao.usuario.papel === 'professor';
+  const conversa = professor ? 'pronta' : conversaSalva;
+
   // Abre de onde o aluno parou: a conversa vem do servidor, não do aparelho.
+  // O professor só testa: começa vazio e nada é gravado.
   useEffect(() => {
+    if (professor) return;
     let ativo = true;
     buscarConversaAtual(topico).then((r) => {
       if (!ativo) return;
@@ -77,7 +84,7 @@ export default function ChatScreen() {
     return () => {
       ativo = false;
     };
-  }, [tentativaConversa, topico]);
+  }, [tentativaConversa, topico, professor]);
 
   const recarregarConversa = () => {
     setConversa('carregando');
@@ -111,7 +118,10 @@ export default function ChatScreen() {
     setSendError(null);
     setIsSending(true);
 
-    const result = await sendMessage(trimmedText, topico);
+    const historico = professor
+      ? messages.filter((m) => m.id !== SAUDACAO.id).map((m) => ({ autor: m.author, texto: m.text }))
+      : undefined;
+    const result = await sendMessage(trimmedText, topico, historico);
 
     if (result.ok) {
       const tutorReply: Message = {
@@ -131,7 +141,7 @@ export default function ChatScreen() {
   const handleSendMessage = () => enviarTexto(inputText);
 
   // Aberto direto pelo endereço, na web, não há tela anterior para voltar.
-  const voltar = () => (router.canGoBack() ? router.back() : router.replace('/home'));
+  const voltar = () => (router.canGoBack() ? router.back() : router.replace(professor ? '/turmas' : '/home'));
 
   // Veio de um atalho do início: envia a frase assim que o tutor e a conversa estiverem prontos.
   // Tira o atalho do endereço para recarregar a página não enviar de novo.
@@ -206,7 +216,10 @@ export default function ChatScreen() {
             Carregando sua conversa…
           </Text>
         )}
-        {!!topico && conversa === 'pronta' && (
+        {professor && (
+          <Text style={styles.privacyNotice}>Modo de teste do professor: nada desta conversa é gravado.</Text>
+        )}
+        {!!topico && !professor && conversa === 'pronta' && (
           <AcoesDoTopico
             topicoId={topico}
             desabilitado={!canSend}

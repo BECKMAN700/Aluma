@@ -134,3 +134,13 @@ def confere_topico_do_aluno(db: psycopg.Connection, topico_id: UUID, usuario: Us
         ) from None
     if not autorizado:
         raise HTTPException(status_code=404, detail="topico nao encontrado")
+
+
+def confere_topico_do_chat(db: psycopg.Connection, topico_id: UUID, usuario: Usuario) -> None:
+    """Aluno da turma do tópico ou o professor dono (testando a Luma, sem gravar nada)."""
+    if usuario.papel == "professor":
+        _exige_dono(
+            consultas.professor_dono_do_topico, topico_id, usuario, db, "topico nao encontrado"
+        )
+        return
+    confere_topico_do_aluno(db, topico_id, usuario)

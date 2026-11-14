@@ -1,6 +1,7 @@
 import { obterToken } from '@/services/auth';
 import type {
   ChatErrorResponse,
+  ChatHistoryItem,
   ChatRequestBody,
   ChatResponse,
   ConversaAtual,
@@ -73,7 +74,12 @@ export async function checkHealth(timeoutMs: number): Promise<boolean> {
  * 401, 403, 422, 429 e 503 já chegam com `{"erro": "..."}` pronto em português
  * (backend/main.py) — só repassamos.
  */
-export async function sendMessage(mensagem: string, topicoId?: string): Promise<SendMessageResult> {
+/** `historico` só para o professor testando: do aluno, o servidor lê a conversa salva. */
+export async function sendMessage(
+  mensagem: string,
+  topicoId?: string,
+  historico?: ChatHistoryItem[],
+): Promise<SendMessageResult> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
     return { ok: false, erro: ERRO_SEM_URL };
@@ -85,7 +91,7 @@ export async function sendMessage(mensagem: string, topicoId?: string): Promise<
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: await cabecalhos(),
-      body: JSON.stringify({ mensagem, topico_id: topicoId } satisfies ChatRequestBody),
+      body: JSON.stringify({ mensagem, topico_id: topicoId, historico } satisfies ChatRequestBody),
       signal: controller.signal,
     });
 
