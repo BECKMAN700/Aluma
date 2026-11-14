@@ -81,7 +81,13 @@ export interface Topico {
   status?: StatusDoTopico | null;
 }
 
-export type StatusDoTopico = 'nao_iniciado' | 'em_andamento';
+export type StatusDoTopico = 'nao_iniciado' | 'em_andamento' | 'dominado';
+
+/** Contrato de POST /api/topicos/{id}/dominar: a frase já vem pronta para a tela. */
+export interface ResultadoDominar {
+  dominado: boolean;
+  mensagem: string;
+}
 
 /** Contrato de POST /api/topicos/{id}/materiais. */
 export interface MaterialEnviado {

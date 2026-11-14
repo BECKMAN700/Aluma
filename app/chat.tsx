@@ -20,6 +20,7 @@ import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/f
 import { textoDaPartida } from '@/constants/partidas';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
+import { AcoesDoTopico } from '@/components/acoes-do-topico';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
 import type { ChatApiAuthor } from '@/types/api';
 
@@ -204,6 +205,16 @@ export default function ChatScreen() {
           <Text style={[styles.statusBanner, styles.bannerText]} accessibilityLiveRegion="polite">
             Carregando sua conversa…
           </Text>
+        )}
+        {!!topico && conversa === 'pronta' && (
+          <AcoesDoTopico
+            topicoId={topico}
+            desabilitado={!canSend}
+            aoTreinar={() => enviarTexto('Quero treinar este tópico. Me passa um exercício?')}
+            aoResultado={(texto) =>
+              setMessages((anteriores) => [...anteriores, { id: `avaliacao-${Date.now()}`, author: 'tutor', text: texto }])
+            }
+          />
         )}
         {conversa === 'erro' && (
           <View style={styles.statusBannerRow}>

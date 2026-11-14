@@ -101,5 +101,8 @@ def test_status_do_topico_sai_da_conversa_do_aluno(db):
     topicos = consultas.materias_da_turma(db, turma, aluno)[0]["topicos"]
     assert [t["status"] for t in topicos] == ["em_andamento", "nao_iniciado"]
     assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["status"] is None
+    chat.marcar_dominado(db, aluno, fracoes["id"])
+    chat.marcar_dominado(db, aluno, fracoes["id"])  # de novo não quebra
+    assert consultas.materias_da_turma(db, turma, aluno)[0]["topicos"][0]["status"] == "dominado"
     assert permissao.aluno_da_turma_do_topico(db, fracoes["id"], aluno)
     assert not permissao.aluno_da_turma_do_topico(db, fracoes["id"], str(uuid.uuid4()))

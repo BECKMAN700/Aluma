@@ -107,8 +107,10 @@ tópico está `em_andamento`; sem conversa, `nao_iniciado` (decisão de 10/11).
 
 | Tabela | Colunas |
 |---|---|
-| `progresso` | `aluno_id`, `topico_id`, `status` (`nao_iniciado`, `em_andamento`, `dominado`) |
-| `dificuldades` | `aluno_id`, `topico_id`, `resumo` |
+| `progresso` | `aluno_id` + `topico_id` (chave), `status` (só `dominado`; `em_andamento` continua saindo da conversa) |
+| `resumos_de_duvidas` | `topico_id` (chave), `texto` (as dúvidas mais comuns, resumidas pela IA, sem nome de aluno) |
+
+As duas vêm na `003_progresso.sql`.
 
 **Tranca no banco:** todas as tabelas com RLS ligado e **nenhuma** política. A chave pública do
 Supabase, que vai dentro do app, não consegue ler nem escrever nada direto no banco. O backend
@@ -196,7 +198,7 @@ material não pesar em cada mensagem.
 
 | Rota | Quem pode |
 |---|---|
-| `PUT /api/topicos/{id}/progresso` | Aluno da turma |
+| `POST /api/topicos/{id}/dominar` | Aluno da turma do tópico. Uma IA **juíza**, numa chamada à parte com outro prompt (`PROMPT_JUIZ`), lê as últimas 12 mensagens do tópico e responde SIM só se o aluno resolveu dois exercícios com o próprio raciocínio. Sai `{"dominado", "mensagem"}`. Com menos de 2 falas do aluno, nem chama a IA. Conta no limite de requisições do chat |
 
 ## 6. Permissões
 

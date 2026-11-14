@@ -8,7 +8,7 @@ from chat import consultas
 from chat.claude import chat_com_claude
 from chat.esquemas import HISTORICO_MAX_ITENS, ChatRequest
 from chat.gemini import TutorIndisponivel, chat_com_gemini
-from chat.prompt import montar_prompt
+from chat.prompt import PROMPT_JUIZ, montar_pedido_ao_juiz, montar_prompt
 from nucleo.auth import Usuario
 from nucleo.db import conexao
 from nucleo.permissoes import confere_topico_do_aluno, exige_aluno, exige_usuario_do_chat
@@ -43,7 +43,7 @@ def chat(
     if topico_id:
         confere_topico_do_aluno(db, topico_id, usuario)
     try:
-        system = montar_prompt(consultas.material_do_topico(db, topico_id) if topico_id else None)
+        system = montar_prompt(consultas.topico_do_chat(db, topico_id) if topico_id else None)
         if usuario.papel == "aluno":
             conversa_id = consultas.conversa_do_aluno(
                 db, usuario.id, topico_id
@@ -87,3 +87,44 @@ def conversa_atual(
     conversa_id = consultas.conversa_do_aluno(db, usuario.id, topico_id)
     mensagens = consultas.ultimas_mensagens(db, conversa_id, MENSAGENS_NA_TELA) if conversa_id else []
     return {"mensagens": mensagens}
+
+
+# A IA julga o desafio numa chamada à parte, com outro prompt: a tutora não decide o próprio
+# placar, e o aluno não marca "dominado" só apertando um botão.
+MENSAGENS_PARA_O_JUIZ = 12
+
+
+@router.post(
+    "/api/topicos/{id}/dominar",
+    dependencies=[Depends(exige_aluno), Depends(check_rate_limit)],
+)
+def dominar_topico(
+    id: UUID,
+    usuario: Usuario = Depends(exige_aluno),
+    db: psycopg.Connection = Depends(conexao),
+):
+    confere_topico_do_aluno(db, id, usuario)
+    conversa_id = consultas.conversa_do_aluno(db, usuario.id, id)
+    historico = (
+        consultas.ultimas_mensagens(db, conversa_id, MENSAGENS_PARA_O_JUIZ) if conversa_id else []
+    )
+    if sum(1 for m in historico if m["autor"] == "aluno") < 2:
+        return {
+            "dominado": False,
+            "mensagem": "Primeiro peça um desafio à Luma e resolva os exercícios com ela.",
+        }
+    pedido = montar_pedido_ao_juiz(historico)
+    try:
+        try:
+            veredito = chat_com_claude(pedido, [], system=PROMPT_JUIZ)
+        except TutorIndisponivel:
+            veredito = chat_com_gemini(pedido, [], system=PROMPT_JUIZ)
+    except TutorIndisponivel:
+        return JSONResponse(status_code=503, content={"erro": "tutor indisponivel"})
+    if not veredito.strip().upper().startswith("SIM"):
+        return {
+            "dominado": False,
+            "mensagem": "Ainda não deu. Resolva mais um exercício com a Luma e tente de novo.",
+        }
+    consultas.marcar_dominado(db, usuario.id, id)
+    return {"dominado": True, "mensagem": "Parabéns! Você dominou este tópico."}
