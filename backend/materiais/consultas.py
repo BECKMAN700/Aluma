@@ -38,7 +38,13 @@ def materias_da_turma(
                                    where c.aluno_id = %(aluno)s::uuid and c.topico_id = t.id
                                ) then 'em_andamento'
                                else 'nao_iniciado'
-                           end
+                           end,
+                           'atividade_em', (
+                               select max(msg.criado_em)
+                               from conversas as c
+                               join mensagens as msg on msg.conversa_id = c.id
+                               where c.aluno_id = %(aluno)s::uuid and c.topico_id = t.id
+                           )
                        )
                        order by t.ordem, t.criado_em
                    ) filter (where t.id is not null),

@@ -210,7 +210,8 @@ export default function ChatScreen() {
           <AcoesDoTopico
             topicoId={topico}
             desabilitado={!canSend}
-            aoTreinar={() => enviarTexto('Quero treinar este tópico. Me passa um exercício?')}
+            inicio={!messages.some((m) => m.author === 'aluno')}
+            aoEnviar={enviarTexto}
             aoResultado={(texto) =>
               setMessages((anteriores) => [...anteriores, { id: `avaliacao-${Date.now()}`, author: 'tutor', text: texto }])
             }
