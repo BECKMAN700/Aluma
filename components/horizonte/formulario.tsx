@@ -18,7 +18,6 @@ import {
   TextInputProps,
   View,
   ViewStyle,
-  useWindowDimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,14 +34,16 @@ export const SEM_CONTORNO_WEB ={ outlineStyle: 'none' } as object;
 export function TelaFormulario({
   topo = 12,
   rodape = 36,
+  largura = 480,
   children,
 }: {
   topo?: number;
   rodape?: number;
+  /** Largura máxima da coluna. */
+  largura?: number;
   children: React.ReactNode;
 }) {
   const margens = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
 
   return (
     <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -56,13 +57,14 @@ export function TelaFormulario({
           {
             paddingTop: margens.top + topo,
             paddingBottom: margens.bottom + rodape,
-            paddingHorizontal: Math.max(20, (width - 480) / 2),
+            paddingHorizontal: 20,
           },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {children}
+        {/* Centra pela largura do próprio conteúdo: com o menu lateral do professor, a tela é mais estreita que a janela. */}
+        <View style={[styles.coluna, { maxWidth: largura }]}>{children}</View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -387,6 +389,7 @@ const styles = StyleSheet.create({
   rolagem: { flex: 1 },
   // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
   conteudo: { flexGrow: 1, overflow: 'hidden' },
+  coluna: { flexGrow: 1, width: '100%', alignSelf: 'center' },
   camada: { zIndex: 1 },
 
   titulo: {

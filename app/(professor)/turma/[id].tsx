@@ -18,6 +18,8 @@ import {
   TelaFormulario,
 } from '@/components/horizonte/formulario';
 import { MateriasDaTurma } from '@/components/materias-da-turma';
+import { VisaoGeralDaTurma } from '@/components/visao-geral-da-turma';
+import { useTelaDeSistema } from '@/constants/auth-theme';
 import { FontesHorizonte, Horizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import type { ResultadoApi } from '@/services/api';
@@ -45,6 +47,30 @@ export default function TurmaScreen() {
   }, [id]);
   const [dados, tentarDeNovo] = useDadosDaTela(buscar);
   const turma = dados.estado === 'pronto' ? dados.dados?.turma : undefined;
+  const sistema = useTelaDeSistema();
+
+  // No PC, a mesma turma vira a visão geral em cartões, ao lado do menu lateral.
+  if (sistema) {
+    return (
+      <TelaFormulario topo={28} largura={1120}>
+        {dados.estado === 'carregando' && <AvisoCarregando texto="Carregando a turma…" />}
+        {dados.estado === 'erro' && (
+          <>
+            <AvisoErro mensagem={dados.erro} />
+            <LinkTexto texto="Tentar de novo" rotulo="Tentar de novo" aoTocar={tentarDeNovo} />
+          </>
+        )}
+        {dados.estado === 'pronto' && !dados.dados && <Text style={styles.vazio}>Turma não encontrada.</Text>}
+        {dados.estado === 'pronto' && dados.dados && (
+          <VisaoGeralDaTurma
+            turma={dados.dados.turma}
+            alunos={dados.dados.alunos}
+            acoesDoCodigo={<AcoesDoCodigo nomeDaTurma={dados.dados.turma.nome} codigo={dados.dados.turma.codigo} />}
+          />
+        )}
+      </TelaFormulario>
+    );
+  }
 
   return (
     <TelaFormulario topo={10}>
