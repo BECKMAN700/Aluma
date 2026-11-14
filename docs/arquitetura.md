@@ -176,15 +176,21 @@ nada.
 | Rota | Quem pode | Entra | Sai |
 |---|---|---|---|
 | `POST /api/turmas/{id}/materias` | Professor dono | `{"nome"}` (até 60) | `201` `{"id", "nome", "topicos": []}` |
-| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem"}]}]}`, matérias na ordem de criação e tópicos em ordem, numa chamada só. O status de cada tópico para o aluno entra na fatia da trilha |
-| `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem"}` |
+| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem", "material", "status"}]}]}` (`material` = nome do PDF ou null; `status` = `nao_iniciado` ou `em_andamento` para o aluno, null para o professor), matérias na ordem de criação e tópicos em ordem, numa chamada só |
+| `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem", "material": null}` |
+| `POST /api/topicos/{id}/materiais` | Professor dono da turma do tópico | O PDF cru no corpo (`Content-Type: application/pdf`) e o nome em `X-Nome-Arquivo`, codificado com `encodeURIComponent` | `201` `{"topico_id", "nome_arquivo", "caracteres"}` · `413` mais de 5 MB (o servidor para de ler no limite) · `422` não é PDF, tem senha, escaneado ou texto demais, com a frase para o professor. Reenviar substitui |
 
 Turma ou matéria de outro professor, ou turma em que o aluno não está: `404`, nunca `403`.
 
+**Chat por tópico.** `POST /api/chat` aceita `"topico_id"` (opcional; sem ele, é o chat geral) e
+`GET /api/conversas/atual` aceita `?topico_id=`. Só o aluno da turma do tópico: outro aluno
+recebe `404`, professor recebe `403`. Cada aluno tem uma conversa por tópico. O texto do PDF
+entra no fim do prompt, entre `<material>` e `</material>`, como conteúdo citado e nunca como
+instrução (`chat/prompt.py`, `montar_prompt`). O prompt vai com cache do Claude, para o
+material não pesar em cada mensagem.
+
 | Rota | Quem pode |
 |---|---|
-| `POST /api/topicos/{id}/materiais` (envio de PDF) | Professor dono |
-| `POST /api/chat` com `topico_id` | Aluno da turma daquele tópico |
 
 ### Refinamento
 
@@ -205,6 +211,8 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `exige_aluno_da_turma(turma_id)` | O aluno está matriculado naquela turma |
 | `exige_membro_da_turma(turma_id)` | Professor dono **ou** aluno matriculado; usa as duas regras de cima |
 | `exige_dono_da_materia(materia_id)` | A matéria existe **e** é de uma turma do professor. De outro professor: `404` |
+| `exige_dono_do_topico(topico_id)` | O tópico existe **e** é de uma turma do professor. De outro professor: `404` |
+| `confere_topico_do_aluno(topico_id)` | O aluno está matriculado na turma do tópico. Chamada pela rota, porque o tópico vem no corpo ou na query |
 | `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |
 
 **Nos testes** não existe Supabase: o `usuario_atual` é trocado por um usuário de mentira, com

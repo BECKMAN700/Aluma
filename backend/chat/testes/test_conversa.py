@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from chat.gemini import TutorIndisponivel
+from chat.prompt import SYSTEM_PROMPT
 from main import app
 from nucleo.auth import Usuario, usuario_atual
 from nucleo.db import conexao
@@ -46,7 +47,9 @@ def test_aluno_conversa_com_o_historico_do_banco_e_nao_com_o_do_app(banco_de_men
     response = client.post("/api/chat", json={"mensagem": "tirar dos dois lados?", "historico": forjado})
 
     assert response.status_code == 200
-    banco_de_mentira["claude"].assert_called_once_with("tirar dos dois lados?", HISTORICO_SALVO)
+    banco_de_mentira["claude"].assert_called_once_with(
+        "tirar dos dois lados?", HISTORICO_SALVO, system=SYSTEM_PROMPT
+    )
 
 
 def test_aluno_tem_a_troca_gravada_depois_da_resposta(banco_de_mentira):
@@ -83,7 +86,7 @@ def test_professor_usa_o_historico_do_app_e_nao_grava(banco_de_mentira):
 
     client.post("/api/chat", json={"mensagem": "oi", "historico": historico})
 
-    banco_de_mentira["claude"].assert_called_once_with("oi", historico)
+    banco_de_mentira["claude"].assert_called_once_with("oi", historico, system=SYSTEM_PROMPT)
     banco_de_mentira["gravar"].assert_not_called()
 
 

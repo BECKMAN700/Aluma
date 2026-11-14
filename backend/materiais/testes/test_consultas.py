@@ -49,12 +49,57 @@ def test_topicos_voltam_em_ordem_dentro_da_materia_certa(db):
 
     materias = consultas.materias_da_turma(db, turma)
 
-    assert [m["nome"] for m in materias] == ["Português", "Matemática"]
-    assert materias[0]["topicos"] == []
-    assert [(t["nome"], t["ordem"]) for t in materias[1]["topicos"]] == [
+    # As duas nascem na mesma transação do teste (mesmo now()): a ordem entre elas é empate.
+    por_nome = {m["nome"]: m for m in materias}
+    assert sorted(por_nome) == ["Matemática", "Português"]
+    assert por_nome["Português"]["topicos"] == []
+    assert [(t["nome"], t["ordem"]) for t in por_nome["Matemática"]["topicos"]] == [
         ("Frações", 1),
         ("Decimais", 2),
         ("Porcentagem", 3),
     ]
     assert permissao.professor_dono_da_materia(db, vazia["id"], professor, escola)
     assert not permissao.professor_dono_da_materia(db, vazia["id"], str(uuid.uuid4()), escola)
+
+
+def test_reenviar_material_substitui_e_aparece_na_lista(db):
+    turma, professor, escola = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática")
+    topico = consultas.criar_topico(db, mat["id"], "Frações")
+
+    consultas.guardar_material(db, topico["id"], "v1.pdf", "texto antigo")
+    salvo = consultas.guardar_material(db, topico["id"], "v2.pdf", "texto novo")
+
+    assert salvo["caracteres"] == len("texto novo")
+    assert db.execute("select count(*) as n from materiais where topico_id = %s", (topico["id"],)).fetchone()["n"] == 1
+    assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["material"] == "v2.pdf"
+    assert permissao.professor_dono_do_topico(db, topico["id"], professor, escola)
+    assert not permissao.professor_dono_do_topico(db, topico["id"], str(uuid.uuid4()), escola)
+
+
+def test_status_do_topico_sai_da_conversa_do_aluno(db):
+    from chat import consultas as chat
+
+    turma, _, _ = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática")
+    fracoes = consultas.criar_topico(db, mat["id"], "Frações")
+    consultas.criar_topico(db, mat["id"], "Decimais")
+    aluno = str(uuid.uuid4())
+    db.execute("insert into perfis (id, nome, papel) values (%s, 'Aluno', 'aluno')", (aluno,))
+    db.execute("insert into matriculas (aluno_id, turma_id) values (%s, %s)", (aluno, turma))
+
+    conversa = chat.criar_conversa(db, aluno, fracoes["id"])
+    assert chat.conversa_do_aluno(db, aluno) is None  # o chat geral é outra conversa
+    assert chat.conversa_do_aluno(db, aluno, fracoes["id"]) == conversa
+    # Conversa sem nenhuma troca (o tutor caiu) ainda não conta como começada.
+    assert [t["status"] for t in consultas.materias_da_turma(db, turma, aluno)[0]["topicos"]] == [
+        "nao_iniciado",
+        "nao_iniciado",
+    ]
+    chat.gravar_troca(db, conversa, "o que é fração?", "o que você acha?")
+
+    topicos = consultas.materias_da_turma(db, turma, aluno)[0]["topicos"]
+    assert [t["status"] for t in topicos] == ["em_andamento", "nao_iniciado"]
+    assert consultas.materias_da_turma(db, turma)[0]["topicos"][0]["status"] is None
+    assert permissao.aluno_da_turma_do_topico(db, fracoes["id"], aluno)
+    assert not permissao.aluno_da_turma_do_topico(db, fracoes["id"], str(uuid.uuid4()))

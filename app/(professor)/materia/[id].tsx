@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import { EnviarPdf } from '@/components/enviar-pdf';
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import {
   AvisoCarregando,
@@ -53,7 +54,7 @@ export default function MateriaScreen() {
         />
       </Surgir>
 
-      <TituloTela titulo={materia?.nome ?? 'Matéria'} subtitulo="Tópicos na ordem da trilha do aluno" style={styles.textos} />
+      <TituloTela titulo={materia?.nome ?? 'Matéria'} subtitulo="Tópicos na ordem da trilha do aluno. O tutor usa o PDF de cada um." style={styles.textos} />
 
       <View style={styles.estrela}>
         <EstrelaNoHorizonte tamanho={28} />
@@ -79,7 +80,16 @@ export default function MateriaScreen() {
               topicos.map((topico, i, todos) => (
                 <View key={topico.id} style={[styles.topico, i < todos.length - 1 && styles.topicoComLinha]}>
                   <Text style={styles.topicoOrdem}>{topico.ordem}</Text>
-                  <Text style={styles.topicoNome}>{topico.nome}</Text>
+                  <View style={styles.topicoTexto}>
+                    <Text style={styles.topicoNome}>{topico.nome}</Text>
+                    <Text style={styles.topicoMaterial}>{topico.material ? `PDF: ${topico.material}` : 'Sem PDF'}</Text>
+                    <EnviarPdf
+                      topicoId={topico.id}
+                      nomeTopico={topico.nome}
+                      temMaterial={!!topico.material}
+                      aoEnviar={tentarDeNovo}
+                    />
+                  </View>
                 </View>
               ))
             )}
@@ -111,10 +121,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Horizonte.text,
   },
-  topico: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 },
+  topico: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 },
+  topicoTexto: { flex: 1, minWidth: 0, gap: 6 },
   topicoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
   topicoOrdem: { width: 24, fontFamily: FontesHorizonte.display, fontSize: 16, lineHeight: 22, color: Horizonte.action },
-  topicoNome: { flex: 1, minWidth: 0, fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
+  topicoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
+  topicoMaterial: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
   vazio: {
     paddingVertical: 16,
     fontFamily: FontesHorizonte.corpo,

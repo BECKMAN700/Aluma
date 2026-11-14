@@ -75,7 +75,7 @@ def test_envia_o_tutor_socratico_e_descarta_a_saudacao():
 
     enviado = pedidos[0]
     assert enviado["model"] == MODELO
-    assert enviado["system"] == SYSTEM_PROMPT
+    assert enviado["system"][0]["text"] == SYSTEM_PROMPT
     assert enviado["max_tokens"] == MAX_OUTPUT_TOKENS
     assert [m["role"] for m in enviado["messages"]] == ["user", "assistant", "user"]
     assert enviado["messages"][-1]["content"] == "tirar dos dois lados?"

@@ -73,7 +73,7 @@ export async function checkHealth(timeoutMs: number): Promise<boolean> {
  * 401, 403, 422, 429 e 503 já chegam com `{"erro": "..."}` pronto em português
  * (backend/main.py) — só repassamos.
  */
-export async function sendMessage(mensagem: string): Promise<SendMessageResult> {
+export async function sendMessage(mensagem: string, topicoId?: string): Promise<SendMessageResult> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
     return { ok: false, erro: ERRO_SEM_URL };
@@ -85,7 +85,7 @@ export async function sendMessage(mensagem: string): Promise<SendMessageResult> 
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: await cabecalhos(),
-      body: JSON.stringify({ mensagem } satisfies ChatRequestBody),
+      body: JSON.stringify({ mensagem, topico_id: topicoId } satisfies ChatRequestBody),
       signal: controller.signal,
     });
 
@@ -117,7 +117,8 @@ export async function chamar<T>(caminho: string, init: RequestInit = {}): Promis
   try {
     const response = await fetch(`${API_URL}${caminho}`, {
       ...init,
-      headers: await cabecalhos(),
+      // Quem chama pode trocar o Content-Type (o envio de PDF manda o arquivo cru).
+      headers: { ...(await cabecalhos()), ...(init.headers as Record<string, string> | undefined) },
       signal: controller.signal,
     });
     if (response.ok) return { ok: true, dados: (await response.json()) as T };
@@ -136,8 +137,9 @@ export function buscarMe(): Promise<ResultadoApi<Me>> {
 }
 
 /** A conversa salva do aluno, para o chat abrir de onde parou. Sem conversa ainda = lista vazia. */
-export function buscarConversaAtual(): Promise<ResultadoApi<ConversaAtual>> {
-  return chamar<ConversaAtual>('/api/conversas/atual');
+export function buscarConversaAtual(topicoId?: string): Promise<ResultadoApi<ConversaAtual>> {
+  const filtro = topicoId ? `?topico_id=${encodeURIComponent(topicoId)}` : '';
+  return chamar<ConversaAtual>(`/api/conversas/atual${filtro}`);
 }
 
 /** Aluno entra na turma pelo código. 404 = código não existe; 409 = já tem turma. */

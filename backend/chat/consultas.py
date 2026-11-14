@@ -3,25 +3,27 @@ from uuid import UUID
 import psycopg
 
 
-def conversa_do_aluno(db: psycopg.Connection, aluno_id: str) -> UUID | None:
-    """A conversa em andamento do aluno: a mais recente sem tópico (os tópicos chegam na Sprint 4)."""
+def conversa_do_aluno(
+    db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None
+) -> UUID | None:
+    """A conversa em andamento do aluno naquele tópico; sem tópico, a do chat geral."""
     linha = db.execute(
         """
         select id
         from conversas
-        where aluno_id = %s and topico_id is null
+        where aluno_id = %s and topico_id is not distinct from %s::uuid
         order by criado_em desc
         limit 1
         """,
-        (aluno_id,),
+        (aluno_id, topico_id),
     ).fetchone()
     return linha["id"] if linha else None
 
 
-def criar_conversa(db: psycopg.Connection, aluno_id: str) -> UUID:
+def criar_conversa(db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None) -> UUID:
     return db.execute(
-        "insert into conversas (aluno_id) values (%s) returning id",
-        (aluno_id,),
+        "insert into conversas (aluno_id, topico_id) values (%s, %s) returning id",
+        (aluno_id, topico_id),
     ).fetchone()["id"]
 
 
@@ -56,3 +58,8 @@ def gravar_troca(
             """,
             (conversa_id, autor, texto),
         )
+
+
+def material_do_topico(db: psycopg.Connection, topico_id: UUID) -> str | None:
+    linha = db.execute("select texto from materiais where topico_id = %s", (topico_id,)).fetchone()
+    return linha["texto"] if linha else None
