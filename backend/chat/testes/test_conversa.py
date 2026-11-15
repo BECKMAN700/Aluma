@@ -49,7 +49,7 @@ def test_aluno_conversa_com_o_historico_do_banco_e_nao_com_o_do_app(banco_de_men
 
     assert response.status_code == 200
     banco_de_mentira["claude"].assert_called_once_with(
-        "tirar dos dois lados?", HISTORICO_SALVO, system=SYSTEM_PROMPT
+        "tirar dos dois lados?", HISTORICO_SALVO, system=SYSTEM_PROMPT, foto=None
     )
 
 
@@ -87,7 +87,7 @@ def test_professor_usa_o_historico_do_app_e_nao_grava(banco_de_mentira):
 
     client.post("/api/chat", json={"mensagem": "oi", "historico": historico})
 
-    banco_de_mentira["claude"].assert_called_once_with("oi", historico, system=SYSTEM_PROMPT)
+    banco_de_mentira["claude"].assert_called_once_with("oi", historico, system=SYSTEM_PROMPT, foto=None)
     banco_de_mentira["gravar"].assert_not_called()
 
 

@@ -103,3 +103,14 @@ def test_rota_cai_no_gemini_quando_o_claude_falha(claude, gemini):
     assert response.json() == {"resposta": "resposta do gemini"}
     claude.assert_called_once()
     gemini.assert_called_once()
+
+
+@patch.dict(os.environ, {"ANTHROPIC_API_KEY": "chave-de-teste"})
+def test_foto_vai_antes_do_texto_na_ultima_mensagem():
+    pedidos = []
+    with patch("chat.claude.anthropic.Anthropic", anthropic_falso(200, RESPOSTA_OK, pedidos)):
+        chat_com_claude("não entendi", [], foto=("image/jpeg", "/9j/AAAA"))
+
+    imagem, texto = pedidos[0]["messages"][-1]["content"]
+    assert imagem == {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": "/9j/AAAA"}}
+    assert texto == {"type": "text", "text": "não entendi"}
