@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -15,7 +15,7 @@ import type { ChatApiAuthor } from '@/types/api';
 import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // A Luma fala direto no céu: o espaço e a cor já mostram quem fala, e cada linha ganha largura em 320px.
-export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: string }) {
+export function MessageBubble({ author, text, foto }: { author: ChatApiAuthor; text: string; foto?: string }) {
   const styles = useEstilos(criarEstilos);
   if (author !== 'aluno') {
     return (
@@ -26,9 +26,16 @@ export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: s
       </Text>
     );
   }
-  return (
+  const balao = (
     <View style={styles.balaoAluno}>
       <Text style={styles.textoAluno}>{text}</Text>
+    </View>
+  );
+  if (!foto) return balao;
+  return (
+    <View style={styles.comFoto}>
+      <Image source={{ uri: foto }} style={styles.foto} accessibilityLabel="Foto da questão enviada" resizeMode="cover" />
+      {balao}
     </View>
   );
 }
@@ -87,6 +94,9 @@ const criarEstilos = (cores: Cores) => StyleSheet.create({
     lineHeight: 22,
     color: cores.studentText,
   },
+  // A foto só existe nesta tela: o servidor não guarda, então some ao recarregar a conversa.
+  comFoto: { alignSelf: 'stretch', alignItems: 'flex-end', gap: 6 },
+  foto: { width: 220, height: 150, borderRadius: 16, borderWidth: 1, borderColor: cores.hairline },
   pensando: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
   pensandoTexto: {
     flexShrink: 1,

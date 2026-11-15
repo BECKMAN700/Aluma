@@ -19,6 +19,8 @@ export interface ChatRequestBody {
   topico_id?: string;
   /** Conversa de um projeto do aluno; nunca junto com tópico. */
   conversa_id?: string;
+  /** Foto da questão: JPEG em base64, sem o prefixo "data:". O servidor confere o formato. */
+  imagem?: string;
 }
 
 /** Contrato de GET /api/conversas/atual: as últimas mensagens do aluno, da mais antiga à mais nova. */

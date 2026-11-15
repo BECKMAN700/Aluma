@@ -65,7 +65,7 @@ def test_chat_com_topico_e_conversa_juntos_responde_422(cliente):
 
 def test_chat_de_projeto_grava_e_da_titulo(cliente, monkeypatch):
     feito = []
-    monkeypatch.setattr(chat_rotas, "chat_com_claude", lambda m, h, system: "Boa pergunta")
+    monkeypatch.setattr(chat_rotas, "chat_com_claude", lambda m, h, system, foto: "Boa pergunta")
     monkeypatch.setattr(chat_rotas.consultas, "ultimas_mensagens", lambda db, c, n: [])
     monkeypatch.setattr(chat_rotas.consultas, "nome_da_ia", lambda db, e: "Iara")
     monkeypatch.setattr(chat_rotas.consultas, "gravar_troca", lambda db, c, a, t: feito.append(("troca", c)))

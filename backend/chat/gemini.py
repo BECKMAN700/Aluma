@@ -1,3 +1,4 @@
+import base64
 import os
 import time
 
@@ -43,7 +44,9 @@ def _log_indisponivel(motivo: str) -> None:
     print(f"[gemini] tutor indisponivel: {motivo}")
 
 
-def chat_com_gemini(mensagem: str, historico: list, system: str = SYSTEM_PROMPT) -> str:
+def chat_com_gemini(
+    mensagem: str, historico: list, system: str = SYSTEM_PROMPT, foto: tuple[str, str] | None = None
+) -> str:
     """
     Comunica-se com o Gemini para obter a resposta do tutor.
 
@@ -66,9 +69,10 @@ def chat_com_gemini(mensagem: str, historico: list, system: str = SYSTEM_PROMPT)
         )
 
     # Adiciona a mensagem atual
-    contents.append(
-        types.Content(role="user", parts=[types.Part.from_text(text=mensagem)])
-    )
+    partes = [types.Part.from_text(text=mensagem)]
+    if foto:
+        partes.insert(0, types.Part.from_bytes(data=base64.b64decode(foto[1]), mime_type=foto[0]))
+    contents.append(types.Content(role="user", parts=partes))
 
     client = genai.Client(api_key=api_key)
     limite = time.monotonic() + PRAZO_TOTAL_S

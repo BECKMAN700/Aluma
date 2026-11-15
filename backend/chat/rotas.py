@@ -24,6 +24,7 @@ router = APIRouter()
 
 # A tela do chat abre com as últimas mensagens; a conversa inteira pesaria no celular fraco.
 MENSAGENS_NA_TELA = 50
+MARCA_DA_FOTO = "[Foto da questão]"
 
 
 # A permissão vem antes do limite: conta sem turma é barrada sem gastar cota nem crédito de IA.
@@ -72,14 +73,17 @@ def chat(
             historico = [{"autor": msg.autor, "texto": msg.texto} for msg in payload.historico]
 
         # Claude primeiro; sem chave, sem crédito ou fora do ar, o Gemini assume.
+        foto = payload.foto()
         try:
-            resposta = chat_com_claude(payload.mensagem, historico, system=system)
+            resposta = chat_com_claude(payload.mensagem, historico, system=system, foto=foto)
         except TutorIndisponivel:
-            resposta = chat_com_gemini(payload.mensagem, historico, system=system)
+            resposta = chat_com_gemini(payload.mensagem, historico, system=system, foto=foto)
 
         # Só grava a troca que deu certo: se o tutor caiu, o aluno manda de novo.
+        # A foto não é gravada; a marca no texto avisa a IA, nas próximas falas, que houve uma.
         if conversa_id:
-            consultas.gravar_troca(db, conversa_id, payload.mensagem, resposta)
+            texto = f"{MARCA_DA_FOTO} {payload.mensagem}" if foto else payload.mensagem
+            consultas.gravar_troca(db, conversa_id, texto, resposta)
         if payload.conversa_id:
             projetos.dar_titulo(db, payload.conversa_id, payload.mensagem)
         return {"resposta": resposta}
