@@ -27,7 +27,7 @@ def painel(
     usuario: Usuario = Depends(exige_dono_da_turma),
     db: psycopg.Connection = Depends(conexao),
 ):
-    return {"topicos": painel_da_turma(db=db, turma_id=id)}
+    return {"topicos": painel_da_turma(db=db, turma_id=id, professor_id=usuario.id)}
 
 
 @router.post(

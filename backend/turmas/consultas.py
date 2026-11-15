@@ -1,79 +1,32 @@
-import secrets
 from uuid import UUID
 
 import psycopg
-from psycopg import errors
 from psycopg.rows import dict_row
 
 
-ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-
-
-def gerar_codigo_turma() -> str:
-    """Gera um código de turma com seis caracteres sem símbolos ambíguos."""
-    return "".join(
-        secrets.choice(ALFABETO_CODIGO)
-        for _ in range(6)
-    )
-
-
-def criar_turma(
-    db: psycopg.Connection,
-    escola_id: UUID,
-    professor_id: UUID,
-    nome: str,
-    serie: str,
-) -> dict:
-    """Cria uma turma e tenta outro código se houver colisão."""
-    for tentativa in range(5):
-        codigo = gerar_codigo_turma()
-
-        try:
-            with db.transaction():
-                with db.cursor(row_factory=dict_row) as cursor:
-                    cursor.execute(
-                        """
-                        INSERT INTO turmas (
-                            escola_id,
-                            professor_id,
-                            nome,
-                            serie,
-                            codigo
-                        )
-                        VALUES (%s, %s, %s, %s, %s)
-                        RETURNING id, nome, serie, codigo
-                        """,
-                        (escola_id, professor_id, nome, serie, codigo),
-                    )
-                    turma = cursor.fetchone()
-
-            if turma is None:
-                raise RuntimeError("a turma nao foi retornada pelo banco")
-
-            return turma
-
-        except errors.UniqueViolation as erro:
-            if erro.diag.constraint_name != "turmas_codigo_key":
-                raise
-
-            if tentativa == 4:
-                raise
-
-    raise RuntimeError("nao foi possivel gerar um codigo unico")
+def criar_turma(db: psycopg.Connection, escola_id: UUID, nome: str, serie: str) -> dict:
+    """Quem cria é o coordenador; os professores entram depois, um por matéria."""
+    return db.execute(
+        "insert into turmas (escola_id, nome, serie) values (%s, %s, %s) returning id, nome, serie",
+        (escola_id, nome, serie),
+    ).fetchone()
 
 
 def turmas_do_professor(
     db: psycopg.Connection,
     professor_id: UUID,
 ) -> list[dict]:
-    """Retorna somente as turmas do professor informado."""
+    """As turmas em que o professor tem pelo menos uma matéria."""
     with db.cursor(row_factory=dict_row) as cursor:
         cursor.execute(
             """
-            SELECT id, nome, serie, codigo
-            FROM turmas
-            WHERE professor_id = %s
-            ORDER BY criado_em DESC
+            SELECT t.id, t.nome, t.serie
+            FROM turmas AS t
+            WHERE EXISTS (
+                SELECT 1 FROM materias AS m
+                WHERE m.turma_id = t.id AND m.professor_id = %s
+            )
+            ORDER BY t.nome
             """,
             (professor_id,),
         )

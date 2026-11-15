@@ -113,6 +113,19 @@ tópico está `em_andamento`; sem conversa, `nao_iniciado` (decisão de 10/11).
 
 As duas vêm na `003_progresso.sql`.
 
+### Coordenador (`004_coordenador.sql`, decisão de 15/11)
+
+| Tabela | Mudança |
+|---|---|
+| `perfis` | Papel novo `coordenador`. `matricula` e `nascimento` (pré-cadastro do aluno, matrícula única na escola), `entrou_em` (vazio = pré-cadastro que ainda não entrou pelo convite), `trocar_senha` (professor com senha provisória) |
+| `turmas` | **Sem** `professor_id` e **sem** `codigo`: quem cria e matricula é o coordenador |
+| `materias` | `professor_id`: quem dá aula é a matéria. Uma turma tem vários professores, um por disciplina |
+| `matriculas` | A chave estrangeira para `perfis` é `on update cascade`: quando o aluno entra pelo convite, o pré-cadastro troca de id para o id do login e a matrícula vai junto |
+| `escolas` | Marca: `nome_da_ia`, `cor` (`#rrggbb`), `logo` (PNG/JPG até 200 KB, no próprio banco) e `logo_tipo`. `convite`: uuid do link de entrada da escola |
+
+A migração copia o professor de cada turma para as matérias dela antes de apagar a coluna:
+nada que existe se perde.
+
 **Tranca no banco:** todas as tabelas com RLS ligado e **nenhuma** política. A chave pública do
 Supabase, que vai dentro do app, não consegue ler nem escrever nada direto no banco. O backend
 conecta como dono do banco e é o único que lê.
@@ -160,10 +173,8 @@ inválido: `401`. Com token, mas sem permissão: `403`. Em dúvida, o servidor n
 |---|---|---|---|
 | `GET /health` | Qualquer um | — | `{"status": "ok"}` |
 | `GET /api/me` | Logado | — | `{"id", "nome", "papel", "escola": {"id","nome"} ou null, "turma": {"id","nome"} ou null}` |
-| `POST /api/turmas` | Professor | `{"nome", "serie"}` | `201` `{"id", "nome", "serie", "codigo"}` |
-| `GET /api/turmas` | Professor | — | `{"turmas": [...]}`, só as dele |
+| `GET /api/turmas` | Professor | — | `{"turmas": [{"id", "nome", "serie"}]}`, só as que têm matéria dele |
 | `GET /api/turmas/{id}/alunos` | Professor **dono** da turma | — | `{"alunos": [{"id", "nome"}]}` |
-| `POST /api/matriculas` | Aluno | `{"codigo"}` | `201` `{"turma": {"id","nome"}}` · `404` código não existe · `409` já tem turma |
 | `POST /api/chat` | Aluno matriculado ou professor | `{"mensagem", "historico"}` | `{"resposta"}`; para o aluno, grava as duas mensagens |
 | `GET /api/conversas/atual` | Aluno | — | `{"mensagens": [{"autor", "texto"}]}`, as últimas 50, da mais antiga para a mais nova |
 
@@ -179,7 +190,7 @@ nada.
 | Rota | Quem pode | Entra | Sai |
 |---|---|---|---|
 | `POST /api/turmas/{id}/materias` | Professor dono | `{"nome"}` (até 60) | `201` `{"id", "nome", "topicos": []}` |
-| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem", "material", "status"}]}]}` (`material` = nome do PDF ou null; `status` = `nao_iniciado`, `em_andamento` ou `dominado` para o aluno, null para o professor; `atividade_em` = hora da última mensagem do aluno no tópico, usada no "Continuar" do início), matérias na ordem de criação e tópicos em ordem, numa chamada só |
+| `GET /api/turmas/{id}/materias` | Professor dono ou aluno da turma | — | `{"materias": [{"id", "nome", "topicos": [{"id", "nome", "ordem", "material", "status"}]}]}` (`material` = nome do PDF ou null; `status` = `nao_iniciado`, `em_andamento` ou `dominado` para o aluno, null para o professor; `atividade_em` = hora da última mensagem do aluno no tópico, usada no "Continuar" do início), matérias na ordem de criação e tópicos em ordem, numa chamada só. O professor recebe só as matérias dele; o aluno, todas da turma |
 | `POST /api/materias/{id}/topicos` | Professor dono da turma da matéria | `{"nome"}` (até 80) | `201` `{"id", "nome", "ordem", "material": null}` |
 | `POST /api/topicos/{id}/materiais` | Professor dono da turma do tópico | O PDF cru no corpo (`Content-Type: application/pdf`) e o nome em `X-Nome-Arquivo`, codificado com `encodeURIComponent` | `201` `{"topico_id", "nome_arquivo", "caracteres"}` · `413` mais de 5 MB (o servidor para de ler no limite) · `422` não é PDF, tem senha, escaneado ou texto demais, com a frase para o professor. Reenviar substitui |
 
@@ -206,7 +217,7 @@ material não pesar em cada mensagem.
 
 | Rota | Quem pode |
 |---|---|
-| `GET /api/turmas/{id}/painel` | Professor dono. Por tópico: `{"id", "nome", "ordem", "materia", "dominado", "em_andamento", "nao_iniciado", "resumo", "resumo_em"}`. Só contagens: nenhuma conversa sai daqui |
+| `GET /api/turmas/{id}/painel` | Professor dono. Só os tópicos das matérias dele. Por tópico: `{"id", "nome", "ordem", "materia", "dominado", "em_andamento", "nao_iniciado", "resumo", "resumo_em"}`. Só contagens: nenhuma conversa sai daqui |
 | `POST /api/topicos/{id}/resumo-de-duvidas` | Professor dono. Junta as 60 falas de aluno mais recentes do tópico (sem quem disse, cada uma cortada em 300 caracteres), pede à IA as 3 dúvidas mais comuns (`PROMPT_RESUMO`) e guarda em `resumos_de_duvidas`. `422` com menos de 3 falas. Conta no limite de requisições |
 | `POST /api/topicos/{id}/dominar` | Aluno da turma do tópico. Uma IA **juíza**, numa chamada à parte com outro prompt (`PROMPT_JUIZ`), lê as últimas 12 mensagens do tópico e responde SIM só se o aluno resolveu dois exercícios com o próprio raciocínio. Sai `{"dominado", "mensagem"}`. Com menos de 2 falas do aluno, nem chama a IA. Conta no limite de requisições do chat |
 
@@ -219,11 +230,11 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `usuario_atual` (em `auth.py`) | Token válido; devolve o `Usuario` |
 | `exige_professor` | `papel == "professor"` |
 | `exige_aluno` | `papel == "aluno"` |
-| `exige_dono_da_turma(turma_id)` | A turma existe **e** o professor dela é o usuário. Turma de outro professor responde `404`, não `403`: quem não é dono não fica sabendo que ela existe |
+| `exige_dono_da_turma(turma_id)` | A turma existe, é da escola do usuário **e** ele tem matéria nela. Turma de outro professor responde `404`, não `403`: quem não é dono não fica sabendo que ela existe |
 | `exige_aluno_da_turma(turma_id)` | O aluno está matriculado naquela turma |
 | `exige_membro_da_turma(turma_id)` | Professor dono **ou** aluno matriculado; usa as duas regras de cima |
-| `exige_dono_da_materia(materia_id)` | A matéria existe **e** é de uma turma do professor. De outro professor: `404` |
-| `exige_dono_do_topico(topico_id)` | O tópico existe **e** é de uma turma do professor. De outro professor: `404` |
+| `exige_dono_da_materia(materia_id)` | A matéria existe **e** o professor dela é o usuário. De outro professor: `404` |
+| `exige_dono_do_topico(topico_id)` | O tópico existe **e** é de uma matéria do professor. De outro professor: `404` |
 | `confere_topico_do_aluno(topico_id)` | O aluno está matriculado na turma do tópico. Chamada pela rota, porque o tópico vem no corpo ou na query |
 | `confere_topico_do_chat(topico_id)` | No chat: aluno da turma do tópico ou professor dono dele |
 | `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |

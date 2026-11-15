@@ -38,7 +38,7 @@ def criar_materia_da_turma(
     usuario: Usuario = Depends(exige_dono_da_turma),
     db: psycopg.Connection = Depends(conexao),
 ):
-    return criar_materia(db=db, turma_id=id, nome=dados.nome)
+    return criar_materia(db=db, turma_id=id, nome=dados.nome, professor_id=usuario.id)
 
 
 @router.get("/turmas/{id}/materias")
@@ -47,8 +47,9 @@ def listar_materias(
     usuario: Usuario = Depends(exige_membro_da_turma),
     db: psycopg.Connection = Depends(conexao),
 ):
-    aluno_id = usuario.id if usuario.papel == "aluno" else None
-    return {"materias": materias_da_turma(db=db, turma_id=id, aluno_id=aluno_id)}
+    if usuario.papel == "aluno":
+        return {"materias": materias_da_turma(db=db, turma_id=id, aluno_id=usuario.id)}
+    return {"materias": materias_da_turma(db=db, turma_id=id, professor_id=usuario.id)}
 
 
 @router.post("/materias/{id}/topicos", status_code=status.HTTP_201_CREATED)

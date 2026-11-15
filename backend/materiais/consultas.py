@@ -3,20 +3,24 @@ from uuid import UUID
 import psycopg
 
 
-def criar_materia(db: psycopg.Connection, turma_id: UUID, nome: str) -> dict:
+def criar_materia(db: psycopg.Connection, turma_id: UUID, nome: str, professor_id: str) -> dict:
     materia = db.execute(
-        "insert into materias (turma_id, nome) values (%s, %s) returning id, nome",
-        (turma_id, nome),
+        "insert into materias (turma_id, nome, professor_id) values (%s, %s, %s) returning id, nome",
+        (turma_id, nome, professor_id),
     ).fetchone()
     return {**materia, "topicos": []}
 
 
 def materias_da_turma(
-    db: psycopg.Connection, turma_id: UUID, aluno_id: str | None = None
+    db: psycopg.Connection,
+    turma_id: UUID,
+    aluno_id: str | None = None,
+    professor_id: str | None = None,
 ) -> list[dict]:
     """
     Cada matéria já com os tópicos em ordem: a tela faz uma chamada só. Com `aluno_id`, cada
     tópico ganha o status dele: em andamento se já houve troca com o tutor naquele tópico.
+    Com `professor_id`, só as matérias desse professor (a turma tem um por disciplina).
     """
     return db.execute(
         """
@@ -54,10 +58,11 @@ def materias_da_turma(
         left join topicos as t on t.materia_id = m.id
         left join materiais as mat on mat.topico_id = t.id
         where m.turma_id = %(turma)s
+          and (%(professor)s::uuid is null or m.professor_id = %(professor)s::uuid)
         group by m.id
         order by m.criado_em
         """,
-        {"turma": turma_id, "aluno": aluno_id},
+        {"turma": turma_id, "aluno": aluno_id, "professor": professor_id},
     ).fetchall()
 
 

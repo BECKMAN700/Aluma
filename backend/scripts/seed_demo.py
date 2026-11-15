@@ -66,7 +66,7 @@ TOPICOS = [
 
 
 def semear(db: psycopg.Connection, senha: str) -> str:
-    """Cria escola, professor, turma e aluno matriculado. Devolve o código da turma."""
+    """Cria escola, professor, turma e aluno matriculado. Devolve o id da turma."""
     if db.execute("select 1 from escolas where nome = %s", (ESCOLA,)).fetchone():
         sys.exit(f"A '{ESCOLA}' já existe. Nada foi criado.")
 
@@ -79,7 +79,7 @@ def semear(db: psycopg.Connection, senha: str) -> str:
         "insert into perfis (id, nome, papel, escola_id) values (%s, %s, 'professor', %s)",
         (professor_id, PROFESSOR[0], escola_id),
     )
-    turma = criar_turma(db, escola_id, professor_id, *TURMA)
+    turma = criar_turma(db, escola_id, *TURMA)
 
     aluno_id = criar_login(ALUNO[1], senha)
     db.execute(
@@ -87,11 +87,11 @@ def semear(db: psycopg.Connection, senha: str) -> str:
         (aluno_id, ALUNO[0], escola_id),
     )
     db.execute("insert into matriculas (aluno_id, turma_id) values (%s, %s)", (aluno_id, turma["id"]))
-    semear_trilha(db)
-    return turma["codigo"]
+    semear_trilha(db, professor_id)
+    return turma["id"]
 
 
-def semear_trilha(db: psycopg.Connection) -> None:
+def semear_trilha(db: psycopg.Connection, professor_id: str | None = None) -> None:
     """Matemática com três tópicos e material, na turma de demonstração. Não duplica."""
     turma = db.execute(
         """
@@ -106,7 +106,13 @@ def semear_trilha(db: psycopg.Connection) -> None:
         "select 1 from materias where turma_id = %s and nome = %s", (turma["id"], MATERIA)
     ).fetchone():
         sys.exit(f"A trilha de {MATERIA} já existe na turma de demonstração. Nada foi criado.")
-    materia = criar_materia(db, turma["id"], MATERIA)
+    if professor_id is None:
+        professor_id = db.execute(
+            "select p.id from perfis as p join escolas as e on e.id = p.escola_id"
+            " where e.nome = %s and p.papel = 'professor'",
+            (ESCOLA,),
+        ).fetchone()["id"]
+    materia = criar_materia(db, turma["id"], MATERIA, professor_id)
     for nome, texto in TOPICOS:
         topico = criar_topico(db, materia["id"], nome)
         guardar_material(db, topico["id"], f"{nome} (demonstração).pdf", texto)
@@ -136,9 +142,9 @@ def main() -> None:
     with psycopg.connect(
         os.environ["DATABASE_URL"], row_factory=dict_row, prepare_threshold=None, connect_timeout=10
     ) as db:
-        codigo = semear(db, senha)
+        semear(db, senha)
 
-    print(f"Demonstração criada na {ESCOLA}, turma {TURMA[0]} (código {codigo}).")
+    print(f"Demonstração criada na {ESCOLA}, turma {TURMA[0]}.")
     print(f"Aluno: {ALUNO[1]} · Professor: {PROFESSOR[1]} · mesma senha que você digitou.")
 
 

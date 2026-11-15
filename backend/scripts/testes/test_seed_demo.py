@@ -24,7 +24,7 @@ def db(monkeypatch):
 
 
 def test_cria_aluno_matriculado_na_turma_da_escola_ficticia(db):
-    codigo = seed_demo.semear(db, "senha-de-teste")
+    turma = seed_demo.semear(db, "senha-de-teste")
 
     linha = db.execute(
         """
@@ -33,9 +33,9 @@ def test_cria_aluno_matriculado_na_turma_da_escola_ficticia(db):
         join turmas t on t.id = m.turma_id
         join perfis p on p.id = m.aluno_id
         join escolas e on e.id = t.escola_id
-        where t.codigo = %s
+        where t.id = %s
         """,
-        (codigo,),
+        (turma,),
     ).fetchone()
     assert linha == {"papel": "aluno", "nome": seed_demo.ESCOLA}
 
@@ -49,8 +49,7 @@ def test_segunda_vez_nao_cria_nada(db):
 def test_trilha_vem_com_tres_topicos_em_ordem_e_material(db):
     from materiais.consultas import materias_da_turma
 
-    codigo = seed_demo.semear(db, "senha-de-teste")
-    turma = db.execute("select id from turmas where codigo = %s", (codigo,)).fetchone()["id"]
+    turma = seed_demo.semear(db, "senha-de-teste")
 
     [materia] = materias_da_turma(db, turma)
     assert materia["nome"] == seed_demo.MATERIA
