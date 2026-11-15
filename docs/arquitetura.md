@@ -221,6 +221,23 @@ material não pesar em cada mensagem.
 | `POST /api/topicos/{id}/resumo-de-duvidas` | Professor dono. Junta as 60 falas de aluno mais recentes do tópico (sem quem disse, cada uma cortada em 300 caracteres), pede à IA as 3 dúvidas mais comuns (`PROMPT_RESUMO`) e guarda em `resumos_de_duvidas`. `422` com menos de 3 falas. Conta no limite de requisições |
 | `POST /api/topicos/{id}/dominar` | Aluno da turma do tópico. Uma IA **juíza**, numa chamada à parte com outro prompt (`PROMPT_JUIZ`), lê as últimas 12 mensagens do tópico e responde SIM só se o aluno resolveu dois exercícios com o próprio raciocínio. Sai `{"dominado", "mensagem"}`. Com menos de 2 falas do aluno, nem chama a IA. Conta no limite de requisições do chat |
 
+### Coordenação (decisão de 15/11)
+
+Tudo em `/api/coordenacao`, só para `coordenador`, e toda consulta filtra pela escola dele.
+Turma, aluno ou professor de outra escola: `404`.
+
+| Rota | Entra | Sai |
+|---|---|---|
+| `GET /turmas` | — | `{"turmas": [{"id", "nome", "serie", "alunos", "materias": [{"id", "nome", "professor"}]}]}` |
+| `POST /turmas` | `{"nome", "serie"}` | `201` a turma |
+| `GET /turmas/{id}/alunos` | — | `{"alunos": [{"id", "nome", "matricula", "entrou"}]}` (a data de nascimento nunca sai) |
+| `POST /turmas/{id}/alunos` | `{"nome", "matricula", "nascimento"}` | `201` pré-cadastro já matriculado · `409` matrícula repetida na escola |
+| `POST /alunos/{id}/transferir` | `{"turma_id"}` | Muda de turma; o histórico fica com o aluno e o professor antigo deixa de ver |
+| `DELETE /alunos/{id}` | — | `204`; apaga conversas, progresso, matrícula e perfil |
+| `GET /professores` | — | `{"professores": [{"id", "nome", "materias"}]}` |
+| `POST /professores` | `{"nome", "email"}` | `201` com `senha_provisoria`, que só aparece nesta resposta · `409` e-mail já tem conta |
+| `POST /turmas/{id}/materias` | `{"nome", "professor_id"}` | `201`; liga o professor à turma pela disciplina |
+
 ## 6. Permissões
 
 Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
@@ -237,6 +254,7 @@ Tudo em `backend/nucleo/permissoes.py`. As rotas só declaram o que exigem:
 | `exige_dono_do_topico(topico_id)` | O tópico existe **e** é de uma matéria do professor. De outro professor: `404` |
 | `confere_topico_do_aluno(topico_id)` | O aluno está matriculado na turma do tópico. Chamada pela rota, porque o tópico vem no corpo ou na query |
 | `confere_topico_do_chat(topico_id)` | No chat: aluno da turma do tópico ou professor dono dele |
+| `exige_coordenador` | `papel == "coordenador"` e com escola |
 | `exige_usuario_do_chat` | O usuário é professor ou aluno matriculado em alguma turma; aluno sem turma recebe `403` |
 
 **Nos testes** não existe Supabase: o `usuario_atual` é trocado por um usuário de mentira, com
@@ -253,12 +271,13 @@ vendo alunos de turma de outro professor; professor de outra escola; aluno sem t
 | Render | `DATABASE_URL` (endereço do banco, com senha) | **Sim** |
 | Render | `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` | **Sim** |
 | Render | `SUPABASE_URL`, `CORS_ORIGINS` | Não |
-| Só no `.env` de quem cria professor | `SUPABASE_SECRET_KEY` | **Sim** |
+| Render e `.env` de quem roda script | `SUPABASE_SECRET_KEY` (o coordenador cria o login do professor) | **Sim** |
 | App (`.env`, Netlify) | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Não |
 
 Tudo que começa com `EXPO_PUBLIC_` vai dentro do app e qualquer pessoa consegue ler. Por isso
-a chave secreta do Supabase **nunca** recebe esse prefixo nem entra no app: ela só é usada pelo
-script de administração, na máquina de quem cria as contas de professor.
+a chave secreta do Supabase **nunca** recebe esse prefixo nem entra no app. Desde 15/11 ela vai
+também para o Render, porque o coordenador cria o login do professor com senha provisória. O
+risco extra é pequeno: o `DATABASE_URL` que já está lá tem o mesmo poder sobre os dados.
 
 ## 8. Limites conhecidos do que é gratuito
 

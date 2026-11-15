@@ -11,30 +11,24 @@ terminal, sem aparecer na tela. A escola é criada se ainda não existir uma com
 
 import argparse
 import getpass
-import json
 import os
 import sys
-import urllib.error
-import urllib.request
+from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
 
+# Rodando como `python scripts/criar_professor.py`, a pasta backend/ não está no caminho de import.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from nucleo import supabase_admin  # noqa: E402
+
 
 def criar_login(email: str, senha: str) -> str:
-    """Cria o usuário no Supabase Auth e devolve o id dele."""
-    chave = os.environ["SUPABASE_SECRET_KEY"]
-    pedido = urllib.request.Request(
-        os.environ["SUPABASE_URL"].rstrip("/") + "/auth/v1/admin/users",
-        # email_confirm: a confirmação por e-mail está desligada no projeto (arquitetura.md §8)
-        data=json.dumps({"email": email, "password": senha, "email_confirm": True}).encode(),
-        headers={"apikey": chave, "Authorization": f"Bearer {chave}", "Content-Type": "application/json"},
-    )
     try:
-        with urllib.request.urlopen(pedido, timeout=20) as resposta:
-            return json.load(resposta)["id"]
-    except urllib.error.HTTPError as e:
-        sys.exit(f"O Supabase recusou criar o login ({e.code}): {e.read().decode(errors='replace')}")
+        return supabase_admin.criar_login(email, senha)
+    except (supabase_admin.EmailJaCadastrado, supabase_admin.AdminIndisponivel) as e:
+        sys.exit(f"O Supabase recusou criar o login: {e}")
 
 
 def main() -> None:

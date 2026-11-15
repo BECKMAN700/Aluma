@@ -144,3 +144,10 @@ def confere_topico_do_chat(db: psycopg.Connection, topico_id: UUID, usuario: Usu
         )
         return
     confere_topico_do_aluno(db, topico_id, usuario)
+
+
+def exige_coordenador(usuario: Usuario = Depends(usuario_atual)) -> Usuario:
+    """Coordenador de uma escola. Toda consulta dele filtra pela escola_id daqui."""
+    if usuario.papel != "coordenador" or not usuario.escola_id:
+        raise HTTPException(status_code=403, detail="voce nao tem acesso a isso")
+    return usuario

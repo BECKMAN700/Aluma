@@ -8,11 +8,11 @@ alter table perfis add constraint perfis_papel_check
 
 -- Pré-cadastro do aluno: o coordenador cria a linha com matrícula e nascimento, sem login.
 -- Quando o aluno entra pelo convite da escola, a linha passa a ter o id do login dele
--- (entrou_em deixa de ser vazio). Perfil que já nasceu de um login tem entrou_em = criado_em.
+-- (entrou_em deixa de ser vazio). Perfil que nasce de um login já vem com entrou_em preenchido.
 alter table perfis
     add column matricula text check (char_length(matricula) between 1 and 30),
     add column nascimento date,
-    add column entrou_em timestamptz,
+    add column entrou_em timestamptz default now(),
     -- Professor criado pelo coordenador recebe senha provisória e troca no primeiro acesso.
     add column trocar_senha boolean not null default false;
 update perfis set entrou_em = criado_em;
