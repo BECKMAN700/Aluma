@@ -17,6 +17,8 @@ export interface ChatRequestBody {
   historico?: ChatHistoryItem[];
   /** Sem tópico = chat geral. Com tópico, o tutor usa o PDF do professor. */
   topico_id?: string;
+  /** Conversa de um projeto do aluno; nunca junto com tópico. */
+  conversa_id?: string;
 }
 
 /** Contrato de GET /api/conversas/atual: as últimas mensagens do aluno, da mais antiga à mais nova. */
@@ -191,4 +193,12 @@ export interface ProfessorCriado extends ProfessorDaEscola {
   email: string;
   /** Só aparece nesta resposta: o coordenador repassa e o professor troca no primeiro acesso. */
   senha_provisoria: string;
+}
+
+/** Contrato de /api/projetos (backend/projetos/rotas.py): pastas do aluno, privadas. */
+export interface Projeto {
+  id: string;
+  nome: string;
+  /** A mais recente primeiro; o título é o começo da primeira pergunta (null antes dela). */
+  conversas: { id: string; titulo: string | null }[];
 }

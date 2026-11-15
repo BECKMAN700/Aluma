@@ -78,6 +78,7 @@ export async function sendMessage(
   mensagem: string,
   topicoId?: string,
   historico?: ChatHistoryItem[],
+  conversaId?: string,
 ): Promise<SendMessageResult> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
@@ -90,7 +91,7 @@ export async function sendMessage(
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: await cabecalhos(),
-      body: JSON.stringify({ mensagem, topico_id: topicoId, historico } satisfies ChatRequestBody),
+      body: JSON.stringify({ mensagem, topico_id: topicoId, historico, conversa_id: conversaId } satisfies ChatRequestBody),
       signal: controller.signal,
     });
 
