@@ -23,7 +23,8 @@ import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { AcoesDoTopico } from '@/components/acoes-do-topico';
 import { useSessao } from '@/hooks/use-sessao';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
-import { escolherFoto, type Foto } from '@/services/foto';
+import { escolherFoto, type Foto, limparPartida, partidaComFoto } from '@/services/foto';
+import { BotaoFoto, erroDaFoto, FECHAR, MenuDaFoto, type OrigemDaFoto } from '@/components/menu-da-foto';
 import { mensagensDaConversa } from '@/services/projetos';
 import { CascaDoAluno } from '@/components/casca-do-aluno';
 import { useTelaDividida } from '@/constants/auth-theme';
@@ -47,10 +48,6 @@ interface Message {
 
 // Foto sem texto: o servidor exige mensagem, e a IA precisa saber o que o aluno quer.
 const PEDIDO_DA_FOTO = 'Me ajuda com esta questão.';
-const MAIS = 'M12 5v14M5 12h14';
-const FECHAR = 'M6 6l12 12M18 6L6 18';
-const CAMERA = 'M4 8h3l2-3h6l2 3h3v11H4zM15.5 13a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0';
-const GALERIA = 'M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2M21 16l-5-5-9 9M11 10a2 2 0 1 1-4 0a2 2 0 0 1 4 0';
 
 // Só na tela: não é gravada nem vai para o servidor. O nome é o da IA da escola.
 const ID_SAUDACAO = 'saudacao';
@@ -78,11 +75,13 @@ export default function ChatScreen() {
   const ia = (sessao.estado === 'pronto' && sessao.usuario.escola?.nome_da_ia) || 'Luma';
   const pc = useTelaDividida();
   const [messages, setMessages] = useState<Message[]>(() => [saudacao(ia)]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(() => partidaComFoto()?.texto ?? '');
   const [emFoco, setEmFoco] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [foto, setFoto] = useState<Foto | null>(null);
+  const [foto, setFoto] = useState<Foto | null>(() => partidaComFoto()?.foto ?? null);
+  // Lida no useState acima; limpa depois, para outra conversa não abrir com a mesma foto.
+  useEffect(() => limparPartida(), []);
   const [menuFoto, setMenuFoto] = useState(false);
   const [preparandoFoto, setPreparandoFoto] = useState(false);
   const [conversaSalva, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
@@ -170,7 +169,7 @@ export default function ChatScreen() {
 
   const handleSendMessage = () => enviarTexto(inputText, foto);
 
-  const pegarFoto = async (origem: 'camera' | 'galeria') => {
+  const pegarFoto = async (origem: OrigemDaFoto) => {
     setMenuFoto(false);
     setSendError(null);
     setPreparandoFoto(true);
@@ -178,11 +177,7 @@ export default function ChatScreen() {
       const escolhida = await escolherFoto(origem);
       if (escolhida) setFoto(escolhida);
     } catch (e) {
-      setSendError(
-        e instanceof Error && e.message === 'sem-permissao'
-          ? 'Libere a câmera nas configurações do celular para tirar a foto.'
-          : 'Não deu para abrir essa foto. Tente outra.',
-      );
+      setSendError(erroDaFoto(e));
     } finally {
       setPreparandoFoto(false);
     }
@@ -300,29 +295,7 @@ export default function ChatScreen() {
           ListFooterComponent={isSending ? <LumaPensando ia={ia} /> : null}
         />
 
-        {menuFoto && (
-          <View style={styles.menuFoto}>
-            {(['camera', 'galeria'] as const).map((origem) => (
-              <Pressable
-                key={origem}
-                style={({ pressed }) => [styles.itemMenuFoto, pressed && styles.pressionado]}
-                onPress={() => pegarFoto(origem)}
-                accessibilityRole="button"
-              >
-                <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d={origem === 'camera' ? CAMERA : GALERIA}
-                    stroke={cores.action}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-                <Text style={styles.textoMenuFoto}>{origem === 'camera' ? 'Tirar foto da questão' : 'Escolher da galeria'}</Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
+        {menuFoto && <MenuDaFoto aoEscolher={pegarFoto} style={styles.menuFoto} />}
 
         <View style={styles.inputBar}>
           <View style={[styles.campo, !!foto && styles.campoComFoto, emFoco && styles.inputFoco]}>
@@ -348,18 +321,12 @@ export default function ChatScreen() {
               </View>
             )}
             <View style={styles.campoLinha}>
-              <Pressable
-                style={({ pressed }) => [styles.botaoMais, pressed && styles.pressionado]}
-                onPress={() => setMenuFoto((aberto) => !aberto)}
-                disabled={preparandoFoto || isSending}
-                accessibilityRole="button"
-                accessibilityLabel={menuFoto ? 'Fechar o menu de foto' : 'Anexar foto da questão'}
-                accessibilityState={{ expanded: menuFoto, disabled: preparandoFoto || isSending, busy: preparandoFoto }}
-              >
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                  <Path d={menuFoto ? FECHAR : MAIS} stroke={cores.text} strokeWidth={2.2} strokeLinecap="round" />
-                </Svg>
-              </Pressable>
+              <BotaoFoto
+                aberto={menuFoto}
+                desabilitado={preparandoFoto || isSending}
+                ocupado={preparandoFoto}
+                aoTocar={() => setMenuFoto((aberto) => !aberto)}
+              />
           <TextInput
             style={[styles.input, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
             placeholder={foto ? 'Escreva sua dúvida (opcional)' : 'Escreva sua dúvida'}
@@ -499,14 +466,6 @@ const criarEstilos = (cores: Cores) => StyleSheet.create({
   },
   campoComFoto: { borderRadius: 22, padding: 8, gap: 6 },
   campoLinha: { flexDirection: 'row', alignItems: 'center' },
-  botaoMais: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: cores.hairline,
-  },
   previa: { width: 72, height: 72 },
   previaImagem: { width: 72, height: 72, borderRadius: 12 },
   // Alvo de toque de 44px; o círculo visível é menor, no canto da prévia.
@@ -519,19 +478,7 @@ const criarEstilos = (cores: Cores) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: cores.text,
   },
-  menuFoto: {
-    alignSelf: 'flex-start',
-    marginHorizontal: 16,
-    marginTop: 8,
-    width: 260,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: cores.hairline,
-    borderRadius: 16,
-    backgroundColor: cores.surface,
-  },
-  itemMenuFoto: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 12, borderRadius: 10 },
-  textoMenuFoto: { fontFamily: FontesHorizonte.corpo, fontSize: 16, color: cores.text },
+  menuFoto: { alignSelf: 'flex-start', marginHorizontal: 16, marginTop: 8 },
   input: {
     // Estica e preenche o espaço horizontal livre da row.
     flex: 1,

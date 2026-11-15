@@ -1,6 +1,7 @@
 /**
  * Início do aluno (rota /home), "chat limpo" aprovado em 15/11: a logo da escola, a saudação e
- * a caixa para falar com a IA. Enviar abre o chat já com a pergunta.
+ * a caixa para falar com a IA. Enviar abre o chat já com a pergunta; o + escolhe a foto da questão
+ * e abre o chat com ela no campo, para o aluno conferir e enviar.
  */
 import React, { useCallback, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -8,14 +9,16 @@ import { router } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 
 import { CascaDoAluno } from '@/components/casca-do-aluno';
-import { SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
+import { AvisoErro, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
 import { LogoDaEscola } from '@/components/logo-da-escola';
+import { BotaoFoto, erroDaFoto, MenuDaFoto, type OrigemDaFoto } from '@/components/menu-da-foto';
 import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 import type { ResultadoApi } from '@/services/api';
 import { enderecoDaLogo } from '@/services/convites';
+import { escolherFoto, guardarPartida } from '@/services/foto';
 import { listarMaterias } from '@/services/materias';
 import type { ListaDeMaterias, Topico } from '@/types/api';
 
@@ -27,6 +30,9 @@ export default function HomeScreen() {
   const escola = usuario?.escola;
   const ia = escola?.nome_da_ia ?? 'Luma';
   const [texto, setTexto] = useState('');
+  const [menuFoto, setMenuFoto] = useState(false);
+  const [preparandoFoto, setPreparandoFoto] = useState(false);
+  const [erroFoto, setErroFoto] = useState<string | null>(null);
 
   // O tópico em andamento em que o aluno mexeu por último: um toque e ele volta a estudar.
   const turmaId = usuario?.turma?.id;
@@ -42,6 +48,23 @@ export default function HomeScreen() {
     if (!texto.trim()) return;
     router.push({ pathname: '/chat', params: { mensagem: texto.trim() } });
     setTexto('');
+  };
+
+  const pegarFoto = async (origem: OrigemDaFoto) => {
+    setMenuFoto(false);
+    setErroFoto(null);
+    setPreparandoFoto(true);
+    try {
+      const foto = await escolherFoto(origem);
+      if (!foto) return;
+      guardarPartida({ foto, texto: texto.trim() });
+      setTexto('');
+      router.push('/chat');
+    } catch (e) {
+      setErroFoto(erroDaFoto(e));
+    } finally {
+      setPreparandoFoto(false);
+    }
   };
 
   return (
@@ -63,6 +86,12 @@ export default function HomeScreen() {
         <Text style={styles.pergunta}>Qual dúvida você quer pensar comigo hoje?</Text>
 
         <View style={styles.campo}>
+          <BotaoFoto
+            aberto={menuFoto}
+            desabilitado={preparandoFoto}
+            ocupado={preparandoFoto}
+            aoTocar={() => setMenuFoto((aberto) => !aberto)}
+          />
           <TextInput
             style={[styles.input, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
             placeholder={`Fale com a ${ia}`}
@@ -80,6 +109,8 @@ export default function HomeScreen() {
             </Svg>
           </Pressable>
         </View>
+        {menuFoto && <MenuDaFoto aoEscolher={pegarFoto} />}
+        {erroFoto && <AvisoErro mensagem={erroFoto} />}
 
         <View style={styles.atalhos}>
           {!!continuar && (
@@ -119,9 +150,9 @@ const criarEstilos = (cores: Cores) =>
     pergunta: { fontFamily: FontesHorizonte.corpo, fontSize: 16, lineHeight: 23, color: cores.textMuted, textAlign: 'center' },
     campo: {
       flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%', maxWidth: 640, minHeight: 58, marginTop: 10,
-      paddingLeft: 20, paddingRight: 7, borderRadius: 999, borderWidth: 1, borderColor: cores.fieldBorder, backgroundColor: cores.fieldBg,
+      paddingLeft: 7, paddingRight: 7, borderRadius: 999, borderWidth: 1, borderColor: cores.fieldBorder, backgroundColor: cores.fieldBg,
     },
-    input: { flex: 1, minHeight: 44, color: cores.text, fontFamily: FontesHorizonte.corpo, fontSize: 16 },
+    input: { flex: 1, minHeight: 44, paddingHorizontal: 6, color: cores.text, fontFamily: FontesHorizonte.corpo, fontSize: 16 },
     enviar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.action },
     atalhos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
     atalho: {
