@@ -35,12 +35,25 @@ export interface ChatErrorResponse {
 /** Contrato de GET /api/me (backend/turmas/rotas_matriculas.py). */
 export type Papel = 'aluno' | 'professor' | 'coordenador';
 
+/** A cara da escola, editada pelo coordenador (backend/coordenacao/esquemas.py, Marca). */
+export interface MarcaDaEscola {
+  nome_do_sistema: string;
+  nome_da_ia: string;
+  /** Principal e secundária, em #rrggbb. */
+  cor: string;
+  cor_secundaria: string;
+  logo_formato: 'redondo' | 'quadrado' | 'livre';
+  tem_logo: boolean;
+}
+
 export interface Me {
   id: string;
   nome: string;
   papel: Papel;
-  escola: { id: string; nome: string } | null;
+  escola: ({ id: string; nome: string } & MarcaDaEscola) | null;
   turma: { id: string; nome: string } | null;
+  /** Professor criado com senha provisória: troca antes de abrir o painel. */
+  trocar_senha: boolean;
 }
 
 /** Contrato de POST /api/matriculas. */
@@ -133,14 +146,22 @@ export interface ResumoDeDuvidas {
 }
 
 /** Contrato de /api/coordenacao (backend/coordenacao/rotas.py). */
-export interface EscolaDoCoordenador {
+export interface EscolaDoCoordenador extends MarcaDaEscola {
   id: string;
   nome: string;
-  nome_da_ia: string;
-  cor: string;
   /** Uuid do link de entrada dos alunos: /convite/<convite>. */
   convite: string;
-  tem_logo: boolean;
+}
+
+/** Contrato de GET /api/convites/{convite}: o que a tela do link mostra antes do login. */
+export interface EscolaDoConvite extends MarcaDaEscola {
+  id: string;
+  nome: string;
+}
+
+export interface EntradaPeloConvite {
+  escola: { id: string; nome: string };
+  turma: { id: string; nome: string } | null;
 }
 
 export interface TurmaDaEscola {

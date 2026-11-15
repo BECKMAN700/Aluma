@@ -2,6 +2,7 @@
 import { chamar, type ResultadoApi } from '@/services/api';
 import type {
   AlunoPreCadastrado,
+  MarcaDaEscola,
   EscolaDoCoordenador,
   ProfessorCriado,
   ProfessorDaEscola,
@@ -63,4 +64,21 @@ export function ligarProfessor(
   professorId: string,
 ): Promise<ResultadoApi<{ id: string; nome: string }>> {
   return enviar(`/turmas/${id(turmaId)}/materias`, { nome, professor_id: professorId });
+}
+
+export function salvarMarca(
+  marca: Omit<MarcaDaEscola, 'tem_logo'>,
+): Promise<ResultadoApi<EscolaDoCoordenador>> {
+  return enviar('/escola', marca, 'PATCH');
+}
+
+/** PNG ou JPG até 200 KB; quem confere o tipo de verdade é o servidor, pelo conteúdo. */
+export async function enviarLogo(uri: string, tipo: string): Promise<ResultadoApi<undefined>> {
+  let arquivo: Blob;
+  try {
+    arquivo = await (await fetch(uri)).blob();
+  } catch {
+    return { ok: false, status: 0, erro: 'Não foi possível abrir a imagem escolhida.' };
+  }
+  return chamar(`${BASE}/escola/logo`, { method: 'PUT', body: arquivo, headers: { 'Content-Type': tipo } });
 }

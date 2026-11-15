@@ -23,6 +23,7 @@ export default function CoordenacaoLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="turma/[id]" />
           <Stack.Screen name="professores" />
+          <Stack.Screen name="marca" />
         </Stack>
         {!pc && <BarraDeBaixoDoCoordenador />}
       </View>

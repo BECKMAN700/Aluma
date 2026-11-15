@@ -14,9 +14,10 @@ import { sair } from '@/services/auth';
 
 type Icone = React.ComponentProps<typeof MaterialIcons>['name'];
 
-const DESTINOS: { texto: string; icone: Icone; caminho: '/coordenacao' | '/coordenacao/professores' }[] = [
+const DESTINOS: { texto: string; icone: Icone; caminho: '/coordenacao' | '/coordenacao/professores' | '/coordenacao/marca' }[] = [
   { texto: 'Turmas', icone: 'groups', caminho: '/coordenacao' },
   { texto: 'Professores', icone: 'badge', caminho: '/coordenacao/professores' },
+  { texto: 'Marca', icone: 'palette', caminho: '/coordenacao/marca' },
 ];
 
 function ativo(caminhoAtual: string, destino: string): boolean {
