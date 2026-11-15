@@ -1,5 +1,5 @@
 /**
- * Um tópico na tela da matéria do professor: nome, PDF, "Testar a Luma" e, em "Editar",
+ * Um tópico na tela da matéria do professor: nome, PDF, "Testar a IA" e, em "Editar",
  * renomear, mudar a ordem e excluir. Quem garante que só o dono mexe é o servidor.
  */
 import React, { useState } from 'react';
@@ -9,11 +9,13 @@ import { router } from 'expo-router';
 import { EnviarPdf } from '@/components/enviar-pdf';
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import { LinkTexto } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { sair } from '@/services/auth';
 import { excluirTopico, moverTopico, renomearTopico } from '@/services/materias';
 import type { Topico } from '@/types/api';
 import type { ResultadoApi } from '@/services/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
+import { useSessao } from '@/hooks/use-sessao';
 
 export function TopicoDoProfessor({
   topico,
@@ -29,6 +31,7 @@ export function TopicoDoProfessor({
   /** Recarrega a matéria depois de enviar PDF, renomear, mover ou excluir. */
   aoMudar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   const [editando, setEditando] = useState(false);
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
   const [ocupado, setOcupado] = useState(false);
@@ -50,6 +53,8 @@ export function TopicoDoProfessor({
   };
 
   // Dois toques para excluir: na web e no celular, sem depender de caixa de diálogo do sistema.
+  const { sessao } = useSessao();
+  const ia = (sessao.estado === 'pronto' && sessao.usuario.escola?.nome_da_ia) || 'Luma';
   const excluir = () => (confirmarExclusao ? executar(() => excluirTopico(topico.id)) : setConfirmarExclusao(true));
 
   return (
@@ -61,8 +66,8 @@ export function TopicoDoProfessor({
         <View style={styles.acoes}>
           <EnviarPdf topicoId={topico.id} nomeTopico={topico.nome} temMaterial={!!topico.material} aoEnviar={aoMudar} />
           <LinkTexto
-            texto="Testar a Luma"
-            rotulo={`Testar a Luma no tópico ${topico.nome}`}
+            texto={`Testar a ${ia}`}
+            rotulo={`Testar a ${ia} no tópico ${topico.nome}`}
             aoTocar={() => router.push({ pathname: '/chat', params: { topico: topico.id, nome: topico.nome } })}
           />
           <LinkTexto
@@ -119,6 +124,7 @@ function Botao({
   perigo?: boolean;
   aoTocar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.botao, perigo && styles.botaoPerigo, (pressed || desabilitado) && styles.apagado]}
@@ -132,13 +138,13 @@ function Botao({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   topico: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 },
-  comLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
-  ordem: { width: 24, fontFamily: FontesHorizonte.display, fontSize: 16, lineHeight: 22, color: Horizonte.action },
+  comLinha: { borderBottomWidth: 1, borderBottomColor: cores.hairline },
+  ordem: { width: 24, fontFamily: FontesHorizonte.display, fontSize: 16, lineHeight: 22, color: cores.action },
   texto: { flex: 1, minWidth: 0, gap: 6 },
-  nome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
-  material: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
+  nome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.text },
+  material: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   acoes: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 },
   edicao: { gap: 10, paddingTop: 4 },
   apagado: { opacity: 0.5 },
@@ -147,11 +153,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.text,
+    borderColor: cores.text,
     borderRadius: 22,
   },
-  botaoPerigo: { borderColor: Horizonte.error },
-  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
-  botaoTextoPerigo: { color: Horizonte.error },
-  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.error },
+  botaoPerigo: { borderColor: cores.error },
+  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: cores.text },
+  botaoTextoPerigo: { color: cores.error },
+  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.error },
 });

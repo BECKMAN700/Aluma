@@ -5,7 +5,6 @@ import type {
   ChatRequestBody,
   ChatResponse,
   ConversaAtual,
-  MatriculaResponse,
   Me,
 } from '@/types/api';
 
@@ -79,6 +78,7 @@ export async function sendMessage(
   mensagem: string,
   topicoId?: string,
   historico?: ChatHistoryItem[],
+  conversaId?: string,
 ): Promise<SendMessageResult> {
   if (!API_URL) {
     console.error('EXPO_PUBLIC_API_URL não definida: crie o .env a partir do .env.example');
@@ -91,7 +91,7 @@ export async function sendMessage(
     const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: await cabecalhos(),
-      body: JSON.stringify({ mensagem, topico_id: topicoId, historico } satisfies ChatRequestBody),
+      body: JSON.stringify({ mensagem, topico_id: topicoId, historico, conversa_id: conversaId } satisfies ChatRequestBody),
       signal: controller.signal,
     });
 
@@ -127,6 +127,8 @@ export async function chamar<T>(caminho: string, init: RequestInit = {}): Promis
       headers: { ...(await cabecalhos()), ...(init.headers as Record<string, string> | undefined) },
       signal: controller.signal,
     });
+    // 204 (apagar) não tem corpo para ler.
+    if (response.status === 204) return { ok: true, dados: undefined as T };
     if (response.ok) return { ok: true, dados: (await response.json()) as T };
     const data: Partial<ChatErrorResponse> = await response.json().catch(() => ({}));
     return { ok: false, status: response.status, erro: data.erro || ERRO_SERVIDOR };
@@ -146,12 +148,4 @@ export function buscarMe(): Promise<ResultadoApi<Me>> {
 export function buscarConversaAtual(topicoId?: string): Promise<ResultadoApi<ConversaAtual>> {
   const filtro = topicoId ? `?topico_id=${encodeURIComponent(topicoId)}` : '';
   return chamar<ConversaAtual>(`/api/conversas/atual${filtro}`);
-}
-
-/** Aluno entra na turma pelo código. 404 = código não existe; 409 = já tem turma. */
-export function entrarNaTurma(codigo: string): Promise<ResultadoApi<MatriculaResponse>> {
-  return chamar<MatriculaResponse>('/api/matriculas', {
-    method: 'POST',
-    body: JSON.stringify({ codigo }),
-  });
 }

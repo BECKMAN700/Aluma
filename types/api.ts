@@ -17,6 +17,8 @@ export interface ChatRequestBody {
   historico?: ChatHistoryItem[];
   /** Sem tópico = chat geral. Com tópico, o tutor usa o PDF do professor. */
   topico_id?: string;
+  /** Conversa de um projeto do aluno; nunca junto com tópico. */
+  conversa_id?: string;
 }
 
 /** Contrato de GET /api/conversas/atual: as últimas mensagens do aluno, da mais antiga à mais nova. */
@@ -33,19 +35,27 @@ export interface ChatErrorResponse {
 }
 
 /** Contrato de GET /api/me (backend/turmas/rotas_matriculas.py). */
-export type Papel = 'aluno' | 'professor';
+export type Papel = 'aluno' | 'professor' | 'coordenador';
+
+/** A cara da escola, editada pelo coordenador (backend/coordenacao/esquemas.py, Marca). */
+export interface MarcaDaEscola {
+  nome_do_sistema: string;
+  nome_da_ia: string;
+  /** Principal e secundária, em #rrggbb. */
+  cor: string;
+  cor_secundaria: string;
+  logo_formato: 'redondo' | 'quadrado' | 'livre';
+  tem_logo: boolean;
+}
 
 export interface Me {
   id: string;
   nome: string;
   papel: Papel;
-  escola: { id: string; nome: string } | null;
+  escola: ({ id: string; nome: string } & MarcaDaEscola) | null;
   turma: { id: string; nome: string } | null;
-}
-
-/** Contrato de POST /api/matriculas. */
-export interface MatriculaResponse {
-  turma: { id: string; nome: string };
+  /** Professor criado com senha provisória: troca antes de abrir o painel. */
+  trocar_senha: boolean;
 }
 
 /** Contrato de /api/turmas (backend/turmas/rotas.py). */
@@ -53,7 +63,12 @@ export interface Turma {
   id: string;
   nome: string;
   serie: string;
-  codigo: string;
+}
+
+/** Contrato de GET /api/turmas/resumo: o início do professor. Só números, nunca conversa. */
+export interface ResumoDoProfessor {
+  turmas: (Turma & { alunos: number; topicos: number; dominado: number; em_andamento: number; nao_iniciado: number })[];
+  atencao: { turma_id: string; turma: string; topico_id: string; topico: string; em_andamento: number }[];
 }
 
 export interface ListaDeTurmas {
@@ -130,4 +145,60 @@ export interface PainelDaTurma {
 export interface ResumoDeDuvidas {
   resumo: string;
   resumo_em: string;
+}
+
+/** Contrato de /api/coordenacao (backend/coordenacao/rotas.py). */
+export interface EscolaDoCoordenador extends MarcaDaEscola {
+  id: string;
+  nome: string;
+  /** Uuid do link de entrada dos alunos: /convite/<convite>. */
+  convite: string;
+}
+
+/** Contrato de GET /api/convites/{convite}: o que a tela do link mostra antes do login. */
+export interface EscolaDoConvite extends MarcaDaEscola {
+  id: string;
+  nome: string;
+}
+
+export interface EntradaPeloConvite {
+  escola: { id: string; nome: string };
+  turma: { id: string; nome: string } | null;
+}
+
+export interface TurmaDaEscola {
+  id: string;
+  nome: string;
+  serie: string;
+  alunos: number;
+  materias: { id: string; nome: string; professor: string }[];
+}
+
+/** A data de nascimento nunca volta do servidor: só serve para o aluno provar que é ele. */
+export interface AlunoPreCadastrado {
+  id: string;
+  nome: string;
+  matricula: string;
+  /** Já entrou pelo convite. */
+  entrou: boolean;
+}
+
+export interface ProfessorDaEscola {
+  id: string;
+  nome: string;
+  materias: number;
+}
+
+export interface ProfessorCriado extends ProfessorDaEscola {
+  email: string;
+  /** Só aparece nesta resposta: o coordenador repassa e o professor troca no primeiro acesso. */
+  senha_provisoria: string;
+}
+
+/** Contrato de /api/projetos (backend/projetos/rotas.py): pastas do aluno, privadas. */
+export interface Projeto {
+  id: string;
+  nome: string;
+  /** A mais recente primeiro; o título é o começo da primeira pergunta (null antes dela). */
+  conversas: { id: string; titulo: string | null }[];
 }

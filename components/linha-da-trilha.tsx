@@ -4,8 +4,9 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import type { StatusDoTopico } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 const TEXTO_DO_STATUS: Record<StatusDoTopico, string> = {
   nao_iniciado: 'Não iniciado',
@@ -24,6 +25,7 @@ export function LinhaDaTrilha({
   status: StatusDoTopico;
   aoTocar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   const andando = status === 'em_andamento';
   const dominado = status === 'dominado';
   return (
@@ -44,7 +46,7 @@ export function LinhaDaTrilha({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   pressionado: { opacity: 0.85 },
   linha: {
     flexDirection: 'row',
@@ -52,24 +54,24 @@ const styles = StyleSheet.create({
     gap: 14,
     minHeight: 64,
     borderBottomWidth: 1,
-    borderBottomColor: Horizonte.hairline,
+    borderBottomColor: cores.hairline,
   },
   ordem: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: Horizonte.fieldBorder,
+    borderColor: cores.fieldBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   // Em andamento: contorno da Luma. Dominado: a "estrela" acende por inteiro.
-  ordemAndando: { borderColor: Horizonte.luma },
-  ordemDominado: { borderColor: Horizonte.luma, backgroundColor: Horizonte.luma },
-  ordemTexto: { fontFamily: FontesHorizonte.display, fontSize: 15, color: Horizonte.text },
-  ordemTextoDominado: { color: Horizonte.bg },
+  ordemAndando: { borderColor: cores.luma },
+  ordemDominado: { borderColor: cores.luma, backgroundColor: cores.luma },
+  ordemTexto: { fontFamily: FontesHorizonte.display, fontSize: 15, color: cores.text },
+  ordemTextoDominado: { color: cores.bg },
   texto: { flex: 1, minWidth: 0, gap: 2 },
-  nome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 22, color: Horizonte.text },
-  status: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
-  statusAndando: { color: Horizonte.luma },
+  nome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 22, color: cores.text },
+  status: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
+  statusAndando: { color: cores.luma },
 });

@@ -1,40 +1,35 @@
 /**
- * Início do aluno: daqui ele abre o chat, direto ou por um dos atalhos "Por onde começar?".
+ * Início do aluno (rota /home), "chat limpo" aprovado em 15/11: a logo da escola, a saudação e
+ * a caixa para falar com a IA. Enviar abre o chat já com a pergunta.
  */
-import { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 
-import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
-import {
-  BotaoPartida,
-  BotaoPrincipal,
-  CabecalhoSair,
-  TelaFormulario,
-  TituloTela,
-} from '@/components/horizonte/formulario';
-import { PARTIDAS, type Partida } from '@/constants/partidas';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { CascaDoAluno } from '@/components/casca-do-aluno';
+import { SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
+import { LogoDaEscola } from '@/components/logo-da-escola';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 import type { ResultadoApi } from '@/services/api';
+import { enderecoDaLogo } from '@/services/convites';
 import { listarMaterias } from '@/services/materias';
 import type { ListaDeMaterias, Topico } from '@/types/api';
-import { sair } from '@/services/auth';
-
-const PILARES = [
-  { titulo: 'Método Socrático', apoio: 'Aprenda por questionamento' },
-  { titulo: 'Sem Respostas Prontas', apoio: 'Foco no aprendizado independente' },
-  { titulo: 'Pensamento Crítico', apoio: 'Desenvolva a lógica pura' },
-];
 
 export default function HomeScreen() {
-  const router = useRouter();
+  const styles = useEstilos(criarEstilos);
+  const cores = useCores();
   const { sessao } = useSessao();
   const usuario = sessao.estado === 'pronto' ? sessao.usuario : null;
-  const turmaId = usuario?.turma?.id;
+  const escola = usuario?.escola;
+  const ia = escola?.nome_da_ia ?? 'Luma';
+  const [texto, setTexto] = useState('');
 
   // O tópico em andamento em que o aluno mexeu por último: um toque e ele volta a estudar.
+  const turmaId = usuario?.turma?.id;
   const buscar = useCallback(
     (): Promise<ResultadoApi<ListaDeMaterias>> =>
       turmaId ? listarMaterias(turmaId) : Promise.resolve({ ok: true, dados: { materias: [] } }),
@@ -43,100 +38,71 @@ export default function HomeScreen() {
   const [materias] = useDadosDaTela(buscar);
   const continuar = materias.estado === 'pronto' ? ultimoEmAndamento(materias.dados) : undefined;
 
+  const enviar = () => {
+    if (!texto.trim()) return;
+    router.push({ pathname: '/chat', params: { mensagem: texto.trim() } });
+    setTexto('');
+  };
+
   return (
-    <TelaFormulario>
-      <Surgir style={styles.camada}>
-        <CabecalhoSair legenda={usuario?.turma?.nome} aoSair={sair} />
-      </Surgir>
+    <CascaDoAluno>
+      <View style={styles.centro}>
+        {escola && (
+          <LogoDaEscola
+            endereco={escola.tem_logo ? enderecoDaLogo(escola.id) : null}
+            formato={escola.logo_formato}
+            cor={escola.cor}
+            nome={escola.nome_do_sistema}
+            tamanho={72}
+            corSemFundo={cores.text}
+          />
+        )}
+        <Text style={styles.ola} accessibilityRole="header">
+          {usuario?.nome ? `Olá, ${usuario.nome.split(' ')[0]}` : 'Olá'}
+        </Text>
+        <Text style={styles.pergunta}>Qual dúvida você quer pensar comigo hoje?</Text>
 
-      <TituloTela
-        titulo={usuario?.nome ? `Olá, ${usuario.nome}!` : 'Olá!'}
-        subtitulo="Qual dúvida você quer pensar comigo hoje?"
-        falaDaLuma
-        style={styles.textos}
-      />
+        <View style={styles.campo}>
+          <TextInput
+            style={[styles.input, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
+            placeholder={`Fale com a ${ia}`}
+            placeholderTextColor={cores.textMuted}
+            accessibilityLabel={`Fale com a ${ia}`}
+            value={texto}
+            onChangeText={setTexto}
+            onSubmitEditing={enviar}
+            returnKeyType="send"
+            maxLength={2000}
+          />
+          <Pressable style={({ pressed }) => [styles.enviar, pressed && styles.pressionado]} onPress={enviar} accessibilityRole="button" accessibilityLabel="Enviar">
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path d="M5 12h13M13 6l6 6-6 6" stroke={cores.onAction} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Pressable>
+        </View>
 
-      <View style={styles.estrela}>
-        <EstrelaNoHorizonte tamanho={40} />
-      </View>
-
-      <Surgir style={styles.camada}>
-        <BotaoPrincipal texto="Conversar com o tutor" alto aoTocar={() => router.push('/chat')} />
-        <View style={styles.trilha}>
+        <View style={styles.atalhos}>
           {!!continuar && (
-            <BotaoPartida
+            <Atalho
               texto={`Continuar: ${continuar.nome}`}
               aoTocar={() => router.push({ pathname: '/chat', params: { topico: continuar.id, nome: continuar.nome } })}
             />
           )}
-          <BotaoPartida texto="Ver a trilha da matéria" aoTocar={() => router.push('/trilha')} />
+          <Atalho texto="Ver minha trilha" aoTocar={() => router.push('/trilha')} />
         </View>
-
-        <Text style={styles.chamada} accessibilityRole="header">
-          Por onde começar?
-        </Text>
-        <View style={styles.partidas}>
-          {(Object.keys(PARTIDAS) as Partida[]).map((id) => (
-            <BotaoPartida
-              key={id}
-              texto={PARTIDAS[id]}
-              aoTocar={() => router.push({ pathname: '/chat', params: { partida: id } })}
-            />
-          ))}
-        </View>
-
-        <Text style={styles.secao} accessibilityRole="header">
-          Aluma IA
-        </Text>
-        <Text style={styles.descricao}>
-          O orientador com inteligência artificial que guia seu aprendizado por meio de perguntas. Você constrói o
-          raciocínio e chega às suas próprias conclusões.
-        </Text>
-
-        <View style={styles.pilares}>
-          {PILARES.map((pilar) => (
-            <View key={pilar.titulo} style={styles.pilar}>
-              <Text style={styles.pilarTitulo}>{pilar.titulo}</Text>
-              <Text style={styles.descricaoCurta}>{pilar.apoio}</Text>
-            </View>
-          ))}
-        </View>
-      </Surgir>
-    </TelaFormulario>
+      </View>
+    </CascaDoAluno>
   );
 }
 
-const styles = StyleSheet.create({
-  trilha: { marginTop: 12, gap: 10 },
-  camada: { zIndex: 1 },
-  textos: { marginTop: 6, gap: 4 },
-  estrela: { marginTop: 40, marginBottom: 28 },
-
-  chamada: {
-    marginTop: 22,
-    marginBottom: 10,
-    fontFamily: FontesHorizonte.displayMedio,
-    fontSize: 16,
-    lineHeight: 22,
-    color: Horizonte.text,
-  },
-  partidas: { gap: 8 },
-
-  secao: {
-    marginTop: 36,
-    marginBottom: 8,
-    fontFamily: FontesHorizonte.display,
-    fontSize: 20,
-    lineHeight: 26,
-    color: Horizonte.text,
-  },
-  descricao: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
-
-  pilares: { marginTop: 12 },
-  pilar: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: Horizonte.hairline },
-  pilarTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 15, lineHeight: 20, color: Horizonte.text },
-  descricaoCurta: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
-});
+function Atalho({ texto, aoTocar }: { texto: string; aoTocar: () => void }) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <Pressable style={({ pressed }) => [styles.atalho, pressed && styles.pressionado]} onPress={aoTocar} accessibilityRole="button">
+      <Text style={styles.atalhoTexto}>{texto}</Text>
+    </Pressable>
+  );
+}
 
 function ultimoEmAndamento(dados: ListaDeMaterias): Topico | undefined {
   return dados.materias
@@ -144,3 +110,23 @@ function ultimoEmAndamento(dados: ListaDeMaterias): Topico | undefined {
     .filter((t) => t.status === 'em_andamento' && t.atividade_em)
     .sort((a, b) => (b.atividade_em ?? '').localeCompare(a.atividade_em ?? ''))[0];
 }
+
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    pressionado: { opacity: 0.85 },
+    centro: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 20 },
+    ola: { fontFamily: FontesHorizonte.display, fontSize: 30, lineHeight: 36, color: cores.text, textAlign: 'center' },
+    pergunta: { fontFamily: FontesHorizonte.corpo, fontSize: 16, lineHeight: 23, color: cores.textMuted, textAlign: 'center' },
+    campo: {
+      flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%', maxWidth: 640, minHeight: 58, marginTop: 10,
+      paddingLeft: 20, paddingRight: 7, borderRadius: 999, borderWidth: 1, borderColor: cores.fieldBorder, backgroundColor: cores.fieldBg,
+    },
+    input: { flex: 1, minHeight: 44, color: cores.text, fontFamily: FontesHorizonte.corpo, fontSize: 16 },
+    enviar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.action },
+    atalhos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+    atalho: {
+      minHeight: 44, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 999,
+      borderWidth: 1, borderColor: cores.hairline, backgroundColor: cores.surface,
+    },
+    atalhoTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, color: cores.text },
+  });

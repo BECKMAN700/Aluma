@@ -1,7 +1,8 @@
 /**
  * Layout raiz do app: decide quais telas existem para quem está usando.
- * Sem login: (auth). Aluno sem turma: codigo-da-turma. Aluno com turma: (aluno) e chat.
- * Professor: (professor). Uma tela fora da guarda é tratada como inexistente e a pessoa
+ * Sem login: (auth) e o convite da escola. Aluno sem turma: sem-escola e o convite. Aluno com
+ * turma: (aluno) e chat. Professor com senha provisória: trocar-senha antes de tudo.
+ * Professor: (professor). Coordenador: coordenacao. Uma tela fora da guarda é tratada como inexistente e a pessoa
  * volta para a primeira tela que pode ver — é assim que o aluno não abre tela de professor.
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
  */
@@ -22,10 +23,11 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { Horizonte } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessaoProvider, useSessao } from '@/hooks/use-sessao';
+import { TemaProvider } from '@/hooks/use-tema';
 import { sair } from '@/services/auth';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // Caminho de cada arquivo, e não o pacote inteiro: assim só estes pesos entram no app.
 const FONTES = {
@@ -47,7 +49,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <SessaoProvider>
-        <Navegacao />
+        <TemaProvider>
+          <Navegacao />
+        </TemaProvider>
       </SessaoProvider>
       <StatusBar style="light" />
     </ThemeProvider>
@@ -63,6 +67,7 @@ function Navegacao() {
 
   const usuario = sessao.estado === 'pronto' ? sessao.usuario : null;
   const aluno = usuario?.papel === 'aluno';
+  const professor = usuario?.papel === 'professor' && !usuario.trocar_senha;
 
   return (
     <Stack>
@@ -72,7 +77,16 @@ function Navegacao() {
 
       <Stack.Protected guard={aluno && !usuario.turma}>
         {/* Sem animação do Stack: quem se move é o horizonte (components/horizonte/ceu.tsx). */}
-        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="sem-escola" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      {/* Depois da sem-escola: entrar logado sem o convite na mão cai lá, não aqui sem parâmetro. */}
+      <Stack.Protected guard={!usuario || (aluno && !usuario.turma)}>
+        <Stack.Screen name="convite/[convite]" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={usuario?.papel === 'professor' && usuario.trocar_senha}>
+        <Stack.Screen name="trocar-senha" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
@@ -80,29 +94,35 @@ function Navegacao() {
       </Stack.Protected>
 
       {/* O professor abre o chat para testar a Luma num tópico dele; nada é gravado. */}
-      <Stack.Protected guard={(aluno && !!usuario.turma) || usuario?.papel === 'professor'}>
+      <Stack.Protected guard={(aluno && !!usuario.turma) || professor}>
         <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
-      <Stack.Protected guard={usuario?.papel === 'professor'}>
+      <Stack.Protected guard={professor}>
         <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={usuario?.papel === 'coordenador'}>
+        <Stack.Screen name="coordenacao" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
     </Stack>
   );
 }
 
 function TelaEspera() {
+  const cores = useCores();
   return (
     <TelaSessao
       titulo="Carregando…"
       subtitulo="Se o servidor estiver dormindo, isso leva até um minuto."
     >
-      <ActivityIndicator size="large" color={Horizonte.textMuted} accessibilityLabel="Carregando" />
+      <ActivityIndicator size="large" color={cores.textMuted} accessibilityLabel="Carregando" />
     </TelaSessao>
   );
 }
 
 function TelaErro({ erro }: { erro: string }) {
+  const styles = useEstilos(criarEstilos);
   const { recarregar } = useSessao();
   const [tentando, setTentando] = useState(false);
 
@@ -135,6 +155,7 @@ function TelaSessao({
   subtitulo?: string;
   children: React.ReactNode;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <TelaFormulario topo={20}>
       <Surgir style={styles.camada}>
@@ -149,7 +170,7 @@ function TelaSessao({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 16, gap: 6 },
   estrela: { marginTop: 47, marginBottom: 30 },

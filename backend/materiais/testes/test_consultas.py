@@ -9,7 +9,6 @@ from psycopg.rows import dict_row
 
 from materiais import consultas
 from nucleo import consultas as permissao
-from turmas.consultas import gerar_codigo_turma
 
 # Só no CI: na máquina da equipe o main.py carrega o .env, e o DATABASE_URL seria o Supabase real.
 pytestmark = pytest.mark.skipif(
@@ -33,17 +32,16 @@ def nova_turma(db) -> tuple[str, str, str]:
         (professor, escola),
     )
     turma = db.execute(
-        "insert into turmas (escola_id, professor_id, nome, serie, codigo)"
-        " values (%s, %s, 'T', '8', %s) returning id",
-        (escola, professor, gerar_codigo_turma()),
+        "insert into turmas (escola_id, nome, serie) values (%s, 'T', '8') returning id",
+        (escola,),
     ).fetchone()["id"]
     return turma, professor, str(escola)
 
 
 def test_topicos_voltam_em_ordem_dentro_da_materia_certa(db):
     turma, professor, escola = nova_turma(db)
-    vazia = consultas.criar_materia(db, turma, "Português")
-    mat = consultas.criar_materia(db, turma, "Matemática")
+    vazia = consultas.criar_materia(db, turma, "Português", professor)
+    mat = consultas.criar_materia(db, turma, "Matemática", professor)
     for nome in ("Frações", "Decimais", "Porcentagem"):
         consultas.criar_topico(db, mat["id"], nome)
 
@@ -64,7 +62,7 @@ def test_topicos_voltam_em_ordem_dentro_da_materia_certa(db):
 
 def test_reenviar_material_substitui_e_aparece_na_lista(db):
     turma, professor, escola = nova_turma(db)
-    mat = consultas.criar_materia(db, turma, "Matemática")
+    mat = consultas.criar_materia(db, turma, "Matemática", professor)
     topico = consultas.criar_topico(db, mat["id"], "Frações")
 
     consultas.guardar_material(db, topico["id"], "v1.pdf", "texto antigo")
@@ -80,8 +78,8 @@ def test_reenviar_material_substitui_e_aparece_na_lista(db):
 def test_status_do_topico_sai_da_conversa_do_aluno(db):
     from chat import consultas as chat
 
-    turma, _, _ = nova_turma(db)
-    mat = consultas.criar_materia(db, turma, "Matemática")
+    turma, professor, _ = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática", professor)
     fracoes = consultas.criar_topico(db, mat["id"], "Frações")
     consultas.criar_topico(db, mat["id"], "Decimais")
     aluno = str(uuid.uuid4())
@@ -112,8 +110,8 @@ def test_status_do_topico_sai_da_conversa_do_aluno(db):
 def test_mover_renumera_e_excluir_so_apaga_o_que_esta_vazio(db):
     from chat import consultas as chat
 
-    turma, _, _ = nova_turma(db)
-    mat = consultas.criar_materia(db, turma, "Matemática")
+    turma, professor, _ = nova_turma(db)
+    mat = consultas.criar_materia(db, turma, "Matemática", professor)
     a, b, c = (consultas.criar_topico(db, mat["id"], nome) for nome in ("A", "B", "C"))
 
     consultas.mover_topico(db, c["id"], "cima")
@@ -131,3 +129,24 @@ def test_mover_renumera_e_excluir_so_apaga_o_que_esta_vazio(db):
     assert consultas.excluir_topico_vazio(db, c["id"])
     assert not consultas.excluir_materia_vazia(db, mat["id"])  # ainda tem tópicos
     assert consultas.renomear_materia(db, mat["id"], "Mat")["nome"] == "Mat"
+
+
+def test_dois_professores_na_mesma_turma_cada_um_ve_so_a_sua_materia(db):
+    turma, professor, escola = nova_turma(db)
+    outro = str(uuid.uuid4())
+    db.execute(
+        "insert into perfis (id, nome, papel, escola_id) values (%s, 'Outro', 'professor', %s)",
+        (outro, escola),
+    )
+    mat = consultas.criar_materia(db, turma, "Matemática", professor)
+    port = consultas.criar_materia(db, turma, "Português", outro)
+    topico_port = consultas.criar_topico(db, port["id"], "Crase")
+
+    assert [m["nome"] for m in consultas.materias_da_turma(db, turma, professor_id=professor)] == ["Matemática"]
+    assert len(consultas.materias_da_turma(db, turma)) == 2  # o aluno vê as duas
+    assert permissao.professor_dono_da_turma(db, turma, outro, escola)
+    assert permissao.professor_dono_da_materia(db, mat["id"], professor, escola)
+    assert not permissao.professor_dono_da_materia(db, mat["id"], outro, escola)
+    assert not permissao.professor_dono_do_topico(db, topico_port["id"], professor, escola)
+    # Professor sem matéria na turma não entra nela.
+    assert not permissao.professor_dono_da_turma(db, turma, str(uuid.uuid4()), escola)

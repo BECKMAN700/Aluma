@@ -17,13 +17,16 @@ import Svg, { Path } from 'react-native-svg';
 import { LumaPensando, MessageBubble } from '@/components/balao-mensagem';
 import { CAMINHO_ESTRELA, CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
-import { textoDaPartida } from '@/constants/partidas';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { AcoesDoTopico } from '@/components/acoes-do-topico';
 import { useSessao } from '@/hooks/use-sessao';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
+import { mensagensDaConversa } from '@/services/projetos';
+import { CascaDoAluno } from '@/components/casca-do-aluno';
+import { useTelaDividida } from '@/constants/auth-theme';
 import type { ChatApiAuthor } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
 const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {
@@ -38,23 +41,32 @@ interface Message {
   text: string;
 }
 
-// Só na tela: não é gravada nem vai para o servidor.
-const SAUDACAO: Message = {
-  id: 'saudacao',
+// Só na tela: não é gravada nem vai para o servidor. O nome é o da IA da escola.
+const ID_SAUDACAO = 'saudacao';
+const saudacao = (ia: string): Message => ({
+  id: ID_SAUDACAO,
   author: 'tutor',
-  text: 'Oi, eu sou a Luma! Qual dúvida você quer pensar comigo hoje?',
-};
+  text: `Oi, eu sou a ${ia}! Qual dúvida você quer pensar comigo hoje?`,
+});
 
 export default function ChatScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const margens = useSafeAreaInsets();
   // `topico` vem da trilha: a conversa e o material passam a ser daquele tópico.
-  const { partida, topico, nome } = useLocalSearchParams<{ partida?: string; topico?: string; nome?: string }>();
+  // `conversa` é de um projeto do aluno; `mensagem` é a pergunta digitada no início.
+  const { topico, nome, conversa: conversaDoProjeto, mensagem } = useLocalSearchParams<{
+    topico?: string; nome?: string; conversa?: string; mensagem?: string;
+  }>();
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
   const listRef = useRef<FlatList<Message>>(null);
 
-  const [messages, setMessages] = useState<Message[]>([SAUDACAO]);
+  const { sessao } = useSessao();
+  const ia = (sessao.estado === 'pronto' && sessao.usuario.escola?.nome_da_ia) || 'Luma';
+  const pc = useTelaDividida();
+  const [messages, setMessages] = useState<Message[]>(() => [saudacao(ia)]);
   const [inputText, setInputText] = useState('');
   const [emFoco, setEmFoco] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -62,7 +74,6 @@ export default function ChatScreen() {
   const [conversaSalva, setConversa] = useState<'carregando' | 'erro' | 'pronta'>('carregando');
   const [tentativaConversa, setTentativaConversa] = useState(0);
 
-  const { sessao } = useSessao();
   const professor = sessao.estado === 'pronto' && sessao.usuario.papel === 'professor';
   const conversa = professor ? 'pronta' : conversaSalva;
 
@@ -71,20 +82,20 @@ export default function ChatScreen() {
   useEffect(() => {
     if (professor) return;
     let ativo = true;
-    buscarConversaAtual(topico).then((r) => {
+    (conversaDoProjeto ? mensagensDaConversa(conversaDoProjeto) : buscarConversaAtual(topico)).then((r) => {
       if (!ativo) return;
       if (!r.ok) {
         setConversa('erro');
         return;
       }
       const salvas = r.dados.mensagens.map((m, i) => ({ id: `salva-${i}`, author: m.autor, text: m.texto }));
-      setMessages([SAUDACAO, ...salvas]);
+      setMessages([saudacao(ia), ...salvas]);
       setConversa('pronta');
     });
     return () => {
       ativo = false;
     };
-  }, [tentativaConversa, topico, professor]);
+  }, [tentativaConversa, topico, conversaDoProjeto, professor, ia]);
 
   const recarregarConversa = () => {
     setConversa('carregando');
@@ -119,9 +130,9 @@ export default function ChatScreen() {
     setIsSending(true);
 
     const historico = professor
-      ? messages.filter((m) => m.id !== SAUDACAO.id).map((m) => ({ autor: m.author, texto: m.text }))
+      ? messages.filter((m) => m.id !== ID_SAUDACAO).map((m) => ({ autor: m.author, texto: m.text }))
       : undefined;
-    const result = await sendMessage(trimmedText, topico, historico);
+    const result = await sendMessage(trimmedText, topico, historico, conversaDoProjeto);
 
     if (result.ok) {
       const tutorReply: Message = {
@@ -143,11 +154,11 @@ export default function ChatScreen() {
   // Aberto direto pelo endereço, na web, não há tela anterior para voltar.
   const voltar = () => (router.canGoBack() ? router.back() : router.replace(professor ? '/turmas' : '/home'));
 
-  // Veio de um atalho do início: envia a frase assim que o tutor e a conversa estiverem prontos.
-  // Tira o atalho do endereço para recarregar a página não enviar de novo.
-  const textoPartida = textoDaPartida(partida);
+  // Veio do início (pergunta digitada): envia assim que o tutor e a conversa estiverem
+  // prontos. Tira do endereço para recarregar a página não enviar de novo.
+  const textoPartida = mensagem?.slice(0, 2000) || undefined;
   const enviarPartida = useEffectEvent((texto: string) => {
-    router.setParams({ partida: undefined });
+    router.setParams({ mensagem: undefined });
     enviarTexto(texto);
   });
   useEffect(() => {
@@ -155,25 +166,29 @@ export default function ChatScreen() {
     if (textoPartida && canSend) enviarPartida(textoPartida);
   }, [textoPartida, canSend]);
 
-  return (
+  // O aluno conversa dentro da casca com a gaveta; no celular, a barra da casca já mostra o título.
+  const naCasca = !professor;
+  const tela = (
     <KeyboardAvoidingView style={styles.wrapper} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar style="light" />
-      <CeuEstrelado />
+      <StatusBar style={cores.claro ? 'dark' : 'light'} />
+      {!cores.claro && <CeuEstrelado />}
       {/* Fora da lista: o horizonte fica parado enquanto as falas rolam. */}
-      <View style={[styles.horizonte, { top: margens.top + 64 }]}>
-        <EstrelaNoHorizonte tamanho={0} />
-      </View>
+      {!cores.claro && (
+        <View style={[styles.horizonte, { top: margens.top + 64 }]}>
+          <EstrelaNoHorizonte tamanho={0} />
+        </View>
+      )}
 
       <Surgir
         style={[
           styles.coluna,
           {
-            paddingTop: margens.top + 4,
+            paddingTop: naCasca && !pc ? 4 : margens.top + 4,
             paddingBottom: margens.bottom,
           },
         ]}
       >
-        <View style={styles.cabecalho}>
+        {(!naCasca || pc) && <View style={styles.cabecalho}>
           <Pressable
             style={({ pressed }) => [styles.voltar, pressed && styles.pressionado]}
             onPress={voltar}
@@ -183,7 +198,7 @@ export default function ChatScreen() {
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M15 5l-7 7 7 7"
-                stroke={Horizonte.text}
+                stroke={cores.text}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -191,12 +206,12 @@ export default function ChatScreen() {
             </Svg>
           </Pressable>
           <Svg width={22} height={22} viewBox="0 0 56 56">
-            <Path d={CAMINHO_ESTRELA} fill={Horizonte.luma} />
+            <Path d={CAMINHO_ESTRELA} fill={cores.luma} />
           </Svg>
           <Text style={styles.titulo} accessibilityRole="header" numberOfLines={1}>
-            {nome ? `Luma · ${nome}` : 'Luma'}
+            {nome ? `${ia} · ${nome}` : ia}
           </Text>
-        </View>
+        </View>}
 
         <Text style={styles.privacyNotice}>
           Não escreva seu nome nem outros dados pessoais durante a conversa.
@@ -255,7 +270,7 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
-          ListFooterComponent={isSending ? <LumaPensando /> : null}
+          ListFooterComponent={isSending ? <LumaPensando ia={ia} /> : null}
         />
 
         <View style={styles.inputBar}>
@@ -290,7 +305,7 @@ export default function ChatScreen() {
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7Z"
-                stroke={canSend ? Horizonte.onAction : Horizonte.action}
+                stroke={canSend ? cores.onAction : cores.action}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -301,14 +316,15 @@ export default function ChatScreen() {
       </Surgir>
     </KeyboardAvoidingView>
   );
+  return naCasca ? <CascaDoAluno titulo={nome ?? ia}>{tela}</CascaDoAluno> : tela;
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   wrapper: {
     // Regra 1: Nenhuma altura fixa. Ocupa 100% da tela disponível pelo flexbox do pai.
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: Horizonte.bg,
+    backgroundColor: cores.bg,
   },
   horizonte: { position: 'absolute', left: 0, right: 0, pointerEvents: 'none' },
   coluna: {
@@ -326,7 +342,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   privacyNotice: {
     marginTop: 26,
@@ -335,7 +351,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
   statusBanner: {
     // Altura natural, como a barra de digitar: a lista abaixo absorve o resto.
@@ -360,7 +376,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
-    color: Horizonte.text,
+    color: cores.text,
   },
   messageList: {
     // Regra 1: a lista come o espaço que sobra; com o teclado aberto, ela é quem encolhe.
@@ -390,16 +406,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
     height: 48,
     borderWidth: 1.5,
-    borderColor: Horizonte.fieldBorder,
-    backgroundColor: Horizonte.fieldBg,
+    borderColor: cores.fieldBorder,
+    backgroundColor: cores.fieldBg,
     borderRadius: 24,
     paddingHorizontal: 18,
     fontFamily: FontesHorizonte.corpo,
     // 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
     fontSize: 16,
-    color: Horizonte.text,
+    color: cores.text,
   },
-  inputFoco: { borderWidth: 2, borderColor: Horizonte.action },
+  inputFoco: { borderWidth: 2, borderColor: cores.action },
   sendButton: {
     // Tamanho fixo por natureza (é um ícone), exceção da regra 1.
     width: 48,
@@ -407,12 +423,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Horizonte.action,
+    backgroundColor: cores.action,
   },
   sendButtonDisabled: {
     // Escuro com contorno dourado: mostra que não aceita toque, sem perder o contraste.
     borderWidth: 1.5,
-    borderColor: Horizonte.action,
-    backgroundColor: Horizonte.studentBubble,
+    borderColor: cores.action,
+    backgroundColor: cores.studentBubble,
   },
 });

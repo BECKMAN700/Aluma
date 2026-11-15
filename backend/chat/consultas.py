@@ -7,11 +7,12 @@ def conversa_do_aluno(
     db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None
 ) -> UUID | None:
     """A conversa em andamento do aluno naquele tópico; sem tópico, a do chat geral."""
+    # projeto_id is null: conversa de projeto também não tem tópico e não é o chat geral.
     linha = db.execute(
         """
         select id
         from conversas
-        where aluno_id = %s and topico_id is not distinct from %s::uuid
+        where aluno_id = %s and topico_id is not distinct from %s::uuid and projeto_id is null
         order by criado_em desc
         limit 1
         """,
@@ -81,3 +82,11 @@ def marcar_dominado(db: psycopg.Connection, aluno_id: str, topico_id: UUID) -> N
         """,
         (aluno_id, topico_id),
     )
+
+
+def nome_da_ia(db: psycopg.Connection, escola_id: str | None) -> str:
+    """O nome que a escola deu à IA; sem escola, o do Aluma."""
+    if not escola_id:
+        return "Luma"
+    linha = db.execute("select nome_da_ia from escolas where id = %s", (escola_id,)).fetchone()
+    return linha["nome_da_ia"] if linha else "Luma"

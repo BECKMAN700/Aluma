@@ -1,257 +1,97 @@
 /**
- * Tela da turma (rota /turma/[id]): o código para passar aos alunos e quem já entrou.
- * Mostra só o nome de cada aluno; a conversa dele nunca chega ao professor.
+ * Turma do professor (rota /turma/[id]?aba=), aprovada em 15/11: três abas.
+ * Trilha: as matérias dele e os tópicos. Painel: onde a turma trava, só números e o resumo das
+ * dúvidas pela IA. Alunos: só os nomes; a conversa do aluno nunca chega ao professor.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Path } from 'react-native-svg';
+import React, { useCallback, useState } from 'react';
+import { View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 
-import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
-import {
-  AvisoCarregando,
-  AvisoErro,
-  BotaoPartida,
-  BotaoPrincipal,
-  LinkTexto,
-  TelaFormulario,
-} from '@/components/horizonte/formulario';
+import { CartaoDoTopico } from '@/components/cartao-do-topico';
+import { AvisoCarregando, AvisoErro, LinkTexto } from '@/components/horizonte/formulario';
 import { MateriasDaTurma } from '@/components/materias-da-turma';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/sistema';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
-import type { ResultadoApi } from '@/services/api';
+import { buscarPainel } from '@/services/painel';
 import { alunosDaTurma, listarTurmas } from '@/services/turmas';
-import type { AlunoDaTurma, Turma } from '@/types/api';
 
-type TurmaComAlunos = { turma: Turma; alunos: AlunoDaTurma[] } | null;
-
-// Na web, a folha de compartilhamento só existe em alguns navegadores.
-const PODE_COMPARTILHAR = Platform.OS !== 'web' || (typeof navigator !== 'undefined' && !!navigator.share);
+type Aba = 'trilha' | 'painel' | 'alunos';
+const ABAS: { valor: Aba; nome: string }[] = [
+  { valor: 'trilha', nome: 'Trilha' },
+  { valor: 'painel', nome: 'Painel' },
+  { valor: 'alunos', nome: 'Alunos' },
+];
 
 export default function TurmaScreen() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, aba: abaInicial } = useLocalSearchParams<{ id: string; aba?: Aba }>();
+  const [aba, setAba] = useState<Aba>(ABAS.some((a) => a.valor === abaInicial) ? (abaInicial as Aba) : 'trilha');
+  const [turmas] = useDadosDaTela(listarTurmas);
+  // A turma sai da lista do próprio professor: turma de outro não aparece (e o servidor nega).
+  const turma = turmas.estado === 'pronto' ? turmas.dados.turmas.find((t) => t.id === id) : undefined;
 
-  // A turma sai da lista do próprio professor: turma de outro não é achada e nem pede os alunos.
-  const buscar = useCallback(async (): Promise<ResultadoApi<TurmaComAlunos>> => {
-    const turmas = await listarTurmas();
-    if (!turmas.ok) return turmas;
-    const turma = turmas.dados.turmas.find((t) => t.id === id);
-    if (!turma) return { ok: true, dados: null };
-    const alunos = await alunosDaTurma(turma.id);
-    if (!alunos.ok) return alunos;
-    return { ok: true, dados: { turma, alunos: alunos.dados.alunos } };
-  }, [id]);
-  const [dados, tentarDeNovo] = useDadosDaTela(buscar);
-  const turma = dados.estado === 'pronto' ? dados.dados?.turma : undefined;
+  if (turmas.estado === 'pronto' && !turma) {
+    return (
+      <TelaSistema titulo="Turma não encontrada">
+        <LinkTexto texto="Voltar para o início" rotulo="Voltar para o início" aoTocar={() => router.replace('/turmas')} />
+      </TelaSistema>
+    );
+  }
 
   return (
-    <TelaFormulario topo={10}>
-      <Surgir style={[styles.cabecalho, styles.camada]}>
-        <Pressable
-          style={({ pressed }) => [styles.voltar, pressed && styles.pressionado]}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/turmas'))}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-        >
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M15 5l-7 7 7 7"
-              stroke={Horizonte.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </Pressable>
-        <View style={styles.cabecalhoTexto}>
-          <Text style={styles.nome} accessibilityRole="header">
-            {turma?.nome ?? 'Turma'}
-          </Text>
-          {!!turma && <Text style={styles.serie}>{turma.serie}</Text>}
-        </View>
-      </Surgir>
-
-      {/* Altura reservada: o horizonte fica no mesmo lugar enquanto a turma carrega. */}
-      <Surgir style={[styles.codigoCaixa, styles.camada]}>
-        {!!turma && (
-          <>
-            <Text style={styles.codigoRotulo}>Código da turma</Text>
-            <Text
-              style={styles.codigo}
-              selectable
-              accessibilityLabel={`Código da turma: ${turma.codigo.split('').join(' ')}`}
-            >
-              {turma.codigo}
-            </Text>
-          </>
-        )}
-      </Surgir>
-
-      <View style={styles.estrela}>
-        <EstrelaNoHorizonte tamanho={28} />
+    <TelaSistema
+      titulo={turma?.nome ?? 'Turma'}
+      acao={<Pilula texto="Voltar" aoTocar={() => (router.canGoBack() ? router.back() : router.replace('/turmas'))} />}
+    >
+      <View style={estilosSistema.acoes} role="tablist">
+        {ABAS.map((a) => (
+          <Pilula key={a.valor} texto={a.nome} destaque={aba === a.valor} aoTocar={() => setAba(a.valor)} />
+        ))}
       </View>
-
-      <Surgir style={styles.camada}>
-        {dados.estado === 'carregando' && <AvisoCarregando texto="Carregando a turma…" />}
-        {dados.estado === 'erro' && (
-          <>
-            <AvisoErro mensagem={dados.erro} />
-            <LinkTexto texto="Tentar de novo" rotulo="Tentar de novo" aoTocar={tentarDeNovo} />
-          </>
-        )}
-        {dados.estado === 'pronto' && !dados.dados && <Text style={styles.vazio}>Turma não encontrada.</Text>}
-        {dados.estado === 'pronto' && dados.dados && (
-          <>
-            <AcoesDoCodigo nomeDaTurma={dados.dados.turma.nome} codigo={dados.dados.turma.codigo} />
-            <View style={styles.painel}>
-              <BotaoPartida
-                texto="Ver onde a turma trava"
-                aoTocar={() => router.push({ pathname: '/painel/[id]', params: { id } })}
-              />
-            </View>
-            <MateriasDaTurma turmaId={dados.dados.turma.id} />
-
-            <Text style={styles.titulo} accessibilityRole="header">
-              Alunos ({dados.dados.alunos.length})
-            </Text>
-            {dados.dados.alunos.length === 0 ? (
-              <Text style={styles.vazio}>Nenhum aluno entrou ainda. Passe o código acima para a turma.</Text>
-            ) : (
-              dados.dados.alunos.map((aluno, i, todos) => (
-                <View key={aluno.id} style={[styles.aluno, i < todos.length - 1 && styles.alunoComLinha]}>
-                  <Text style={styles.alunoNome}>{aluno.nome}</Text>
-                </View>
-              ))
-            )}
-          </>
-        )}
-      </Surgir>
-    </TelaFormulario>
+      {aba === 'trilha' && <MateriasDaTurma turmaId={id} />}
+      {aba === 'painel' && <Painel turmaId={id} />}
+      {aba === 'alunos' && <Alunos turmaId={id} />}
+    </TelaSistema>
   );
 }
 
-function AcoesDoCodigo({ nomeDaTurma, codigo }: { nomeDaTurma: string; codigo: string }) {
-  const [aviso, setAviso] = useState<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-
-  const avisar = (texto: string) => {
-    setAviso(texto);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setAviso(null), 3000);
-  };
-
-  const copiar = async () => {
-    const copiou = await Clipboard.setStringAsync(codigo).catch(() => false);
-    avisar(copiou ? 'Copiado!' : 'Não deu para copiar. Anote o código acima.');
-  };
-
-  const compartilhar = async () => {
-    try {
-      await Share.share({ message: `Entre na turma ${nomeDaTurma} no Aluma com o código ${codigo}.` });
-    } catch (e) {
-      // Na web, desistir de compartilhar também cai aqui, e isso não é erro.
-      if ((e as Error).name !== 'AbortError') avisar('Não deu para compartilhar. Use o botão Copiar.');
-    }
-  };
-
+function Painel({ turmaId }: { turmaId: string }) {
+  const buscar = useCallback(() => buscarPainel(turmaId), [turmaId]);
+  const [dados, tentarDeNovo] = useDadosDaTela(buscar);
+  // Quem trava primeiro: mais alunos tentando sem dominar. Empate: a ordem da trilha.
+  const topicos =
+    dados.estado === 'pronto'
+      ? [...dados.dados.topicos].sort((a, b) => b.em_andamento - a.em_andamento || a.ordem - b.ordem)
+      : [];
   return (
     <>
-      <View style={styles.acoes}>
-        <View style={styles.acao}>
-          <BotaoPrincipal texto="Copiar" rotulo="Copiar o código da turma" compacto aoTocar={copiar} />
-        </View>
-        {PODE_COMPARTILHAR && (
-          <Pressable
-            style={({ pressed }) => [styles.acao, styles.botaoSecundario, pressed && styles.pressionado]}
-            onPress={compartilhar}
-            accessibilityRole="button"
-            accessibilityLabel="Compartilhar o código da turma"
-          >
-            <Text style={styles.botaoSecundarioTexto}>Compartilhar</Text>
-          </Pressable>
-        )}
-      </View>
-      {!!aviso && (
-        <Text style={styles.codigoAviso} accessibilityLiveRegion="polite">
-          {aviso}
-        </Text>
+      {dados.estado === 'carregando' && <AvisoCarregando texto="Carregando o painel…" />}
+      {dados.estado === 'erro' && (
+        <>
+          <AvisoErro mensagem={dados.erro} />
+          <LinkTexto texto="Tentar de novo" rotulo="Tentar de novo" aoTocar={tentarDeNovo} />
+        </>
       )}
+      {dados.estado === 'pronto' && topicos.length === 0 && (
+        <Vazio texto="Crie os tópicos da sua matéria na aba Trilha para acompanhar a turma aqui." />
+      )}
+      {topicos.map((topico) => (
+        <CartaoDoTopico key={topico.id} topico={topico} />
+      ))}
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  camada: { zIndex: 1 },
-  painel: { marginTop: 16 },
-  pressionado: { opacity: 0.85 },
-
-  // Margem negativa: a seta fica mais perto da borda que o resto da coluna, como no desenho.
-  cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -14, minHeight: 48 },
-  voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  cabecalhoTexto: { flex: 1, minWidth: 0 },
-  nome: { fontFamily: FontesHorizonte.display, fontSize: 22, lineHeight: 28, color: Horizonte.text },
-  serie: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
-
-  codigoCaixa: { marginTop: 38, minHeight: 76, alignItems: 'center', gap: 6 },
-  codigoRotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
-  codigo: {
-    fontFamily: FontesHorizonte.display,
-    fontSize: 42,
-    lineHeight: 50,
-    letterSpacing: 3,
-    color: Horizonte.action,
-  },
-
-  estrela: { marginTop: 54, marginBottom: 18 },
-
-  acoes: { flexDirection: 'row', gap: 8 },
-  acao: { flex: 1, minWidth: 0 },
-  botaoSecundario: {
-    minHeight: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    borderWidth: 1.5,
-    borderColor: Horizonte.text,
-    borderRadius: 26,
-    backgroundColor: Horizonte.surface,
-  },
-  botaoSecundarioTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
-  codigoAviso: {
-    marginTop: 8,
-    fontFamily: FontesHorizonte.corpoForte,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-    color: Horizonte.text,
-  },
-
-  titulo: {
-    marginTop: 24,
-    marginBottom: 4,
-    fontFamily: FontesHorizonte.display,
-    fontSize: 18,
-    lineHeight: 24,
-    color: Horizonte.text,
-  },
-  aluno: { minHeight: 48, justifyContent: 'center' },
-  alunoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
-  alunoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
-  vazio: {
-    paddingVertical: 16,
-    fontFamily: FontesHorizonte.corpo,
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-    color: Horizonte.textMuted,
-  },
-});
+function Alunos({ turmaId }: { turmaId: string }) {
+  const buscar = useCallback(() => alunosDaTurma(turmaId), [turmaId]);
+  const [dados] = useDadosDaTela(buscar);
+  return (
+    <Cartao titulo={dados.estado === 'pronto' ? `Alunos (${dados.dados.alunos.length})` : 'Alunos'}>
+      {dados.estado === 'carregando' && <AvisoCarregando texto="Carregando os alunos…" />}
+      {dados.estado === 'erro' && <AvisoErro mensagem={dados.erro} />}
+      {dados.estado === 'pronto' && dados.dados.alunos.length === 0 && (
+        <Vazio texto="Nenhum aluno ainda. A coordenação matricula e manda o convite." />
+      )}
+      {dados.estado === 'pronto' && dados.dados.alunos.map((a) => <Linha key={a.id} titulo={a.nome} />)}
+    </Cartao>
+  );
+}

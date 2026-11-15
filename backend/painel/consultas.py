@@ -3,9 +3,9 @@ from uuid import UUID
 import psycopg
 
 
-def painel_da_turma(db: psycopg.Connection, turma_id: UUID) -> list[dict]:
+def painel_da_turma(db: psycopg.Connection, turma_id: UUID, professor_id: str) -> list[dict]:
     """
-    Por tópico, quantos alunos da turma dominaram, estão em andamento (já trocaram mensagem
+    Só das matérias do professor. Por tópico, quantos alunos da turma dominaram, estão em andamento (já trocaram mensagem
     com o tutor naquele tópico) ou não começaram. Só números: nenhuma conversa sai daqui.
     """
     return db.execute(
@@ -33,7 +33,7 @@ def painel_da_turma(db: psycopg.Connection, turma_id: UUID) -> list[dict]:
                    (select count(*) from alunos) as total
             from topicos as tp
             join materias as m on m.id = tp.materia_id
-            where m.turma_id = %(turma)s
+            where m.turma_id = %(turma)s and m.professor_id = %(professor)s
         )
         select pt.id, pt.nome, pt.ordem, pt.materia, pt.dominado, pt.em_andamento,
                pt.total - pt.dominado - pt.em_andamento as nao_iniciado,
@@ -42,7 +42,7 @@ def painel_da_turma(db: psycopg.Connection, turma_id: UUID) -> list[dict]:
         left join resumos_de_duvidas as r on r.topico_id = pt.id
         order by pt.materia_em, pt.ordem, pt.criado_em
         """,
-        {"turma": turma_id},
+        {"turma": turma_id, "professor": professor_id},
     ).fetchall()
 
 

@@ -12,8 +12,10 @@ def professor_dono_da_turma(
     linha = db.execute(
         """
         select 1
-        from turmas
-        where id = %s and professor_id = %s and escola_id = %s
+        from turmas as t
+        join materias as m on m.turma_id = t.id
+        where t.id = %s and m.professor_id = %s and t.escola_id = %s
+        limit 1
         """,
         (turma_id, professor_id, escola_id),
     ).fetchone()
@@ -54,7 +56,7 @@ def professor_dono_da_materia(
         select 1
         from materias as m
         join turmas as t on t.id = m.turma_id
-        where m.id = %s and t.professor_id = %s and t.escola_id = %s
+        where m.id = %s and m.professor_id = %s and t.escola_id = %s
         """,
         (materia_id, professor_id, escola_id),
     ).fetchone()
@@ -73,7 +75,7 @@ def professor_dono_do_topico(
         from topicos as tp
         join materias as m on m.id = tp.materia_id
         join turmas as t on t.id = m.turma_id
-        where tp.id = %s and t.professor_id = %s and t.escola_id = %s
+        where tp.id = %s and m.professor_id = %s and t.escola_id = %s
         """,
         (topico_id, professor_id, escola_id),
     ).fetchone()

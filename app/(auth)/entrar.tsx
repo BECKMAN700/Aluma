@@ -17,10 +17,12 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { emailValido, entrar, type CampoComErro, type Perfil } from '@/services/auth';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function EntrarScreen() {
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const params = useLocalSearchParams<{ perfil?: string }>();
   const perfil: Perfil = params.perfil === 'professor' ? 'professor' : 'aluno';
@@ -126,7 +128,7 @@ export default function EntrarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
 
   textos: { marginTop: 10, gap: 6 },
@@ -142,6 +144,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

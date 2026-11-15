@@ -6,9 +6,10 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { sair } from '@/services/auth';
 import { enviarMaterial } from '@/services/materias';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export function EnviarPdf({
   topicoId,
@@ -21,6 +22,7 @@ export function EnviarPdf({
   temMaterial: boolean;
   aoEnviar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -63,7 +65,7 @@ export function EnviarPdf({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   coluna: { alignItems: 'flex-start', gap: 4 },
   apagado: { opacity: 0.6 },
   botao: {
@@ -71,10 +73,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.text,
+    borderColor: cores.text,
     borderRadius: 22,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
-  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.error },
+  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: cores.text },
+  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.error },
 });
