@@ -9,9 +9,10 @@ from datetime import date
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from coordenacao.consultas import logo_da_escola
 from coordenacao.esquemas import matricula_valida, nascimento_valido
 from nucleo.auth import Usuario
 from nucleo.db import conexao
@@ -19,7 +20,7 @@ from nucleo.permissoes import exige_aluno
 
 from . import consultas
 
-router = APIRouter(prefix="/api/convites", tags=["Convites"])
+router = APIRouter(prefix="/api", tags=["Convites"])
 
 # Contra quem tenta datas de nascimento até acertar: só os erros contam.
 # shortcut: em memória, zera quando o Render reinicia; ir para o banco se houver mais de um servidor.
@@ -70,7 +71,7 @@ def _anotar_erro(conta: str, escola: str) -> None:
         _erros.setdefault(f"escola:{escola}", []).append(agora)
 
 
-@router.get("/{convite}")
+@router.get("/convites/{convite}")
 def escola_do_convite(convite: UUID, db: psycopg.Connection = Depends(conexao)):
     """Sem login: a tela do link mostra a cara da escola antes de a pessoa entrar."""
     escola = consultas.escola_do_convite(db, convite)
@@ -79,7 +80,7 @@ def escola_do_convite(convite: UUID, db: psycopg.Connection = Depends(conexao)):
     return escola
 
 
-@router.post("/{convite}/entrar")
+@router.post("/convites/{convite}/entrar")
 def entrar(
     convite: UUID,
     dados: EntrarPeloConvite,
@@ -100,3 +101,17 @@ def entrar(
         _anotar_erro(usuario.id, str(convite))
         raise HTTPException(status_code=404, detail=NAO_ENCONTRADO)
     return resultado
+
+
+@router.get("/escolas/{id}/logo")
+def logo(id: UUID, db: psycopg.Connection = Depends(conexao)):
+    """Sem login: a logo aparece na tela do convite. Não é dado de aluno."""
+    linha = logo_da_escola(db, id)
+    if linha is None:
+        raise HTTPException(status_code=404, detail="logo não encontrada")
+    # nosniff: o navegador não tenta adivinhar outro tipo para o arquivo enviado.
+    return Response(
+        content=bytes(linha["logo"]),
+        media_type=linha["logo_tipo"],
+        headers={"Cache-Control": "public, max-age=300", "X-Content-Type-Options": "nosniff"},
+    )

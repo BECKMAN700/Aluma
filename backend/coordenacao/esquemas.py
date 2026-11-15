@@ -1,5 +1,6 @@
 import re
 from datetime import date
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -91,4 +92,32 @@ class CriarMateriaComProfessor(BaseModel):
             valor = valor.strip()
         if not valor:
             raise ValueError("o nome da matéria não pode ficar vazio")
+        return valor
+
+
+_COR = re.compile(r"^#[0-9a-f]{6}$")
+
+
+class Marca(BaseModel):
+    """A paleta de cores fica no app; aqui o servidor só garante que é uma cor de verdade."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nome_do_sistema: str = Field(max_length=30)
+    nome_da_ia: str = Field(max_length=30)
+    cor: str
+    cor_secundaria: str
+    logo_formato: Literal["redondo", "quadrado", "livre"]
+
+    @field_validator("nome_do_sistema", "nome_da_ia", mode="before")
+    @classmethod
+    def validar_nomes(cls, valor: object) -> str:
+        return _nome(valor)[:30]
+
+    @field_validator("cor", "cor_secundaria", mode="before")
+    @classmethod
+    def validar_cor(cls, valor: object) -> str:
+        valor = valor.strip().lower() if isinstance(valor, str) else ""
+        if not _COR.match(valor):
+            raise ValueError("a cor precisa estar no formato #rrggbb")
         return valor

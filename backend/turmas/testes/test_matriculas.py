@@ -31,7 +31,8 @@ def test_get_me_aluno_sem_turma():
             "escola_id": None,
             "escola_nome": None,
             "turma_id": None,
-            "turma_nome": None
+            "turma_nome": None,
+            "trocar_senha": False,
         }
 
         response = client.get("/api/me")
@@ -41,5 +42,6 @@ def test_get_me_aluno_sem_turma():
             "nome": "Maria",
             "papel": "aluno",
             "escola": None,
-            "turma": None
+            "turma": None,
+            "trocar_senha": False,
         }

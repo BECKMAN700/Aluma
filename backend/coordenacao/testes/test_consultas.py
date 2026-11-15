@@ -96,3 +96,18 @@ def test_escola_traz_o_convite_so_da_propria(db):
     dados = consultas.escola(db, escola)
     assert (str(dados["id"]), dados["nome_da_ia"], dados["tem_logo"]) == (escola, "Luma", False)
     assert dados["convite"] is not None
+
+
+def test_marca_e_logo_ficam_so_na_propria_escola(db):
+    escola, _ = escola_com_turma(db)
+    outra, _ = escola_com_turma(db)
+    marca = {"nome_do_sistema": "Portal", "nome_da_ia": "Iara", "cor": "#1e5bd8",
+             "cor_secundaria": "#ffffff", "logo_formato": "livre"}
+    salvo = consultas.atualizar_marca(db, escola, marca)
+    consultas.guardar_logo(db, escola, b"\x89PNG\r\n\x1a\nxx", "image/png")
+
+    assert (salvo["nome_da_ia"], salvo["logo_formato"]) == ("Iara", "livre")
+    assert consultas.escola(db, escola)["tem_logo"]
+    assert bytes(consultas.logo_da_escola(db, escola)["logo"]).startswith(b"\x89PNG")
+    assert consultas.escola(db, outra)["nome_da_ia"] == "Luma"
+    assert consultas.logo_da_escola(db, outra) is None

@@ -10,8 +10,11 @@ def buscar_perfil_completo(db, usuario_id: str) -> Optional[Dict[str, Any]]:
                 p.id, 
                 p.nome, 
                 p.papel, 
+                p.trocar_senha,
                 e.id as escola_id, 
                 e.nome as escola_nome,
+                e.nome_do_sistema, e.nome_da_ia, e.cor, e.cor_secundaria, e.logo_formato,
+                e.logo is not null as tem_logo,
                 t.id as turma_id,
                 t.nome as turma_nome
             FROM perfis p

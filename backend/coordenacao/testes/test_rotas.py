@@ -127,3 +127,41 @@ def test_liga_professor_criando_a_materia(cliente, monkeypatch):
     )
     assert resposta.status_code == 201
     assert resposta.json() == {"id": "m", "nome": "Matemática"}
+
+
+MARCA_OK = {
+    "nome_do_sistema": "Portal CH", "nome_da_ia": "Iara", "cor": "#1E5BD8",
+    "cor_secundaria": "#ffffff", "logo_formato": "quadrado",
+}
+PNG = b"\x89PNG\r\n\x1a\n" + b"0" * 100
+
+
+def test_salva_marca_com_cor_em_minusculas(cliente, monkeypatch):
+    recebido = {}
+    monkeypatch.setattr(consultas, "atualizar_marca", lambda db, e, m: recebido.update(m) or m)
+    assert cliente.patch("/api/coordenacao/escola", json=MARCA_OK).status_code == 200
+    assert recebido["cor"] == "#1e5bd8"
+
+
+@pytest.mark.parametrize(
+    "campo, valor",
+    [("cor", "azul"), ("cor_secundaria", "#fff"), ("logo_formato", "estrela"), ("nome_da_ia", "  ")],
+)
+def test_marca_invalida_responde_422(cliente, campo, valor):
+    assert cliente.patch("/api/coordenacao/escola", json={**MARCA_OK, campo: valor}).status_code == 422
+
+
+def test_logo_pelo_conteudo_e_nao_pelo_cabecalho(cliente, monkeypatch):
+    guardado = {}
+    monkeypatch.setattr(consultas, "guardar_logo", lambda db, e, c, t: guardado.update(tipo=t))
+    url = "/api/coordenacao/escola/logo"
+    assert cliente.put(url, content=PNG, headers={"Content-Type": "image/jpeg"}).status_code == 204
+    assert guardado == {"tipo": "image/png"}
+    assert cliente.put(url, content=b"<svg onload=alert(1)>", headers={"Content-Type": "image/png"}).status_code == 422
+    assert cliente.put(url, content=PNG + b"0" * rotas.LOGO_MAXIMO_BYTES).status_code == 413
+
+
+def test_so_coordenador_muda_a_marca(cliente):
+    como("professor")
+    assert cliente.patch("/api/coordenacao/escola", json=MARCA_OK).status_code == 403
+    assert cliente.put("/api/coordenacao/escola/logo", content=PNG).status_code == 403

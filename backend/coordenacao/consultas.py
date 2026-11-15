@@ -13,6 +13,12 @@ class MatriculaRepetida(Exception):
     pass
 
 
+# O que o app precisa para pintar a tela com a cara da escola. A logo vai por rota própria.
+COLUNAS_DA_MARCA = (
+    "nome_do_sistema, nome_da_ia, cor, cor_secundaria, logo_formato, logo is not null as tem_logo"
+)
+
+
 def turmas_da_escola(db: psycopg.Connection, escola_id: str) -> list[dict]:
     return db.execute(
         """
@@ -152,6 +158,31 @@ def criar_perfil_professor(
 def escola(db: psycopg.Connection, escola_id: str) -> dict:
     """Marca e o convite da escola do coordenador. O link é /convite/<convite> no app."""
     return db.execute(
-        "select id, nome, nome_da_ia, cor, convite, logo is not null as tem_logo from escolas where id = %s",
+        f"select id, nome, convite, {COLUNAS_DA_MARCA} from escolas where id = %s",
         (escola_id,),
+    ).fetchone()
+
+
+def atualizar_marca(db: psycopg.Connection, escola_id: str, marca: dict) -> dict:
+    """`marca` já validado pelo esquema: as chaves são só as colunas permitidas."""
+    db.execute(
+        """
+        update escolas set nome_do_sistema = %(nome_do_sistema)s, nome_da_ia = %(nome_da_ia)s,
+               cor = %(cor)s, cor_secundaria = %(cor_secundaria)s, logo_formato = %(logo_formato)s
+        where id = %(escola)s
+        """,
+        {**marca, "escola": escola_id},
+    )
+    return escola(db, escola_id)
+
+
+def guardar_logo(db: psycopg.Connection, escola_id: str, conteudo: bytes, tipo: str) -> None:
+    db.execute(
+        "update escolas set logo = %s, logo_tipo = %s where id = %s", (conteudo, tipo, escola_id)
+    )
+
+
+def logo_da_escola(db: psycopg.Connection, escola_id: UUID) -> dict | None:
+    return db.execute(
+        "select logo, logo_tipo from escolas where id = %s and logo is not null", (escola_id,)
     ).fetchone()

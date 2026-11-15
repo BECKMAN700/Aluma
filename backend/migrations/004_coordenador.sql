@@ -35,10 +35,14 @@ alter table turmas drop column professor_id;
 alter table turmas drop column codigo;
 create index turmas_escola_id_idx on turmas (escola_id);
 
--- Marca da escola e o link de convite (um por escola; o uuid não dá para adivinhar).
+-- Marca da escola (o coordenador edita) e o link de convite (um por escola; o uuid não dá para
+-- adivinhar). Sem marca, vale a do Aluma: dourado sobre o azul-noite.
 alter table escolas
+    add column nome_do_sistema text not null default 'Aluma' check (char_length(nome_do_sistema) between 1 and 30),
     add column nome_da_ia text not null default 'Luma' check (char_length(nome_da_ia) between 1 and 30),
-    add column cor text not null default '#f5a623' check (cor ~ '^#[0-9a-f]{6}$'),
+    add column cor text not null default '#ffc766' check (cor ~ '^#[0-9a-f]{6}$'),
+    add column cor_secundaria text not null default '#071120' check (cor_secundaria ~ '^#[0-9a-f]{6}$'),
     add column logo bytea check (octet_length(logo) <= 204800),
     add column logo_tipo text check (logo_tipo in ('image/png', 'image/jpeg')),
+    add column logo_formato text not null default 'redondo' check (logo_formato in ('redondo', 'quadrado', 'livre')),
     add column convite uuid not null unique default gen_random_uuid();

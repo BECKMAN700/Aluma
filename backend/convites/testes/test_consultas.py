@@ -83,7 +83,9 @@ def test_conta_que_ja_e_de_uma_escola_nao_assume_outro_cadastro(db):
 
 def test_tela_do_convite_mostra_so_a_marca(db):
     convite, escola_id, _ = escola(db)
-    assert consultas.escola_do_convite(db, convite) == {
-        "id": uuid.UUID(escola_id), "nome": "Colégio", "nome_da_ia": "Luma", "cor": "#f5a623"
-    }
+    marca = consultas.escola_do_convite(db, convite)
+    assert (marca["id"], marca["nome"], marca["nome_da_ia"], marca["cor"]) == (
+        uuid.UUID(escola_id), "Colégio", "Luma", "#ffc766"
+    )
+    assert "convite" not in marca and "logo" not in marca
     assert consultas.escola_do_convite(db, uuid.uuid4()) is None

@@ -6,7 +6,7 @@ Turma, aluno ou professor de outra escola responde 404, como se não existisse.
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from materiais.consultas import criar_materia
 from nucleo import supabase_admin
@@ -17,7 +17,7 @@ from turmas.consultas import criar_turma
 from turmas.esquemas import CriarTurma
 
 from . import consultas
-from .esquemas import CriarMateriaComProfessor, CriarProfessor, PreCadastrarAluno, Transferir
+from .esquemas import CriarMateriaComProfessor, CriarProfessor, Marca, PreCadastrarAluno, Transferir
 
 router = APIRouter(prefix="/api/coordenacao", tags=["Coordenação"])
 
@@ -33,6 +33,42 @@ def minha_escola(
     db: psycopg.Connection = Depends(conexao),
 ):
     return consultas.escola(db, usuario.escola_id)
+
+
+@router.patch("/escola")
+def salvar_marca(
+    dados: Marca,
+    usuario: Usuario = Depends(exige_coordenador),
+    db: psycopg.Connection = Depends(conexao),
+):
+    return consultas.atualizar_marca(db, usuario.escola_id, dados.model_dump())
+
+
+LOGO_MAXIMO_BYTES = 200 * 1024
+# O tipo vem do começo do arquivo, não do cabeçalho: quem chama pode mentir no Content-Type.
+_ASSINATURAS = {b"\x89PNG\r\n\x1a\n": "image/png", b"\xff\xd8\xff": "image/jpeg"}
+
+
+async def corpo_da_logo(request: Request) -> bytes:
+    """Para de ler no limite: arquivo enorme não chega a ocupar a memória."""
+    conteudo = bytearray()
+    async for pedaco in request.stream():
+        conteudo += pedaco
+        if len(conteudo) > LOGO_MAXIMO_BYTES:
+            raise HTTPException(status_code=413, detail="A logo deve ter no máximo 200 KB.")
+    return bytes(conteudo)
+
+
+@router.put("/escola/logo", status_code=status.HTTP_204_NO_CONTENT)
+def enviar_logo(
+    usuario: Usuario = Depends(exige_coordenador),
+    conteudo: bytes = Depends(corpo_da_logo),
+    db: psycopg.Connection = Depends(conexao),
+):
+    tipo = next((t for assinatura, t in _ASSINATURAS.items() if conteudo.startswith(assinatura)), None)
+    if tipo is None:
+        raise HTTPException(status_code=422, detail="Envie a logo em PNG ou JPG.")
+    consultas.guardar_logo(db, usuario.escola_id, conteudo, tipo)
 
 
 @router.get("/turmas")

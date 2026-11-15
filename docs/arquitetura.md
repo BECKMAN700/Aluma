@@ -121,7 +121,7 @@ As duas vêm na `003_progresso.sql`.
 | `turmas` | **Sem** `professor_id` e **sem** `codigo`: quem cria e matricula é o coordenador |
 | `materias` | `professor_id`: quem dá aula é a matéria. Uma turma tem vários professores, um por disciplina |
 | `matriculas` | A chave estrangeira para `perfis` é `on update cascade`: quando o aluno entra pelo convite, o pré-cadastro troca de id para o id do login e a matrícula vai junto |
-| `escolas` | Marca: `nome_da_ia`, `cor` (`#rrggbb`), `logo` (PNG/JPG até 200 KB, no próprio banco) e `logo_tipo`. `convite`: uuid do link de entrada da escola |
+| `escolas` | Marca: `nome_do_sistema`, `nome_da_ia`, `cor` (principal) e `cor_secundaria` (`#rrggbb`), `logo` (PNG/JPG até 200 KB, no próprio banco), `logo_tipo` e `logo_formato` (`redondo`, `quadrado` ou `livre`, para logo com fundo transparente). Sem marca, vale a do Aluma. `convite`: uuid do link de entrada da escola |
 
 A migração copia o professor de cada turma para as matérias dela antes de apagar a coluna:
 nada que existe se perde.
@@ -228,7 +228,9 @@ Turma, aluno ou professor de outra escola: `404`.
 
 | Rota | Entra | Sai |
 |---|---|---|
-| `GET /escola` | — | `{"id", "nome", "nome_da_ia", "cor", "convite", "tem_logo"}` |
+| `GET /escola` | — | `{"id", "nome", "convite", "nome_do_sistema", "nome_da_ia", "cor", "cor_secundaria", "logo_formato", "tem_logo"}` |
+| `PATCH /escola` | `{"nome_do_sistema", "nome_da_ia", "cor", "cor_secundaria", "logo_formato"}` | A escola com a marca nova. A paleta de cores fica no app; o servidor só confere o formato `#rrggbb` |
+| `PUT /escola/logo` | A imagem crua no corpo | `204` · `413` mais de 200 KB · `422` não começa como PNG ou JPG (o tipo vem do conteúdo, não do cabeçalho) |
 | `GET /turmas` | — | `{"turmas": [{"id", "nome", "serie", "alunos", "materias": [{"id", "nome", "professor"}]}]}` |
 | `POST /turmas` | `{"nome", "serie"}` | `201` a turma |
 | `GET /turmas/{id}/alunos` | — | `{"alunos": [{"id", "nome", "matricula", "entrou"}]}` (a data de nascimento nunca sai) |
@@ -243,7 +245,9 @@ Turma, aluno ou professor de outra escola: `404`.
 
 | Rota | Quem pode | Entra | Sai |
 |---|---|---|---|
-| `GET /api/convites/{convite}` | Qualquer um, sem login | — | `{"id", "nome", "nome_da_ia", "cor"}`: a tela do link mostra a cara da escola · `404` |
+| `GET /api/convites/{convite}` | Qualquer um, sem login | — | `{"id", "nome"}` e a marca: a tela do link mostra a cara da escola · `404` |
+| `GET /api/escolas/{id}/logo` | Qualquer um, sem login | — | A imagem, com `nosniff` e cache de 5 min · `404` sem logo |
+| `POST /api/me/senha-trocada` | Logado | — | `204`; o app já trocou a senha no Supabase e avisa para parar de pedir. O `GET /api/me` passa a trazer `trocar_senha` e, em `escola`, a marca |
 | `POST /api/convites/{convite}/entrar` | Aluno logado que ainda não é de escola nenhuma | `{"matricula", "nascimento"}` | `{"escola", "turma"}`. A conta assume o pré-cadastro, e cada pré-cadastro só serve uma vez. `404` com a mesma frase para "não existe" e "já foi usado" · `409` a conta já é de uma escola · `429` depois de 5 erros da conta em 15 min ou 50 erros na escola em 1 hora |
 
 ## 6. Permissões

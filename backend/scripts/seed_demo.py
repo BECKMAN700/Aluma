@@ -34,8 +34,10 @@ from turmas.consultas import criar_turma  # noqa: E402
 # O "(fictícia)" no nome é o sinal: o --limpar acha e apaga tudo da demo pela escola.
 SINAL = "(fictícia)"
 ESCOLAS = [
-    {"nome": f"Colégio Horizonte {SINAL}", "sigla": "horizonte", "nome_da_ia": "Luma", "cor": "#f5a623"},
-    {"nome": f"Escola Rio Azul {SINAL}", "sigla": "rioazul", "nome_da_ia": "Iara", "cor": "#1e6fd9"},
+    {"nome": f"Colégio Horizonte {SINAL}", "sigla": "horizonte", "nome_do_sistema": "Portal CH",
+     "nome_da_ia": "Luma", "cor": "#1e5bd8", "cor_secundaria": "#ffffff"},
+    {"nome": f"Escola Rio Azul {SINAL}", "sigla": "rioazul", "nome_do_sistema": "Rio Azul Digital",
+     "nome_da_ia": "Iara", "cor": "#1f9d55", "cor_secundaria": "#111318"},
 ]
 TURMA = ("9º ano 01", "9º ano")
 MATERIA = "Matemática"
@@ -87,8 +89,10 @@ def semear_escola(db: psycopg.Connection, escola: dict, senha: str) -> dict:
     """Uma escola completa. Devolve o nome, o convite e os e-mails criados."""
     s = escola["sigla"]
     linha = db.execute(
-        "insert into escolas (nome, nome_da_ia, cor) values (%s, %s, %s) returning id, convite",
-        (escola["nome"], escola["nome_da_ia"], escola["cor"]),
+        "insert into escolas (nome, nome_do_sistema, nome_da_ia, cor, cor_secundaria)"
+        " values (%(nome)s, %(nome_do_sistema)s, %(nome_da_ia)s, %(cor)s, %(cor_secundaria)s)"
+        " returning id, convite",
+        escola,
     ).fetchone()
     escola_id = str(linha["id"])
     emails = {

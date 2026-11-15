@@ -3,6 +3,8 @@ from uuid import UUID
 
 import psycopg
 
+from coordenacao.consultas import COLUNAS_DA_MARCA
+
 
 class ContaJaNaEscola(Exception):
     pass
@@ -11,7 +13,7 @@ class ContaJaNaEscola(Exception):
 def escola_do_convite(db: psycopg.Connection, convite: UUID) -> dict | None:
     """O que a tela do convite mostra antes do login: nome e marca da escola, nada de aluno."""
     return db.execute(
-        "select id, nome, nome_da_ia, cor from escolas where convite = %s", (convite,)
+        f"select id, nome, {COLUNAS_DA_MARCA} from escolas where convite = %s", (convite,)
     ).fetchone()
 
 
