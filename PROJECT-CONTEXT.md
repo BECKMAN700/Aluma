@@ -29,7 +29,7 @@ escola (TIC Educação 2024).
 
 ## 2. Proposta de valor
 
-Para o **aluno**: um tutor que nunca entrega a resposta. Ele mostra o que estudar, como estudar, dá exemplos e obriga o aluno a pensar até chegar sozinho.
+Para o **aluno**: uma tutora que ensina com método (diagnóstico, exemplo resolvido, passo a passo, conferência do entendimento) e ajuda a organizar o estudo. Na trilha do professor, ela não entrega a resposta dos exercícios: guia até o aluno resolver. Na conversa livre, responde como um assistente de estudos e ensina o aluno a usar IA do jeito certo (decisão de 15/11/2026).
 
 Para o **professor**: ele cria a turma e alimenta o conteúdo da matéria. Com o painel (ainda
 não construído), vai ver um **resumo** de onde a turma trava e o que reforçar em aula, sem ler a
@@ -44,7 +44,7 @@ escola, anti-cola testada, simplicidade, preço e suporte local.
 **Honestidade no pitch:** o que não existe no app se diz no futuro ("vai acompanhar", nunca
 "acompanha"). O regulamento do Supernova desclassifica por informação falsa.
 
-**A frase do pitch (rascunho a lapidar):** *"Seus alunos já usam IA para copiar resposta. O Aluma é a IA que a escola controla — e que se recusa a dar a resposta."*
+**A frase do pitch (desde 15/11/2026):** *"Seus alunos já usam IA, mas ninguém ensinou a usar. O Aluma é a IA da escola: com a marca dela, o material dos professores e os dados da turma."*
 
 ## 3. Escopo
 
@@ -116,7 +116,7 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 
 | Decisão | Escolha |
 |---|---|
-| Tutoria | **Nunca entrega a resposta pronta.** Guia, exemplifica, pergunta de volta. É o diferencial e a defesa anti-cola |
+| Tutoria | **Ensina com método.** Na trilha do professor, nunca entrega a resposta final do exercício (defesa anti-cola); na conversa livre, responde e explica. Decisão de 15/11/2026 |
 | Escopo de assunto | Só assunto educacional; fora disso, recusa |
 | Login | E-mail e senha, pelo Supabase. Sem e-mail de confirmação e sem "esqueci a senha" na fase de apresentação |
 | Papéis | Quem cria conta pelo app é aluno. Conta de professor e escola são criadas pela equipe |
@@ -154,7 +154,8 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: **negue e pare**. Nunca "deixa passar por enquanto".
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
-6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
+6. Na trilha do professor, a IA nunca entrega a resposta final de um exercício: ensina o método,
+   passo a passo, e guia o aluno. Na conversa livre, ela responde e explica (decisão de 15/11/2026).
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
 8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD com regra dura para
    menores, consentimento dos pais e exclusão sob pedido. A demonstração usa contas fictícias.
