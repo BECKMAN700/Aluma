@@ -26,3 +26,21 @@ export async function escolherFoto(origem: 'camera' | 'galeria'): Promise<Foto |
   if (!pronta.base64) throw new Error('sem-base64');
   return { uri: pronta.uri, base64: pronta.base64 };
 }
+
+/** Foto escolhida no início do aluno, a caminho do chat. */
+export type Partida = { foto: Foto; texto: string };
+
+// base64 não cabe no endereço (?mensagem=): a foto do início segue para o chat por aqui.
+let partida: Partida | null = null;
+
+export function guardarPartida(nova: Partida) {
+  partida = nova;
+}
+
+export function partidaComFoto(): Partida | null {
+  return partida;
+}
+
+export function limparPartida() {
+  partida = null;
+}
