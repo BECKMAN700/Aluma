@@ -9,7 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ESPACO_DA_BARRA } from '@/components/menu-do-sistema';
 import { useTelaDeSistema } from '@/constants/auth-theme';
 
-import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import { Surgir } from '@/components/horizonte/ceu';
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import {
   AvisoCarregando,
@@ -82,10 +82,6 @@ export default function MateriaScreen() {
       </Surgir>
 
       <TituloTela titulo={materia?.nome ?? 'Matéria'} subtitulo="Tópicos na ordem da trilha do aluno. O tutor usa o PDF de cada um." style={styles.textos} />
-
-      <View style={styles.estrela}>
-        <EstrelaNoHorizonte tamanho={28} />
-      </View>
 
       <Surgir style={styles.camada}>
         {dados.estado === 'carregando' && <AvisoCarregando texto="Carregando a matéria…" />}
@@ -161,8 +157,7 @@ export default function MateriaScreen() {
 
 const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
-  textos: { marginTop: 10 },
-  estrela: { marginTop: 41, marginBottom: 18 },
+  textos: { marginTop: 10, marginBottom: 24 },
   acoesMateria: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 8 },
 
   titulo: {

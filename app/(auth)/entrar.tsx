@@ -67,9 +67,9 @@ export default function EntrarScreen() {
   };
 
   return (
-    <TelaFormulario>
+    <TelaFormulario comCeu>
       <Surgir style={styles.camada}>
-        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} comLogo />
       </Surgir>
 
       <TituloTela titulo="Entrar" subtitulo={`Entre com sua conta de ${perfil}.`} style={styles.textos} />

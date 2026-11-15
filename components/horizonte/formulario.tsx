@@ -31,17 +31,20 @@ import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 // O tipo do React Native não aceita 'none', mas a web aceita.
 export const SEM_CONTORNO_WEB ={ outlineStyle: 'none' } as object;
 
-/** Moldura das telas de formulário: céu, área segura, teclado e coluna de até 480px. */
+/** Moldura das telas de formulário: área segura, teclado e coluna de até 480px. */
 export function TelaFormulario({
   topo = 12,
   rodape = 36,
   largura = 480,
+  comCeu = false,
   children,
 }: {
   topo?: number;
   rodape?: number;
   /** Largura máxima da coluna. */
   largura?: number;
+  /** Céu estrelado da Luma: só nas telas do Aluma, antes de a pessoa estar dentro de uma escola. */
+  comCeu?: boolean;
   children: React.ReactNode;
 }) {
   const cores = useCores();
@@ -51,8 +54,8 @@ export function TelaFormulario({
   return (
     <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar style={cores.claro ? 'dark' : 'light'} />
-      {/* O céu é do tema escuro; escola de tema claro fica com o fundo liso. */}
-      {!cores.claro && <CeuEstrelado />}
+      {/* O céu é do tema escuro e da marca Luma: tela da escola fica com o fundo liso. */}
+      {comCeu && !cores.claro && <CeuEstrelado />}
 
       <ScrollView
         style={styles.rolagem}
@@ -162,7 +165,16 @@ export function CabecalhoMarca() {
   );
 }
 
-export function CabecalhoVoltar({ texto, aoVoltar }: { texto: string; aoVoltar: () => void }) {
+export function CabecalhoVoltar({
+  texto,
+  aoVoltar,
+  comLogo = false,
+}: {
+  texto: string;
+  aoVoltar: () => void;
+  /** Logo do Aluma: só nas telas do Aluma; tela da escola não mostra nada da marca. */
+  comLogo?: boolean;
+}) {
   const cores = useCores();
   const styles = useEstilos(criarEstilos);
   return (
@@ -184,11 +196,13 @@ export function CabecalhoVoltar({ texto, aoVoltar }: { texto: string; aoVoltar: 
         </Svg>
         <Text style={styles.voltarTexto}>{texto}</Text>
       </Pressable>
-      <Image
-        source={require('../../assets/images/aluma_logo.jpg')}
-        style={styles.logo}
-        accessibilityLabel="Logo do Aluma"
-      />
+      {comLogo && (
+        <Image
+          source={require('../../assets/images/aluma_logo.jpg')}
+          style={styles.logo}
+          accessibilityLabel="Logo do Aluma"
+        />
+      )}
     </View>
   );
 }

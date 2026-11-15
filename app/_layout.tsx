@@ -157,7 +157,7 @@ function TelaSessao({
 }) {
   const styles = useEstilos(criarEstilos);
   return (
-    <TelaFormulario topo={20}>
+    <TelaFormulario topo={20} comCeu>
       <Surgir style={styles.camada}>
         <CabecalhoMarca />
       </Surgir>

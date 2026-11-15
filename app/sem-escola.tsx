@@ -26,7 +26,7 @@ export default function SemEscolaScreen() {
   }, []);
 
   return (
-    <TelaFormulario>
+    <TelaFormulario comCeu>
       <Surgir style={styles.camada}>
         <CabecalhoMarca />
       </Surgir>
