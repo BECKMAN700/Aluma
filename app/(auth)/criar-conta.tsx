@@ -75,9 +75,9 @@ export default function CriarContaScreen() {
   };
 
   return (
-    <TelaFormulario rodape={24}>
+    <TelaFormulario rodape={24} comCeu>
       <Surgir style={styles.camada}>
-        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} />
+        <CabecalhoVoltar texto="Voltar para a página inicial" aoVoltar={() => router.replace('/')} comLogo />
       </Surgir>
 
       <TituloTela titulo="Criar conta" subtitulo="Cadastro de aluno." style={styles.textos} />

@@ -45,7 +45,7 @@ def salvar_marca(
     return consultas.atualizar_marca(db, usuario.escola_id, dados.model_dump())
 
 
-LOGO_MAXIMO_BYTES = 200 * 1024
+LOGO_MAXIMO_BYTES = 5 * 1024 * 1024
 # O tipo vem do começo do arquivo, não do cabeçalho: quem chama pode mentir no Content-Type.
 _ASSINATURAS = {b"\x89PNG\r\n\x1a\n": "image/png", b"\xff\xd8\xff": "image/jpeg"}
 
@@ -56,7 +56,7 @@ async def corpo_da_logo(request: Request) -> bytes:
     async for pedaco in request.stream():
         conteudo += pedaco
         if len(conteudo) > LOGO_MAXIMO_BYTES:
-            raise HTTPException(status_code=413, detail="A logo deve ter no máximo 200 KB.")
+            raise HTTPException(status_code=413, detail="A logo deve ter no máximo 5 MB.")
     return bytes(conteudo)
 
 

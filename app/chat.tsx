@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LumaPensando, MessageBubble } from '@/components/balao-mensagem';
-import { CAMINHO_ESTRELA, CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
+import { Surgir } from '@/components/horizonte/ceu';
 import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
 import { FontesHorizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
@@ -171,13 +171,6 @@ export default function ChatScreen() {
   const tela = (
     <KeyboardAvoidingView style={styles.wrapper} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar style={cores.claro ? 'dark' : 'light'} />
-      {!cores.claro && <CeuEstrelado />}
-      {/* Fora da lista: o horizonte fica parado enquanto as falas rolam. */}
-      {!cores.claro && (
-        <View style={[styles.horizonte, { top: margens.top + 64 }]}>
-          <EstrelaNoHorizonte tamanho={0} />
-        </View>
-      )}
 
       <Surgir
         style={[
@@ -205,9 +198,6 @@ export default function ChatScreen() {
               />
             </Svg>
           </Pressable>
-          <Svg width={22} height={22} viewBox="0 0 56 56">
-            <Path d={CAMINHO_ESTRELA} fill={cores.luma} />
-          </Svg>
           <Text style={styles.titulo} accessibilityRole="header" numberOfLines={1}>
             {nome ? `${ia} · ${nome}` : ia}
           </Text>
@@ -326,7 +316,6 @@ const criarEstilos = (cores: Cores) => StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: cores.bg,
   },
-  horizonte: { position: 'absolute', left: 0, right: 0, pointerEvents: 'none' },
   coluna: {
     // Regra 1: Eixo vertical principal. flex: 1 engloba a lista e a barra de input.
     flex: 1,

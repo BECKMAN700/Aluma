@@ -47,7 +47,7 @@ backend/
   projetos/          rotas.py, consultas.py, testes/ (pastas privadas do aluno, fora do painel)
   painel/            rotas.py, consultas.py, testes/ (onde a turma trava)
   materiais/         rotas.py, esquemas.py, consultas.py, pdf.py, testes/ (matéria, tópico e PDF)
-  migrations/        001_inicial.sql … 005_projetos.sql — o banco, em ordem
+  migrations/        001_inicial.sql … 006_logo_5mb.sql — o banco, em ordem
   scripts/           criar_professor.py (também cria coordenador), seed_demo.py — roda só na máquina da equipe
 app/
   _layout.tsx        lê a sessão e manda cada papel para o seu grupo
@@ -130,7 +130,7 @@ As duas vêm na `003_progresso.sql`.
 | `turmas` | **Sem** `professor_id` e **sem** `codigo`: quem cria e matricula é o coordenador |
 | `materias` | `professor_id`: quem dá aula é a matéria. Uma turma tem vários professores, um por disciplina |
 | `matriculas` | A chave estrangeira para `perfis` é `on update cascade`: quando o aluno entra pelo convite, o pré-cadastro troca de id para o id do login e a matrícula vai junto |
-| `escolas` | Marca: `nome_do_sistema`, `nome_da_ia`, `cor` (principal) e `cor_secundaria` (`#rrggbb`), `logo` (PNG/JPG até 200 KB, no próprio banco), `logo_tipo` e `logo_formato` (`redondo`, `quadrado` ou `livre`, para logo com fundo transparente). Sem marca, vale a do Aluma. `convite`: uuid do link de entrada da escola |
+| `escolas` | Marca: `nome_do_sistema`, `nome_da_ia`, `cor` (principal) e `cor_secundaria` (`#rrggbb`), `logo` (PNG/JPG até 5 MB, no próprio banco), `logo_tipo` e `logo_formato` (`redondo`, `quadrado` ou `livre`, para logo com fundo transparente). Sem marca, vale a do Aluma. `convite`: uuid do link de entrada da escola |
 
 A migração copia o professor de cada turma para as matérias dela antes de apagar a coluna:
 nada que existe se perde.
@@ -254,7 +254,7 @@ Turma, aluno ou professor de outra escola: `404`.
 |---|---|---|
 | `GET /escola` | — | `{"id", "nome", "convite", "nome_do_sistema", "nome_da_ia", "cor", "cor_secundaria", "logo_formato", "tem_logo"}` |
 | `PATCH /escola` | `{"nome_do_sistema", "nome_da_ia", "cor", "cor_secundaria", "logo_formato"}` | A escola com a marca nova. A paleta de cores fica no app; o servidor só confere o formato `#rrggbb` |
-| `PUT /escola/logo` | A imagem crua no corpo | `204` · `413` mais de 200 KB · `422` não começa como PNG ou JPG (o tipo vem do conteúdo, não do cabeçalho) |
+| `PUT /escola/logo` | A imagem crua no corpo | `204` · `413` mais de 5 MB · `422` não começa como PNG ou JPG (o tipo vem do conteúdo, não do cabeçalho) |
 | `GET /turmas` | — | `{"turmas": [{"id", "nome", "serie", "alunos", "materias": [{"id", "nome", "professor"}]}]}` |
 | `POST /turmas` | `{"nome", "serie"}` | `201` a turma |
 | `GET /turmas/{id}/alunos` | — | `{"alunos": [{"id", "nome", "matricula", "entrou"}]}` (a data de nascimento nunca sai) |
