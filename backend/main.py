@@ -12,6 +12,7 @@ from convites.rotas import router as convites_router
 from coordenacao.rotas import router as coordenacao_router
 from materiais.rotas import router as materiais_router
 from painel.rotas import router as painel_router
+from projetos.rotas import router as projetos_router
 from turmas.rotas_matriculas import router as matriculas_router
 from nucleo.db import BancoIndisponivel
 
@@ -127,3 +128,4 @@ app.include_router(materiais_router)
 app.include_router(painel_router)
 app.include_router(coordenacao_router)
 app.include_router(convites_router)
+app.include_router(projetos_router)

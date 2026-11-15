@@ -7,11 +7,12 @@ def conversa_do_aluno(
     db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None
 ) -> UUID | None:
     """A conversa em andamento do aluno naquele tópico; sem tópico, a do chat geral."""
+    # projeto_id is null: conversa de projeto também não tem tópico e não é o chat geral.
     linha = db.execute(
         """
         select id
         from conversas
-        where aluno_id = %s and topico_id is not distinct from %s::uuid
+        where aluno_id = %s and topico_id is not distinct from %s::uuid and projeto_id is null
         order by criado_em desc
         limit 1
         """,

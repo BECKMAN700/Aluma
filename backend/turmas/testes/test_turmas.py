@@ -92,3 +92,19 @@ def test_professor_nao_ve_alunos_de_turma_de_outro_retorna_404(setup_api):
     response = client.get(f"/api/turmas/{OUTRA_TURMA_ID}/alunos")
 
     assert response.status_code == 404
+
+
+def test_resumo_soma_a_turma_e_lista_so_quem_esta_tentando(setup_api, monkeypatch):
+    _, client, _, _ = setup_api
+    monkeypatch.setattr(rotas, "turmas_do_professor", lambda **k: [{"id": TURMA_ID, "nome": "9º ano 01", "serie": "9º"}])
+    monkeypatch.setattr(rotas, "alunos_da_turma", lambda **k: [{"id": "a"}, {"id": "b"}])
+    monkeypatch.setattr(rotas, "painel_da_turma", lambda **k: [
+        {"id": "t1", "nome": "Frações", "dominado": 1, "em_andamento": 1, "nao_iniciado": 0},
+        {"id": "t2", "nome": "Equações", "dominado": 0, "em_andamento": 0, "nao_iniciado": 2},
+    ])
+
+    corpo = client.get("/api/turmas/resumo").json()
+
+    [turma] = corpo["turmas"]
+    assert (turma["alunos"], turma["topicos"], turma["dominado"], turma["nao_iniciado"]) == (2, 2, 1, 2)
+    assert [a["topico"] for a in corpo["atencao"]] == ["Frações"]

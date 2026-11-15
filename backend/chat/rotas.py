@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from chat import consultas
@@ -18,6 +18,7 @@ from nucleo.permissoes import (
     exige_usuario_do_chat,
 )
 from nucleo.rate_limit import check_rate_limit
+from projetos import consultas as projetos
 
 router = APIRouter()
 
@@ -47,9 +48,17 @@ def chat(
     # Fora do try: o 403/404 da permissão não pode virar "erro interno".
     if topico_id:
         confere_topico_do_chat(db, topico_id, usuario)
+    if payload.conversa_id and (
+        usuario.papel != "aluno"
+        or not projetos.conversa_de_projeto_do_aluno(db, payload.conversa_id, usuario.id)
+    ):
+        raise HTTPException(status_code=404, detail="conversa nao encontrada")
     try:
         system = montar_prompt(consultas.topico_do_chat(db, topico_id) if topico_id else None)
-        if usuario.papel == "aluno":
+        if payload.conversa_id:
+            conversa_id = payload.conversa_id
+            historico = consultas.ultimas_mensagens(db, conversa_id, HISTORICO_MAX_ITENS)
+        elif usuario.papel == "aluno":
             conversa_id = consultas.conversa_do_aluno(
                 db, usuario.id, topico_id
             ) or consultas.criar_conversa(db, usuario.id, topico_id)
@@ -68,6 +77,8 @@ def chat(
         # Só grava a troca que deu certo: se o tutor caiu, o aluno manda de novo.
         if conversa_id:
             consultas.gravar_troca(db, conversa_id, payload.mensagem, resposta)
+        if payload.conversa_id:
+            projetos.dar_titulo(db, payload.conversa_id, payload.mensagem)
         return {"resposta": resposta}
 
     except TutorIndisponivel:

@@ -7,7 +7,7 @@ a cota gratuita (~1.500 chamadas/dia).
 
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 TEXTO_MAX_CARACTERES = 2000
 HISTORICO_MAX_ITENS = 10
@@ -44,6 +44,14 @@ class ChatRequest(BaseModel):
     historico: list[Mensagem] = []
     # Vazio = chat geral, que continua existindo.
     topico_id: UUID | None = None
+    # Conversa de um projeto do aluno (projetos/rotas.py). Nunca junto com tópico.
+    conversa_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def topico_ou_conversa(self) -> "ChatRequest":
+        if self.topico_id and self.conversa_id:
+            raise ValueError("a mensagem vai para um tópico ou para uma conversa de projeto, não os dois")
+        return self
 
     @field_validator("mensagem")
     @classmethod

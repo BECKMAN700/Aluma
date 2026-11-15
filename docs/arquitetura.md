@@ -126,6 +126,15 @@ As duas vêm na `003_progresso.sql`.
 A migração copia o professor de cada turma para as matérias dela antes de apagar a coluna:
 nada que existe se perde.
 
+### Projetos do aluno (`005_projetos.sql`, decisão de 15/11)
+
+| Tabela | Colunas |
+|---|---|
+| `projetos` | `aluno_id` (apagar o aluno apaga os projetos), `nome` (até 60) |
+| `conversas` | Ganha `projeto_id` e `titulo`. Uma conversa é de um tópico, de um projeto **ou** do chat geral, nunca de tópico e projeto juntos |
+
+Conversa de projeto é privada: o painel do professor só conta conversas de tópico.
+
 **Tranca no banco:** todas as tabelas com RLS ligado e **nenhuma** política. A chave pública do
 Supabase, que vai dentro do app, não consegue ler nem escrever nada direto no banco. O backend
 conecta como dono do banco e é o único que lê.
@@ -249,6 +258,18 @@ Turma, aluno ou professor de outra escola: `404`.
 | `GET /api/escolas/{id}/logo` | Qualquer um, sem login | — | A imagem, com `nosniff` e cache de 5 min · `404` sem logo |
 | `POST /api/me/senha-trocada` | Logado | — | `204`; o app já trocou a senha no Supabase e avisa para parar de pedir. O `GET /api/me` passa a trazer `trocar_senha` e, em `escola`, a marca |
 | `POST /api/convites/{convite}/entrar` | Aluno logado que ainda não é de escola nenhuma | `{"matricula", "nascimento"}` | `{"escola", "turma"}`. A conta assume o pré-cadastro, e cada pré-cadastro só serve uma vez. `404` com a mesma frase para "não existe" e "já foi usado" · `409` a conta já é de uma escola · `429` depois de 5 erros da conta em 15 min ou 50 erros na escola em 1 hora |
+
+### Projetos do aluno e início do professor (decisão de 15/11)
+
+| Rota | Quem pode | Sai |
+|---|---|---|
+| `GET /api/projetos` | Aluno com turma | `{"projetos": [{"id", "nome", "conversas": [{"id", "titulo"}]}]}`, só os dele |
+| `POST /api/projetos` | Aluno com turma | `{"nome"}` → `201` · `409` passou de 30 projetos |
+| `DELETE /api/projetos/{id}` | Dono | `204`; as conversas vão junto |
+| `POST /api/projetos/{id}/conversas` | Dono | `201` `{"id", "titulo"}` |
+| `GET /api/conversas/{id}/mensagens` | Dono, só conversa de projeto | `{"mensagens"}`, as últimas 50 |
+| `POST /api/chat` com `conversa_id` | Dono da conversa de projeto | Como o chat geral; a primeira pergunta vira o título. Tópico e conversa juntos: `422` |
+| `GET /api/turmas/resumo` | Professor | `{"turmas": [{"id", "nome", "serie", "alunos", "topicos", "dominado", "em_andamento", "nao_iniciado"}], "atencao": [{"turma_id", "turma", "topico_id", "topico", "em_andamento"}]}`. Só números |
 
 ## 6. Permissões
 
