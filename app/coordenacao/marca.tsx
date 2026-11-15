@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 
-import { Cartao, Pilula, TelaSistema, estilosSistema } from '@/components/coordenacao/sistema';
+import { Cartao, Pilula, TelaSistema, estilosSistema } from '@/components/sistema';
 import { AvisoCarregando, AvisoErro, AvisoInfo, CampoTexto } from '@/components/horizonte/formulario';
 import { LogoDaEscola } from '@/components/logo-da-escola';
 import {

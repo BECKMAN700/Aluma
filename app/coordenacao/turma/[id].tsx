@@ -6,7 +6,7 @@ import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
-import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/coordenacao/sistema';
+import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/sistema';
 import { AvisoCarregando, AvisoErro, AvisoInfo, CampoTexto, LinkTexto } from '@/components/horizonte/formulario';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import {

@@ -1,10 +1,11 @@
 /**
  * Cartão de um tópico no painel: quantos dominaram, tentam ou não começaram, e as dúvidas
- * resumidas pela IA. Usado na tela do painel (celular) e na visão geral da turma (PC).
+ * resumidas pela IA. Usado na aba Painel da turma do professor.
  */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { BarraDeProgresso } from '@/components/sistema';
 import { FontesHorizonte } from '@/constants/theme';
 import { sair } from '@/services/auth';
 import { resumirDuvidas } from '@/services/painel';
@@ -16,7 +17,6 @@ export function CartaoDoTopico({ topico }: { topico: TopicoNoPainel }) {
   const [resumo, setResumo] = useState(topico.resumo);
   const [resumindo, setResumindo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const total = topico.dominado + topico.em_andamento + topico.nao_iniciado;
 
   const resumir = async () => {
     if (resumindo) return;
@@ -44,23 +44,7 @@ export function CartaoDoTopico({ topico }: { topico: TopicoNoPainel }) {
         {topico.nome}
       </Text>
 
-      {/* Barra empilhada: a proporção da turma em cada estado, sem precisar ler os números. */}
-      <View
-        style={styles.barra}
-        accessible
-        accessibilityLabel={`${topico.dominado} dominaram, ${topico.em_andamento} tentando, ${topico.nao_iniciado} não começaram`}
-      >
-        {total > 0 && (
-          <>
-            <View style={[styles.parte, styles.parteDominado, { flex: topico.dominado }]} />
-            <View style={[styles.parte, styles.parteTentando, { flex: topico.em_andamento }]} />
-            <View style={[styles.parte, { flex: topico.nao_iniciado }]} />
-          </>
-        )}
-      </View>
-      <Text style={styles.contagem}>
-        {topico.dominado} dominaram · {topico.em_andamento} tentando · {topico.nao_iniciado} não começaram
-      </Text>
+      <BarraDeProgresso dominado={topico.dominado} emAndamento={topico.em_andamento} naoIniciado={topico.nao_iniciado} />
 
       {duvidas.length > 0 && (
         <View style={styles.duvidas}>
@@ -106,17 +90,6 @@ const criarEstilos = (cores: Cores) => StyleSheet.create({
   },
   materia: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   nome: { fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: cores.text },
-  barra: {
-    flexDirection: 'row',
-    height: 10,
-    overflow: 'hidden',
-    borderRadius: 5,
-    backgroundColor: cores.hairline,
-  },
-  parte: { backgroundColor: cores.hairline },
-  parteDominado: { backgroundColor: cores.luma },
-  parteTentando: { backgroundColor: cores.action },
-  contagem: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   duvidas: { gap: 4, marginTop: 4 },
   duvidasTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.text },
   duvida: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.text },

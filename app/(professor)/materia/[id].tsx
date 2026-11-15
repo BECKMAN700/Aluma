@@ -6,6 +6,9 @@ import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { ESPACO_DA_BARRA } from '@/components/menu-do-sistema';
+import { useTelaDeSistema } from '@/constants/auth-theme';
+
 import { EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import {
@@ -26,6 +29,7 @@ import type { Materia, Topico } from '@/types/api';
 import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function MateriaScreen() {
+  const pc = useTelaDeSistema();
   const styles = useEstilos(criarEstilos);
   const { id, turma } = useLocalSearchParams<{ id: string; turma?: string }>();
 
@@ -68,7 +72,8 @@ export default function MateriaScreen() {
   };
 
   return (
-    <TelaFormulario>
+    // No celular, a barra de baixo do professor fica por cima do fim da tela.
+    <TelaFormulario rodape={pc ? 36 : ESPACO_DA_BARRA} largura={pc ? 720 : 480}>
       <Surgir style={styles.camada}>
         <CabecalhoVoltar
           texto="Voltar para a turma"

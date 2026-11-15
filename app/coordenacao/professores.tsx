@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
-import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/coordenacao/sistema';
+import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/sistema';
 import { AvisoCarregando, AvisoErro, CampoTexto, LinkTexto } from '@/components/horizonte/formulario';
 import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';

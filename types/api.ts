@@ -61,7 +61,12 @@ export interface Turma {
   id: string;
   nome: string;
   serie: string;
-  codigo: string;
+}
+
+/** Contrato de GET /api/turmas/resumo: o início do professor. Só números, nunca conversa. */
+export interface ResumoDoProfessor {
+  turmas: (Turma & { alunos: number; topicos: number; dominado: number; em_andamento: number; nao_iniciado: number })[];
+  atencao: { turma_id: string; turma: string; topico_id: string; topico: string; em_andamento: number }[];
 }
 
 export interface ListaDeTurmas {

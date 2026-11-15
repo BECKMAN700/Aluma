@@ -5,21 +5,26 @@
 import { Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { BarraDeBaixoDoCoordenador, MenuLateralDoCoordenador } from '@/components/menu-do-coordenador';
+import { BarraDeBaixo, type Destino, MenuLateral } from '@/components/menu-do-sistema';
 import { useTelaDeSistema } from '@/constants/auth-theme';
-import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
+import { useCores } from '@/hooks/use-tema';
 
 // Recarregar a página numa turma ainda deixa o "voltar" levando para a lista.
 export const unstable_settings = { initialRouteName: 'index' };
 
+const DESTINOS: Destino[] = [
+  { texto: 'Turmas', icone: 'groups', caminho: '/coordenacao', acende: ['/coordenacao', '/coordenacao/turma/'] },
+  { texto: 'Professores', icone: 'badge', caminho: '/coordenacao/professores', acende: ['/coordenacao/professores'] },
+  { texto: 'Marca', icone: 'palette', caminho: '/coordenacao/marca', acende: ['/coordenacao/marca'] },
+];
+
 export default function CoordenacaoLayout() {
   const cores = useCores();
-  const styles = useEstilos(criarEstilos);
   const pc = useTelaDeSistema();
 
   return (
-    <View style={styles.tela}>
-      {pc && <MenuLateralDoCoordenador />}
+    <View style={[styles.tela, { backgroundColor: cores.bg }]}>
+      {pc && <MenuLateral destinos={DESTINOS} />}
       <View style={styles.conteudo}>
         <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: cores.bg } }}>
           <Stack.Screen name="index" />
@@ -27,13 +32,13 @@ export default function CoordenacaoLayout() {
           <Stack.Screen name="professores" />
           <Stack.Screen name="marca" />
         </Stack>
-        {!pc && <BarraDeBaixoDoCoordenador />}
+        {!pc && <BarraDeBaixo destinos={DESTINOS} />}
       </View>
     </View>
   );
 }
 
-const criarEstilos = (cores: Cores) => StyleSheet.create({
-  tela: { flex: 1, flexDirection: 'row', backgroundColor: cores.bg },
+const styles = StyleSheet.create({
+  tela: { flex: 1, flexDirection: 'row' },
   conteudo: { flex: 1, minWidth: 0 },
 });
