@@ -96,6 +96,7 @@ class CriarMateriaComProfessor(BaseModel):
 
 
 _COR = re.compile(r"^#[0-9a-f]{6}$")
+_NOME_DA_IA = re.compile(r"^[^\W_](?:[\w .'-]*[^\W_])?$")
 
 
 class Marca(BaseModel):
@@ -109,10 +110,19 @@ class Marca(BaseModel):
     cor_secundaria: str
     logo_formato: Literal["redondo", "quadrado", "livre"]
 
-    @field_validator("nome_do_sistema", "nome_da_ia", mode="before")
+    @field_validator("nome_do_sistema", mode="before")
     @classmethod
-    def validar_nomes(cls, valor: object) -> str:
+    def validar_nome_do_sistema(cls, valor: object) -> str:
         return _nome(valor)[:30]
+
+    @field_validator("nome_da_ia", mode="before")
+    @classmethod
+    def validar_nome_da_ia(cls, valor: object) -> str:
+        # O nome entra nas instruções da IA (chat/prompt.py): só um nome, nada que vire ordem.
+        valor = _nome(valor)[:30]
+        if not _NOME_DA_IA.match(valor):
+            raise ValueError("o nome da IA aceita só letras, números, espaço, ponto, hífen e apóstrofo")
+        return valor
 
     @field_validator("cor", "cor_secundaria", mode="before")
     @classmethod

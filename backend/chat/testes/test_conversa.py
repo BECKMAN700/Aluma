@@ -29,6 +29,7 @@ def banco_de_mentira():
     with patch("nucleo.consultas.aluno_tem_turma", return_value=True), \
             patch("chat.consultas.conversa_do_aluno", return_value="conversa-1"), \
             patch("chat.consultas.criar_conversa", return_value="conversa-nova"), \
+            patch("chat.consultas.nome_da_ia", return_value="Luma"), \
             patch("chat.consultas.ultimas_mensagens", return_value=HISTORICO_SALVO), \
             patch("chat.consultas.gravar_troca") as gravar, \
             patch("chat.rotas.chat_com_claude", return_value="pergunta-guia") as claude:

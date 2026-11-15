@@ -54,7 +54,10 @@ def chat(
     ):
         raise HTTPException(status_code=404, detail="conversa nao encontrada")
     try:
-        system = montar_prompt(consultas.topico_do_chat(db, topico_id) if topico_id else None)
+        system = montar_prompt(
+            consultas.topico_do_chat(db, topico_id) if topico_id else None,
+            consultas.nome_da_ia(db, usuario.escola_id),
+        )
         if payload.conversa_id:
             conversa_id = payload.conversa_id
             historico = consultas.ultimas_mensagens(db, conversa_id, HISTORICO_MAX_ITENS)
@@ -127,7 +130,7 @@ def dominar_topico(
     if sum(1 for m in historico if m["autor"] == "aluno") < 2:
         return {
             "dominado": False,
-            "mensagem": "Primeiro peça um desafio à Luma e resolva os exercícios com ela.",
+            "mensagem": f"Primeiro peça um desafio à {consultas.nome_da_ia(db, usuario.escola_id)} e resolva os exercícios com ela.",
         }
     pedido = montar_pedido_ao_juiz(historico)
     try:
@@ -140,7 +143,7 @@ def dominar_topico(
     if not veredito.strip().upper().startswith("SIM"):
         return {
             "dominado": False,
-            "mensagem": "Ainda não deu. Resolva mais um exercício com a Luma e tente de novo.",
+            "mensagem": f"Ainda não deu. Resolva mais um exercício com a {consultas.nome_da_ia(db, usuario.escola_id)} e tente de novo.",
         }
     consultas.marcar_dominado(db, usuario.id, id)
     return {"dominado": True, "mensagem": "Parabéns! Você dominou este tópico."}

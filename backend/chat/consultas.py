@@ -82,3 +82,11 @@ def marcar_dominado(db: psycopg.Connection, aluno_id: str, topico_id: UUID) -> N
         """,
         (aluno_id, topico_id),
     )
+
+
+def nome_da_ia(db: psycopg.Connection, escola_id: str | None) -> str:
+    """O nome que a escola deu à IA; sem escola, o do Aluma."""
+    if not escola_id:
+        return "Luma"
+    linha = db.execute("select nome_da_ia from escolas where id = %s", (escola_id,)).fetchone()
+    return linha["nome_da_ia"] if linha else "Luma"

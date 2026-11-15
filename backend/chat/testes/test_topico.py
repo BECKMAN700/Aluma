@@ -30,6 +30,7 @@ def chat():
             patch("chat.consultas.topico_do_chat", return_value={"nome": "Frações", "material": MATERIAL}), \
             patch("chat.consultas.conversa_do_aluno", return_value=None) as conversa, \
             patch("chat.consultas.criar_conversa", return_value="conversa-do-topico") as criar, \
+            patch("chat.consultas.nome_da_ia", return_value="Luma"), \
             patch("chat.consultas.ultimas_mensagens", return_value=[]), \
             patch("chat.consultas.gravar_troca"), \
             patch("chat.consultas.marcar_dominado") as dominado, \
