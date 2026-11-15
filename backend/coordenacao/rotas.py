@@ -27,6 +27,14 @@ def _turma_da_escola(db: psycopg.Connection, turma_id: UUID, usuario: Usuario) -
         raise HTTPException(status_code=404, detail="turma não encontrada")
 
 
+@router.get("/escola")
+def minha_escola(
+    usuario: Usuario = Depends(exige_coordenador),
+    db: psycopg.Connection = Depends(conexao),
+):
+    return consultas.escola(db, usuario.escola_id)
+
+
 @router.get("/turmas")
 def listar_turmas(
     usuario: Usuario = Depends(exige_coordenador),

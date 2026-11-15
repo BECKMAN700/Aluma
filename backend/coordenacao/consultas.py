@@ -147,3 +147,11 @@ def criar_perfil_professor(
         """,
         (professor_id, nome, escola_id),
     ).fetchone()
+
+
+def escola(db: psycopg.Connection, escola_id: str) -> dict:
+    """Marca e o convite da escola do coordenador. O link é /convite/<convite> no app."""
+    return db.execute(
+        "select id, nome, nome_da_ia, cor, convite, logo is not null as tem_logo from escolas where id = %s",
+        (escola_id,),
+    ).fetchone()

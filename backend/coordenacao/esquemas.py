@@ -16,6 +16,19 @@ def _nome(valor: object) -> str:
     return sanitizar_nome(valor)  # tira tag HTML e caractere de controle
 
 
+def matricula_valida(valor: object) -> str:
+    valor = valor.strip() if isinstance(valor, str) else ""
+    if not _MATRICULA.match(valor):
+        raise ValueError("a matrícula deve ter de 1 a 30 letras, números, ponto, traço ou barra")
+    return valor
+
+
+def nascimento_valido(valor: date) -> date:
+    if not date(1940, 1, 1) <= valor <= date.today():
+        raise ValueError("a data de nascimento não é válida")
+    return valor
+
+
 class PreCadastrarAluno(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -31,17 +44,12 @@ class PreCadastrarAluno(BaseModel):
     @field_validator("matricula", mode="before")
     @classmethod
     def validar_matricula(cls, valor: object) -> str:
-        valor = valor.strip() if isinstance(valor, str) else ""
-        if not _MATRICULA.match(valor):
-            raise ValueError("a matrícula deve ter de 1 a 30 letras, números, ponto, traço ou barra")
-        return valor
+        return matricula_valida(valor)
 
     @field_validator("nascimento")
     @classmethod
     def validar_nascimento(cls, valor: date) -> date:
-        if not date(1940, 1, 1) <= valor <= date.today():
-            raise ValueError("a data de nascimento não é válida")
-        return valor
+        return nascimento_valido(valor)
 
 
 class Transferir(BaseModel):

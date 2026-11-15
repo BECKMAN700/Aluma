@@ -228,6 +228,7 @@ Turma, aluno ou professor de outra escola: `404`.
 
 | Rota | Entra | Sai |
 |---|---|---|
+| `GET /escola` | — | `{"id", "nome", "nome_da_ia", "cor", "convite", "tem_logo"}` |
 | `GET /turmas` | — | `{"turmas": [{"id", "nome", "serie", "alunos", "materias": [{"id", "nome", "professor"}]}]}` |
 | `POST /turmas` | `{"nome", "serie"}` | `201` a turma |
 | `GET /turmas/{id}/alunos` | — | `{"alunos": [{"id", "nome", "matricula", "entrou"}]}` (a data de nascimento nunca sai) |
@@ -237,6 +238,13 @@ Turma, aluno ou professor de outra escola: `404`.
 | `GET /professores` | — | `{"professores": [{"id", "nome", "materias"}]}` |
 | `POST /professores` | `{"nome", "email"}` | `201` com `senha_provisoria`, que só aparece nesta resposta · `409` e-mail já tem conta |
 | `POST /turmas/{id}/materias` | `{"nome", "professor_id"}` | `201`; liga o professor à turma pela disciplina |
+
+### Convite (decisão de 15/11)
+
+| Rota | Quem pode | Entra | Sai |
+|---|---|---|---|
+| `GET /api/convites/{convite}` | Qualquer um, sem login | — | `{"id", "nome", "nome_da_ia", "cor"}`: a tela do link mostra a cara da escola · `404` |
+| `POST /api/convites/{convite}/entrar` | Aluno logado que ainda não é de escola nenhuma | `{"matricula", "nascimento"}` | `{"escola", "turma"}`. A conta assume o pré-cadastro, e cada pré-cadastro só serve uma vez. `404` com a mesma frase para "não existe" e "já foi usado" · `409` a conta já é de uma escola · `429` depois de 5 erros da conta em 15 min ou 50 erros na escola em 1 hora |
 
 ## 6. Permissões
 

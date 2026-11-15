@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from chat.rotas import router as chat_router
+from convites.rotas import router as convites_router
 from coordenacao.rotas import router as coordenacao_router
 from materiais.rotas import router as materiais_router
 from painel.rotas import router as painel_router
@@ -67,9 +68,10 @@ async def auth_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(429)
 async def rate_limit_exception_handler(request: Request, exc: Exception):
+    detalhe = getattr(exc, "detail", None)  # o convite tem a frase dele
     return JSONResponse(
         status_code=429,
-        content={"erro": "muitas perguntas seguidas, aguarde um pouco"},
+        content={"erro": detalhe if isinstance(detalhe, str) else "muitas perguntas seguidas, aguarde um pouco"},
     )
 
 
@@ -124,3 +126,4 @@ app.include_router(matriculas_router)
 app.include_router(materiais_router)
 app.include_router(painel_router)
 app.include_router(coordenacao_router)
+app.include_router(convites_router)

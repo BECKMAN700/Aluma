@@ -89,3 +89,10 @@ def test_professores_e_materias_da_turma(db):
     assert [(m["nome"], m["professor"]) for m in linha["materias"]] == [("Matemática", "Prof. Ana")]
     trocar = db.execute("select trocar_senha from perfis where id = %s", (professor,)).fetchone()
     assert trocar == {"trocar_senha": True}
+
+
+def test_escola_traz_o_convite_so_da_propria(db):
+    escola, _ = escola_com_turma(db)
+    dados = consultas.escola(db, escola)
+    assert (str(dados["id"]), dados["nome_da_ia"], dados["tem_logo"]) == (escola, "Luma", False)
+    assert dados["convite"] is not None
