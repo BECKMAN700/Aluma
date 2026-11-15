@@ -8,6 +8,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { Formula } from '@/components/formula';
+import { separarFormulas } from '@/components/formulas';
 import { FontesHorizonte } from '@/constants/theme';
 import type { ChatApiAuthor } from '@/types/api';
 import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
@@ -15,7 +17,15 @@ import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 // A Luma fala direto no céu: o espaço e a cor já mostram quem fala, e cada linha ganha largura em 320px.
 export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: string }) {
   const styles = useEstilos(criarEstilos);
-  if (author !== 'aluno') return <Text style={styles.falaLuma}>{text}</Text>;
+  if (author !== 'aluno') {
+    return (
+      <Text style={styles.falaLuma}>
+        {separarFormulas(text).map((peca, i) =>
+          peca.formula ? <Formula key={i} latex={peca.latex} bloco={peca.bloco} /> : peca.texto,
+        )}
+      </Text>
+    );
+  }
   return (
     <View style={styles.balaoAluno}>
       <Text style={styles.textoAluno}>{text}</Text>
