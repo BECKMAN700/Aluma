@@ -93,17 +93,18 @@ function Navegacao() {
         <Stack.Screen name="(aluno)" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
-      {/* O professor abre o chat para testar a Luma num tópico dele; nada é gravado. */}
-      <Stack.Protected guard={(aluno && !!usuario.turma) || professor}>
-        <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
-      </Stack.Protected>
-
       <Stack.Protected guard={professor}>
         <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={usuario?.papel === 'coordenador'}>
         <Stack.Screen name="coordenacao" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      {/* Por último: o Stack abre a primeira tela liberada, e o chat nunca é a tela inicial.
+          O professor abre o chat para testar a IA num tópico dele; nada é gravado. */}
+      <Stack.Protected guard={(aluno && !!usuario.turma) || professor}>
+        <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
     </Stack>
   );
