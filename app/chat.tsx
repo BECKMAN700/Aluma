@@ -17,7 +17,6 @@ import Svg, { Path } from 'react-native-svg';
 import { LumaPensando, MessageBubble } from '@/components/balao-mensagem';
 import { CAMINHO_ESTRELA, CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
-import { textoDaPartida } from '@/constants/partidas';
 import { FontesHorizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { AcoesDoTopico } from '@/components/acoes-do-topico';
@@ -57,8 +56,8 @@ export default function ChatScreen() {
   const margens = useSafeAreaInsets();
   // `topico` vem da trilha: a conversa e o material passam a ser daquele tópico.
   // `conversa` é de um projeto do aluno; `mensagem` é a pergunta digitada no início.
-  const { partida, topico, nome, conversa: conversaDoProjeto, mensagem } = useLocalSearchParams<{
-    partida?: string; topico?: string; nome?: string; conversa?: string; mensagem?: string;
+  const { topico, nome, conversa: conversaDoProjeto, mensagem } = useLocalSearchParams<{
+    topico?: string; nome?: string; conversa?: string; mensagem?: string;
   }>();
   const [backendStatus, tentarNovamente] = useBackendStatus();
   const isBackendReady = backendStatus === 'pronto';
@@ -155,11 +154,11 @@ export default function ChatScreen() {
   // Aberto direto pelo endereço, na web, não há tela anterior para voltar.
   const voltar = () => (router.canGoBack() ? router.back() : router.replace(professor ? '/turmas' : '/home'));
 
-  // Veio do início (atalho ou pergunta digitada): envia assim que o tutor e a conversa estiverem
+  // Veio do início (pergunta digitada): envia assim que o tutor e a conversa estiverem
   // prontos. Tira do endereço para recarregar a página não enviar de novo.
-  const textoPartida = textoDaPartida(partida) ?? (mensagem?.slice(0, 2000) || undefined);
+  const textoPartida = mensagem?.slice(0, 2000) || undefined;
   const enviarPartida = useEffectEvent((texto: string) => {
-    router.setParams({ partida: undefined, mensagem: undefined });
+    router.setParams({ mensagem: undefined });
     enviarTexto(texto);
   });
   useEffect(() => {
@@ -271,7 +270,7 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToLatest}
           onLayout={scrollToLatest}
           renderItem={({ item }) => <MessageBubble author={item.author} text={item.text} />}
-          ListFooterComponent={isSending ? <LumaPensando /> : null}
+          ListFooterComponent={isSending ? <LumaPensando ia={ia} /> : null}
         />
 
         <View style={styles.inputBar}>

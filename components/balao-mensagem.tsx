@@ -24,7 +24,7 @@ export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: s
 }
 
 /** A resposta leva de 2 a 7 segundos: sem este aviso a tela parece travada. */
-export function LumaPensando() {
+export function LumaPensando({ ia }: { ia: string }) {
   const cores = useCores();
   const styles = useEstilos(criarEstilos);
   const giro = useSharedValue(0);
@@ -44,7 +44,7 @@ export function LumaPensando() {
           <Circle cx="13" cy="3" r="3" fill={cores.luma} />
         </Svg>
       </Animated.View>
-      <Text style={styles.pensandoTexto}>Luma está pensando…</Text>
+      <Text style={styles.pensandoTexto}>{ia} está pensando…</Text>
     </View>
   );
 }

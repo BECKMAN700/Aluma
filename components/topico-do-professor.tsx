@@ -1,5 +1,5 @@
 /**
- * Um tópico na tela da matéria do professor: nome, PDF, "Testar a Luma" e, em "Editar",
+ * Um tópico na tela da matéria do professor: nome, PDF, "Testar a IA" e, em "Editar",
  * renomear, mudar a ordem e excluir. Quem garante que só o dono mexe é o servidor.
  */
 import React, { useState } from 'react';
@@ -15,6 +15,7 @@ import { excluirTopico, moverTopico, renomearTopico } from '@/services/materias'
 import type { Topico } from '@/types/api';
 import type { ResultadoApi } from '@/services/api';
 import { type Cores, useEstilos } from '@/hooks/use-tema';
+import { useSessao } from '@/hooks/use-sessao';
 
 export function TopicoDoProfessor({
   topico,
@@ -52,6 +53,8 @@ export function TopicoDoProfessor({
   };
 
   // Dois toques para excluir: na web e no celular, sem depender de caixa de diálogo do sistema.
+  const { sessao } = useSessao();
+  const ia = (sessao.estado === 'pronto' && sessao.usuario.escola?.nome_da_ia) || 'Luma';
   const excluir = () => (confirmarExclusao ? executar(() => excluirTopico(topico.id)) : setConfirmarExclusao(true));
 
   return (
@@ -63,8 +66,8 @@ export function TopicoDoProfessor({
         <View style={styles.acoes}>
           <EnviarPdf topicoId={topico.id} nomeTopico={topico.nome} temMaterial={!!topico.material} aoEnviar={aoMudar} />
           <LinkTexto
-            texto="Testar a Luma"
-            rotulo={`Testar a Luma no tópico ${topico.nome}`}
+            texto={`Testar a ${ia}`}
+            rotulo={`Testar a ${ia} no tópico ${topico.nome}`}
             aoTocar={() => router.push({ pathname: '/chat', params: { topico: topico.id, nome: topico.nome } })}
           />
           <LinkTexto
