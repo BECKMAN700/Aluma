@@ -24,7 +24,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { IconeOlho } from '@/components/auth/icone-olho';
 import { CeuEstrelado, Surgir } from '@/components/horizonte/ceu';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // O foco já é mostrado na caixa: sem isto, a web desenha um retângulo em volta do input.
 // O tipo do React Native não aceita 'none', mas a web aceita.
@@ -43,12 +44,15 @@ export function TelaFormulario({
   largura?: number;
   children: React.ReactNode;
 }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const margens = useSafeAreaInsets();
 
   return (
     <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar style="light" />
-      <CeuEstrelado />
+      <StatusBar style={cores.claro ? 'dark' : 'light'} />
+      {/* O céu é do tema escuro; escola de tema claro fica com o fundo liso. */}
+      {!cores.claro && <CeuEstrelado />}
 
       <ScrollView
         style={styles.rolagem}
@@ -82,6 +86,7 @@ export function TituloTela({
   falaDaLuma?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Surgir style={[styles.camada, style]}>
       <Text style={styles.titulo} accessibilityRole="header">
@@ -102,6 +107,7 @@ export function CabecalhoSair({
   comMarca?: boolean;
   aoSair: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.cabecalhoSair}>
       <Image
@@ -125,6 +131,8 @@ export function CabecalhoSair({
 }
 
 export function BotaoPartida({ texto, aoTocar }: { texto: string; aoTocar: () => void }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.partida, pressed && styles.pressionado]}
@@ -134,13 +142,14 @@ export function BotaoPartida({ texto, aoTocar }: { texto: string; aoTocar: () =>
     >
       <Text style={styles.partidaTexto}>{texto}</Text>
       <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-        <Path d="M9 5l7 7-7 7" stroke={Horizonte.luma} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M9 5l7 7-7 7" stroke={cores.luma} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
     </Pressable>
   );
 }
 
 export function CabecalhoMarca() {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.marca}>
       <Image
@@ -154,6 +163,8 @@ export function CabecalhoMarca() {
 }
 
 export function CabecalhoVoltar({ texto, aoVoltar }: { texto: string; aoVoltar: () => void }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.cabecalho}>
       <Pressable
@@ -165,7 +176,7 @@ export function CabecalhoVoltar({ texto, aoVoltar }: { texto: string; aoVoltar: 
         <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
           <Path
             d="M15 5l-7 7 7 7"
-            stroke={Horizonte.textMuted}
+            stroke={cores.textMuted}
             strokeWidth={2.2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -191,6 +202,8 @@ interface CampoTextoProps extends Omit<TextInputProps, 'style'> {
 }
 
 export function CampoTexto({ rotulo, erro, senha = false, inputRef, onFocus, onBlur, ...props }: CampoTextoProps) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const [visivel, setVisivel] = useState(false);
   const [emFoco, setEmFoco] = useState(false);
 
@@ -218,7 +231,7 @@ export function CampoTexto({ rotulo, erro, senha = false, inputRef, onFocus, onB
             accessibilityLabel={visivel ? 'Ocultar senha' : 'Mostrar senha'}
             accessibilityState={{ checked: visivel }}
           >
-            <IconeOlho aberto={visivel} cor={Horizonte.textMuted} />
+            <IconeOlho aberto={visivel} cor={cores.textMuted} />
           </Pressable>
         )}
       </View>
@@ -251,6 +264,7 @@ export function BotaoPrincipal({
   compacto?: boolean;
   aoTocar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   const atual = ocupado ? textoOcupado : texto;
   return (
     <Pressable
@@ -273,6 +287,7 @@ export function BotaoPrincipal({
 }
 
 export function LinkTexto({ texto, rotulo, aoTocar }: { texto: string; rotulo: string; aoTocar: () => void }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.link, pressed && styles.pressionado]}
@@ -286,15 +301,18 @@ export function LinkTexto({ texto, rotulo, aoTocar }: { texto: string; rotulo: s
 }
 
 export function AvisoCarregando({ texto }: { texto: string }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.carregando} accessibilityLiveRegion="polite">
-      <ActivityIndicator color={Horizonte.textMuted} />
+      <ActivityIndicator color={cores.textMuted} />
       <Text style={styles.carregandoTexto}>{texto}</Text>
     </View>
   );
 }
 
 export function AvisoErro({ mensagem }: { mensagem: string }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.aviso}>
       <Text style={styles.avisoTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
@@ -306,6 +324,7 @@ export function AvisoErro({ mensagem }: { mensagem: string }) {
 
 /** Aviso que não é erro, como "Conta criada!": sem a cor de erro. */
 export function AvisoInfo({ mensagem }: { mensagem: string }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={[styles.aviso, styles.avisoInfo]}>
       <Text style={[styles.avisoTexto, styles.avisoInfoTexto]} accessibilityRole="alert" accessibilityLiveRegion="polite">
@@ -315,10 +334,10 @@ export function AvisoInfo({ mensagem }: { mensagem: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   pressionado: { opacity: 0.85 },
 
-  tela: { flex: 1, overflow: 'hidden', backgroundColor: Horizonte.bg },
+  tela: { flex: 1, overflow: 'hidden', backgroundColor: cores.bg },
   rolagem: { flex: 1 },
   // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
   conteudo: { flexGrow: 1, overflow: 'hidden' },
@@ -330,17 +349,17 @@ const styles = StyleSheet.create({
     fontSize: 31,
     lineHeight: 37,
     letterSpacing: -0.5,
-    color: Horizonte.text,
+    color: cores.text,
   },
-  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
 
-  falaDaLuma: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, lineHeight: 23, color: Horizonte.luma },
+  falaDaLuma: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, lineHeight: 23, color: cores.luma },
 
   cabecalhoSair: { flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: -8 },
-  legenda: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted, flexShrink: 1 },
-  marcaPequena: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: Horizonte.text },
+  legenda: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.textMuted, flexShrink: 1 },
+  marcaPequena: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: cores.text },
   carregando: { alignItems: 'center', gap: 10, paddingVertical: 24 },
-  carregandoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, textAlign: 'center', color: Horizonte.textMuted },
+  carregandoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, textAlign: 'center', color: cores.textMuted },
   sair: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
 
   partida: {
@@ -353,37 +372,37 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.luma,
+    borderColor: cores.luma,
     borderRadius: 24,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  partidaTexto: { flex: 1, minWidth: 0, fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 22, color: Horizonte.text },
+  partidaTexto: { flex: 1, minWidth: 0, fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 22, color: cores.text },
 
   marca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 44 },
   marcaLogo: { width: 40, height: 40, borderRadius: 20 },
-  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: Horizonte.text },
+  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: cores.text },
 
   // Só a cor muda: uma borda mais grossa empurraria as células vizinhas a cada letra digitada.
   // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
 
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   voltar: { flexDirection: 'row', flexShrink: 1, alignItems: 'center', gap: 4, minHeight: 44, marginLeft: -8, paddingRight: 8 },
-  voltarTexto: { flexShrink: 1, fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  voltarTexto: { flexShrink: 1, fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
   logo: { width: 36, height: 36, borderRadius: 18 },
 
   campo: { gap: 6 },
-  rotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.text },
+  rotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.text },
   caixa: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 52,
     borderWidth: 1.5,
-    borderColor: Horizonte.fieldBorder,
+    borderColor: cores.fieldBorder,
     borderRadius: 26,
-    backgroundColor: Horizonte.fieldBg,
+    backgroundColor: cores.fieldBg,
   },
-  caixaFoco: { borderWidth: 2, borderColor: Horizonte.action },
-  caixaErro: { borderColor: Horizonte.error },
+  caixaFoco: { borderWidth: 2, borderColor: cores.action },
+  caixaErro: { borderColor: cores.error },
   // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
   input: {
     flex: 1,
@@ -392,11 +411,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontFamily: FontesHorizonte.corpo,
     fontSize: 16,
-    color: Horizonte.text,
+    color: cores.text,
   },
   inputSenha: { paddingRight: 0 },
   olho: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.error },
+  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.error },
 
   botao: {
     minHeight: 56,
@@ -405,7 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Horizonte.action,
+    backgroundColor: cores.action,
   },
   botaoAlto: { minHeight: 60, borderRadius: 30 },
   botaoCompacto: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 26 },
@@ -416,7 +435,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 24,
     textAlign: 'center',
-    color: Horizonte.onAction,
+    color: cores.onAction,
   },
 
   link: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
@@ -426,18 +445,18 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: 'center',
     textDecorationLine: 'underline',
-    color: Horizonte.action,
+    color: cores.action,
   },
 
   aviso: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.error,
+    borderColor: cores.error,
     borderRadius: 18,
-    backgroundColor: Horizonte.fieldBg,
+    backgroundColor: cores.fieldBg,
   },
-  avisoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.error },
-  avisoInfo: { borderColor: Horizonte.fieldBorder },
-  avisoInfoTexto: { color: Horizonte.text },
+  avisoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.error },
+  avisoInfo: { borderColor: cores.fieldBorder },
+  avisoInfoTexto: { color: cores.text },
 });

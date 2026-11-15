@@ -20,11 +20,12 @@ import {
 import { MateriasDaTurma } from '@/components/materias-da-turma';
 import { VisaoGeralDaTurma } from '@/components/visao-geral-da-turma';
 import { useTelaDeSistema } from '@/constants/auth-theme';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import type { ResultadoApi } from '@/services/api';
 import { alunosDaTurma, listarTurmas } from '@/services/turmas';
 import type { AlunoDaTurma, Turma } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 type TurmaComAlunos = { turma: Turma; alunos: AlunoDaTurma[] } | null;
 
@@ -32,6 +33,8 @@ type TurmaComAlunos = { turma: Turma; alunos: AlunoDaTurma[] } | null;
 const PODE_COMPARTILHAR = Platform.OS !== 'web' || (typeof navigator !== 'undefined' && !!navigator.share);
 
 export default function TurmaScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -84,7 +87,7 @@ export default function TurmaScreen() {
           <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
             <Path
               d="M15 5l-7 7 7 7"
-              stroke={Horizonte.text}
+              stroke={cores.text}
               strokeWidth={2.2}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -159,6 +162,7 @@ export default function TurmaScreen() {
 }
 
 function AcoesDoCodigo({ nomeDaTurma, codigo }: { nomeDaTurma: string; codigo: string }) {
+  const styles = useEstilos(criarEstilos);
   const [aviso, setAviso] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -215,7 +219,7 @@ function AcoesDoCodigo({ nomeDaTurma, codigo }: { nomeDaTurma: string; codigo: s
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   painel: { marginTop: 16 },
   pressionado: { opacity: 0.85 },
@@ -224,17 +228,17 @@ const styles = StyleSheet.create({
   cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -14, minHeight: 48 },
   voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cabecalhoTexto: { flex: 1, minWidth: 0 },
-  nome: { fontFamily: FontesHorizonte.display, fontSize: 22, lineHeight: 28, color: Horizonte.text },
-  serie: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  nome: { fontFamily: FontesHorizonte.display, fontSize: 22, lineHeight: 28, color: cores.text },
+  serie: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
 
   codigoCaixa: { marginTop: 38, minHeight: 76, alignItems: 'center', gap: 6 },
-  codigoRotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  codigoRotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.textMuted },
   codigo: {
     fontFamily: FontesHorizonte.display,
     fontSize: 42,
     lineHeight: 50,
     letterSpacing: 3,
-    color: Horizonte.action,
+    color: cores.action,
   },
 
   estrela: { marginTop: 54, marginBottom: 18 },
@@ -247,18 +251,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 8,
     borderWidth: 1.5,
-    borderColor: Horizonte.text,
+    borderColor: cores.text,
     borderRadius: 26,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  botaoSecundarioTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
+  botaoSecundarioTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: cores.text },
   codigoAviso: {
     marginTop: 8,
     fontFamily: FontesHorizonte.corpoForte,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
-    color: Horizonte.text,
+    color: cores.text,
   },
 
   titulo: {
@@ -267,17 +271,17 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   aluno: { minHeight: 48, justifyContent: 'center' },
-  alunoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
-  alunoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
+  alunoComLinha: { borderBottomWidth: 1, borderBottomColor: cores.hairline },
+  alunoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.text },
   vazio: {
     paddingVertical: 16,
     fontFamily: FontesHorizonte.corpo,
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

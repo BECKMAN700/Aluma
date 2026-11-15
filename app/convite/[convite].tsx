@@ -10,7 +10,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AvisoCarregando, AvisoErro, CampoTexto, LinkTexto, TelaFormulario } from '@/components/horizonte/formulario';
 import { LogoDaEscola } from '@/components/logo-da-escola';
 import { textoSobre } from '@/constants/marca';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
@@ -22,8 +22,10 @@ import {
   guardarConvitePendente,
 } from '@/services/convites';
 import type { EscolaDoConvite } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 export default function ConviteScreen() {
+  const styles = useEstilos(criarEstilos);
   const { convite } = useLocalSearchParams<{ convite: string }>();
   const { sessao } = useSessao();
   const buscar = useCallback(() => buscarConvite(convite), [convite]);
@@ -50,6 +52,7 @@ export default function ConviteScreen() {
 }
 
 function Pontos({ passo, cor }: { passo: number; cor: string }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.pontos}>
       {[1, 2].map((p) => (
@@ -61,6 +64,7 @@ function Pontos({ passo, cor }: { passo: number; cor: string }) {
 }
 
 function Logo({ escola, tamanho }: { escola: EscolaDoConvite; tamanho: number }) {
+  const cores = useCores();
   return (
     <LogoDaEscola
       endereco={escola.tem_logo ? enderecoDaLogo(escola.id) : null}
@@ -68,12 +72,13 @@ function Logo({ escola, tamanho }: { escola: EscolaDoConvite; tamanho: number })
       cor={escola.cor}
       nome={escola.nome_do_sistema}
       tamanho={tamanho}
-      corSemFundo={Horizonte.text}
+      corSemFundo={cores.text}
     />
   );
 }
 
 function Boasvindas({ convite, escola }: { convite: string; escola: EscolaDoConvite }) {
+  const styles = useEstilos(criarEstilos);
   const ir = async (caminho: '/criar-conta' | '/entrar') => {
     await guardarConvitePendente(convite);
     router.push(caminho);
@@ -108,6 +113,7 @@ function dataDoServidor(texto: string): string | null {
 }
 
 function Confirmar({ convite, escola }: { convite: string; escola: EscolaDoConvite }) {
+  const styles = useEstilos(criarEstilos);
   const { recarregar } = useSessao();
   const [matricula, setMatricula] = useState('');
   const [nascimento, setNascimento] = useState('');
@@ -157,6 +163,7 @@ function Confirmar({ convite, escola }: { convite: string; escola: EscolaDoConvi
 }
 
 function BotaoDaEscola({ texto, cor, ocupado = false, aoTocar }: { texto: string; cor: string; ocupado?: boolean; aoTocar: () => void }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.principal, { backgroundColor: cor }, (pressed || ocupado) && styles.pressionado]}
@@ -170,24 +177,24 @@ function BotaoDaEscola({ texto, cor, ocupado = false, aoTocar }: { texto: string
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   pontos: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  ponto: { width: 10, height: 10, borderRadius: 999, backgroundColor: Horizonte.hairline },
-  passoTexto: { marginLeft: 'auto', fontFamily: FontesHorizonte.corpo, fontSize: 13, color: Horizonte.textMuted },
+  ponto: { width: 10, height: 10, borderRadius: 999, backgroundColor: cores.hairline },
+  passoTexto: { marginLeft: 'auto', fontFamily: FontesHorizonte.corpo, fontSize: 13, color: cores.textMuted },
   passo: { flex: 1, gap: 16, paddingTop: 28 },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 24 },
   cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  escola: { fontFamily: FontesHorizonte.corpo, fontSize: 14, color: Horizonte.textMuted },
-  titulo: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4, color: Horizonte.text, textAlign: 'center' },
-  apoio: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted, textAlign: 'center' },
+  escola: { fontFamily: FontesHorizonte.corpo, fontSize: 14, color: cores.textMuted },
+  titulo: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4, color: cores.text, textAlign: 'center' },
+  apoio: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted, textAlign: 'center' },
   esquerda: { textAlign: 'left' },
   botoes: { gap: 10, marginTop: 8 },
   principal: { minHeight: 56, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   principalTexto: { fontFamily: FontesHorizonte.display, fontSize: 17 },
   secundario: {
     minHeight: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Horizonte.fieldBorder,
+    borderWidth: 1, borderColor: cores.fieldBorder,
   },
-  secundarioTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, color: Horizonte.text },
+  secundarioTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, color: cores.text },
   pressionado: { opacity: 0.85 },
 });

@@ -62,9 +62,29 @@ export function ehClara(hex: string): boolean {
   return luminancia(hex) > 0.5;
 }
 
+/** Razão de contraste da WCAG entre duas cores (1 a 21). Texto comum precisa de 4,5. */
+export function contraste(a: string, b: string): number {
+  const [claro, escuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x);
+  return (claro + 0.05) / (escuro + 0.05);
+}
+
 /** Branco ou quase preto: o que der mais contraste sobre a cor. */
 export function textoSobre(hex: string): string {
-  return luminancia(hex) > 0.36 ? '#0a0d16' : '#ffffff';
+  return contraste(hex, '#ffffff') >= contraste(hex, '#0a0d16') ? '#ffffff' : '#0a0d16';
+}
+
+/**
+ * A mesma cor, clareada ou escurecida só o necessário para ler bem sobre o fundo (4,5:1).
+ * Assim o azul da escola continua azul, mas um link azul-escuro não some no fundo escuro.
+ */
+export function legivelSobre(cor: string, fundo: string): string {
+  const [h, s, l] = paraHsl(cor);
+  const clarear = ehClara(fundo) ? -1 : 1;
+  for (let passo = 0; passo <= 20; passo++) {
+    const tentativa = paraHex(h, s, Math.min(0.95, Math.max(0.05, l + clarear * passo * 0.03)));
+    if (contraste(tentativa, fundo) >= 4.5) return tentativa;
+  }
+  return ehClara(fundo) ? '#111318' : '#ffffff';
 }
 
 export function tons(principal: string): { escura: string; clara: string } {

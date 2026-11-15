@@ -16,15 +16,17 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import type { ResultadoApi } from '@/services/api';
 import { criarTopico, excluirMateria, listarMaterias, renomearMateria } from '@/services/materias';
 import { TopicoDoProfessor } from '@/components/topico-do-professor';
 import { sair } from '@/services/auth';
 import type { Materia, Topico } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function MateriaScreen() {
+  const styles = useEstilos(criarEstilos);
   const { id, turma } = useLocalSearchParams<{ id: string; turma?: string }>();
 
   const buscar = useCallback(async (): Promise<ResultadoApi<Materia | null>> => {
@@ -152,7 +154,7 @@ export default function MateriaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 10 },
   estrela: { marginTop: 41, marginBottom: 18 },
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   vazio: {
     paddingVertical: 16,
@@ -171,6 +173,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

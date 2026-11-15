@@ -8,6 +8,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import type { FormatoDaLogo } from '@/constants/marca';
 import { textoSobre } from '@/constants/marca';
 import { FontesHorizonte } from '@/constants/theme';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/).filter(Boolean);
@@ -32,6 +33,7 @@ export function LogoDaEscola({
   /** Cor das iniciais no formato sem fundo (depende do que está atrás). */
   corSemFundo?: string;
 }) {
+  const styles = useEstilos(criarEstilos);
   const raio = formato === 'redondo' ? tamanho / 2 : formato === 'quadrado' ? Math.round(tamanho * 0.22) : 0;
   const caixa = { width: tamanho, height: tamanho, borderRadius: raio };
 
@@ -55,7 +57,7 @@ export function LogoDaEscola({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   cortada: { overflow: 'hidden' },
   centro: { alignItems: 'center', justifyContent: 'center' },
   iniciais: { fontFamily: FontesHorizonte.display },

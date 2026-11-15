@@ -5,12 +5,14 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { sair } from '@/services/auth';
 import { resumirDuvidas } from '@/services/painel';
 import type { TopicoNoPainel } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export function CartaoDoTopico({ topico }: { topico: TopicoNoPainel }) {
+  const styles = useEstilos(criarEstilos);
   const [resumo, setResumo] = useState(topico.resumo);
   const [resumindo, setResumindo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -91,34 +93,34 @@ export function CartaoDoTopico({ topico }: { topico: TopicoNoPainel }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   apagado: { opacity: 0.6 },
   cartao: {
     gap: 8,
     marginBottom: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
+    borderColor: cores.hairline,
     borderRadius: 20,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  materia: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
-  nome: { fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: Horizonte.text },
+  materia: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, lineHeight: 18, color: cores.textMuted },
+  nome: { fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: cores.text },
   barra: {
     flexDirection: 'row',
     height: 10,
     overflow: 'hidden',
     borderRadius: 5,
-    backgroundColor: Horizonte.hairline,
+    backgroundColor: cores.hairline,
   },
-  parte: { backgroundColor: Horizonte.hairline },
-  parteDominado: { backgroundColor: Horizonte.luma },
-  parteTentando: { backgroundColor: Horizonte.action },
-  contagem: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
+  parte: { backgroundColor: cores.hairline },
+  parteDominado: { backgroundColor: cores.luma },
+  parteTentando: { backgroundColor: cores.action },
+  contagem: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   duvidas: { gap: 4, marginTop: 4 },
-  duvidasTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: Horizonte.text },
-  duvida: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.text },
-  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.error },
+  duvidasTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.text },
+  duvida: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.text },
+  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.error },
   botao: {
     alignSelf: 'flex-start',
     minHeight: 44,
@@ -126,8 +128,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.text,
+    borderColor: cores.text,
     borderRadius: 22,
   },
-  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
+  botaoTexto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: cores.text },
 });

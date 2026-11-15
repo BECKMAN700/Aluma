@@ -12,8 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { CeuEstrelado, EstrelaNoHorizonte, HorizonteLargoFixo, Surgir } from '@/components/horizonte/ceu';
 import { useTelaDividida } from '@/constants/auth-theme';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import type { Perfil } from '@/services/auth';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 const PERFIS: { id: Perfil; titulo: string; descricao: string }[] = [
   { id: 'aluno', titulo: 'Aluno', descricao: 'Estude com um tutor que te ajuda a pensar.' },
@@ -21,6 +22,8 @@ const PERFIS: { id: Perfil; titulo: string; descricao: string }[] = [
 ];
 
 export default function EscolherPerfilScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const largo = useTelaDividida();
   const margens = useSafeAreaInsets();
@@ -101,7 +104,7 @@ export default function EscolherPerfilScreen() {
                   <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
                     <Path
                       d="M9 5l7 7-7 7"
-                      stroke={aluno ? Horizonte.onAction : Horizonte.luma}
+                      stroke={aluno ? cores.onAction : cores.luma}
                       strokeWidth={2.2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -122,8 +125,8 @@ export default function EscolherPerfilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  tela: { flex: 1, overflow: 'hidden', backgroundColor: Horizonte.bg },
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  tela: { flex: 1, overflow: 'hidden', backgroundColor: cores.bg },
   rolagem: { flex: 1 },
   // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
   conteudo: { flexGrow: 1, overflow: 'hidden' },
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
   marcaLarga: { height: 48, gap: 12, paddingHorizontal: 24, marginTop: 8 },
   logo: { width: 40, height: 40, borderRadius: 20 },
   logoLargo: { width: 48, height: 48, borderRadius: 24 },
-  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: Horizonte.text },
+  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: cores.text },
   marcaTextoLargo: { fontSize: 22 },
 
   textos: { marginTop: 24, gap: 10, zIndex: 1 },
@@ -142,10 +145,10 @@ const styles = StyleSheet.create({
     fontSize: 31,
     lineHeight: 37,
     letterSpacing: -0.5,
-    color: Horizonte.text,
+    color: cores.text,
   },
   tituloLargo: { fontSize: 52, lineHeight: 60, letterSpacing: -1, textAlign: 'center' },
-  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
   subtituloLargo: { fontSize: 18, lineHeight: 26, textAlign: 'center' },
 
   // Os dois espaços crescem juntos: a estrela fica acima dos cartões em qualquer altura de tela.
@@ -184,23 +187,23 @@ const styles = StyleSheet.create({
     paddingRight: 22,
     borderRadius: 36,
   },
-  cartaoAluno: { backgroundColor: Horizonte.action },
-  cartaoProfessor: { borderWidth: 1.5, borderColor: Horizonte.luma, backgroundColor: Horizonte.surface },
+  cartaoAluno: { backgroundColor: cores.action },
+  cartaoProfessor: { borderWidth: 1.5, borderColor: cores.luma, backgroundColor: cores.surface },
   pressionado: { opacity: 0.85 },
   cartaoTextos: { flex: 1, minWidth: 0, gap: 2 },
-  cartaoTitulo: { fontFamily: FontesHorizonte.display, fontSize: 21, lineHeight: 27, color: Horizonte.text },
+  cartaoTitulo: { fontFamily: FontesHorizonte.display, fontSize: 21, lineHeight: 27, color: cores.text },
   cartaoTituloLargo: { fontSize: 24, lineHeight: 30 },
-  textoSobreAcao: { color: Horizonte.onAction },
-  cartaoDescricao: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  textoSobreAcao: { color: cores.onAction },
+  cartaoDescricao: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
   cartaoDescricaoLarga: { fontSize: 15, lineHeight: 21 },
-  cartaoDescricaoAluno: { fontFamily: FontesHorizonte.corpoMedio, color: Horizonte.onAction },
+  cartaoDescricaoAluno: { fontFamily: FontesHorizonte.corpoMedio, color: cores.onAction },
 
   frase: {
     fontFamily: FontesHorizonte.displayMedio,
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
     zIndex: 1,
   },
   fraseLarga: { fontSize: 16, lineHeight: 24 },

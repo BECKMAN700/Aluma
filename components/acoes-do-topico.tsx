@@ -5,9 +5,10 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { sair } from '@/services/auth';
 import { dominarTopico } from '@/services/materias';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 // Frases prontas: acabam com a tela em branco, o motivo nº 1 de o aluno não começar.
 const PARA_COMECAR = [
@@ -31,6 +32,7 @@ export function AcoesDoTopico({
   /** A frase do servidor ("Parabéns!…" ou "Ainda não deu…"), mostrada como fala da Luma. */
   aoResultado: (mensagem: string) => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   const [avaliando, setAvaliando] = useState(false);
 
   const terminei = async () => {
@@ -87,7 +89,7 @@ export function AcoesDoTopico({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   linha: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingVertical: 8 },
   apagado: { opacity: 0.6 },
   botao: {
@@ -95,9 +97,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: Horizonte.luma,
+    borderColor: cores.luma,
     borderRadius: 22,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  texto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: Horizonte.text },
+  texto: { fontFamily: FontesHorizonte.displayMedio, fontSize: 14, lineHeight: 20, color: cores.text },
 });

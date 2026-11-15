@@ -16,13 +16,16 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
 import { listarTurmas } from '@/services/turmas';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 export default function TurmasScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const { sessao } = useSessao();
   const nome = sessao.estado === 'pronto' ? sessao.usuario.nome : '';
@@ -68,7 +71,7 @@ export default function TurmasScreen() {
                   <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
                     <Path
                       d="M9 5l7 7-7 7"
-                      stroke={Horizonte.textMuted}
+                      stroke={cores.textMuted}
                       strokeWidth={2.2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -83,7 +86,7 @@ export default function TurmasScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 16 },
   estrela: { marginTop: 41, marginBottom: 22 },
@@ -94,7 +97,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
   linha: {
     flexDirection: 'row',
@@ -102,9 +105,9 @@ const styles = StyleSheet.create({
     gap: 12,
     minHeight: 76,
     borderBottomWidth: 1,
-    borderBottomColor: Horizonte.hairline,
+    borderBottomColor: cores.hairline,
   },
   linhaTexto: { flex: 1, minWidth: 0, gap: 2 },
-  linhaNome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 18, lineHeight: 24, color: Horizonte.text },
-  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  linhaNome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 18, lineHeight: 24, color: cores.text },
+  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
 });

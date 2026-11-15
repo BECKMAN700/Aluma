@@ -18,12 +18,13 @@ import { LumaPensando, MessageBubble } from '@/components/balao-mensagem';
 import { CAMINHO_ESTRELA, CeuEstrelado, EstrelaNoHorizonte, Surgir } from '@/components/horizonte/ceu';
 import { AvisoErro, LinkTexto, SEM_CONTORNO_WEB } from '@/components/horizonte/formulario';
 import { textoDaPartida } from '@/constants/partidas';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { BackendStatus, useBackendStatus } from '@/hooks/use-backend-status';
 import { AcoesDoTopico } from '@/components/acoes-do-topico';
 import { useSessao } from '@/hooks/use-sessao';
 import { buscarConversaAtual, sendMessage } from '@/services/api';
 import type { ChatApiAuthor } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // Passo 3 do roteiro de aceite: servidor dormindo não pode parecer tela travada.
 const BACKEND_STATUS_MESSAGE: Record<Exclude<BackendStatus, 'pronto'>, string> = {
@@ -46,6 +47,8 @@ const SAUDACAO: Message = {
 };
 
 export default function ChatScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const margens = useSafeAreaInsets();
   // `topico` vem da trilha: a conversa e o material passam a ser daquele tópico.
@@ -183,7 +186,7 @@ export default function ChatScreen() {
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M15 5l-7 7 7 7"
-                stroke={Horizonte.text}
+                stroke={cores.text}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -191,7 +194,7 @@ export default function ChatScreen() {
             </Svg>
           </Pressable>
           <Svg width={22} height={22} viewBox="0 0 56 56">
-            <Path d={CAMINHO_ESTRELA} fill={Horizonte.luma} />
+            <Path d={CAMINHO_ESTRELA} fill={cores.luma} />
           </Svg>
           <Text style={styles.titulo} accessibilityRole="header" numberOfLines={1}>
             {nome ? `Luma · ${nome}` : 'Luma'}
@@ -290,7 +293,7 @@ export default function ChatScreen() {
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7Z"
-                stroke={canSend ? Horizonte.onAction : Horizonte.action}
+                stroke={canSend ? cores.onAction : cores.action}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -303,12 +306,12 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   wrapper: {
     // Regra 1: Nenhuma altura fixa. Ocupa 100% da tela disponível pelo flexbox do pai.
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: Horizonte.bg,
+    backgroundColor: cores.bg,
   },
   horizonte: { position: 'absolute', left: 0, right: 0, pointerEvents: 'none' },
   coluna: {
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   privacyNotice: {
     marginTop: 26,
@@ -335,7 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
   statusBanner: {
     // Altura natural, como a barra de digitar: a lista abaixo absorve o resto.
@@ -360,7 +363,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
-    color: Horizonte.text,
+    color: cores.text,
   },
   messageList: {
     // Regra 1: a lista come o espaço que sobra; com o teclado aberto, ela é quem encolhe.
@@ -390,16 +393,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
     height: 48,
     borderWidth: 1.5,
-    borderColor: Horizonte.fieldBorder,
-    backgroundColor: Horizonte.fieldBg,
+    borderColor: cores.fieldBorder,
+    backgroundColor: cores.fieldBg,
     borderRadius: 24,
     paddingHorizontal: 18,
     fontFamily: FontesHorizonte.corpo,
     // 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
     fontSize: 16,
-    color: Horizonte.text,
+    color: cores.text,
   },
-  inputFoco: { borderWidth: 2, borderColor: Horizonte.action },
+  inputFoco: { borderWidth: 2, borderColor: cores.action },
   sendButton: {
     // Tamanho fixo por natureza (é um ícone), exceção da regra 1.
     width: 48,
@@ -407,12 +410,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Horizonte.action,
+    backgroundColor: cores.action,
   },
   sendButtonDisabled: {
     // Escuro com contorno dourado: mostra que não aceita toque, sem perder o contraste.
     borderWidth: 1.5,
-    borderColor: Horizonte.action,
-    backgroundColor: Horizonte.studentBubble,
+    borderColor: cores.action,
+    backgroundColor: cores.studentBubble,
   },
 });

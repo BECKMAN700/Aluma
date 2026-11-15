@@ -7,7 +7,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTelaDeSistema } from '@/constants/auth-theme';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 /** Altura da barra de baixo do celular mais a folga: o fim da lista não fica escondido. */
 const ESPACO_DA_BARRA = 96;
@@ -22,6 +23,7 @@ export function TelaSistema({
   acao?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const styles = useEstilos(criarEstilos);
   const margens = useSafeAreaInsets();
   const pc = useTelaDeSistema();
   return (
@@ -48,6 +50,7 @@ export function TelaSistema({
 }
 
 export function Cartao({ titulo, children }: { titulo?: string; children: React.ReactNode }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.cartao}>
       {!!titulo && <Text style={styles.cartaoTitulo}>{titulo}</Text>}
@@ -70,6 +73,7 @@ export function Pilula({
   ocupado?: boolean;
   aoTocar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.pilula, destaque && styles.pilulaDestaque, (pressed || ocupado) && styles.pressionado]}
@@ -96,6 +100,7 @@ export function Linha({
   /** O que fica à direita: estado ou pílulas. */
   children?: React.ReactNode;
 }) {
+  const styles = useEstilos(criarEstilos);
   const conteudo = (
     <>
       <View style={styles.linhaTexto}>
@@ -116,41 +121,40 @@ export function Linha({
 }
 
 export function Vazio({ texto }: { texto: string }) {
+  const styles = useEstilos(criarEstilos);
   return <Text style={styles.vazio}>{texto}</Text>;
 }
 
 export const estilosSistema = StyleSheet.create({
   acoes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   formulario: { gap: 12, marginTop: 4 },
-  estadoOk: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 13, color: Horizonte.luma },
-  estadoEspera: { fontFamily: FontesHorizonte.corpo, fontSize: 13, color: Horizonte.textMuted },
 });
 
-const styles = StyleSheet.create({
-  tela: { flex: 1, backgroundColor: Horizonte.bg },
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  tela: { flex: 1, backgroundColor: cores.bg },
   coluna: { width: '100%', maxWidth: 960, alignSelf: 'center', gap: 16 },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  titulo: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 26, lineHeight: 32, color: Horizonte.text },
+  titulo: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 26, lineHeight: 32, color: cores.text },
   cartao: {
     gap: 8,
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
-    backgroundColor: Horizonte.surface,
+    borderColor: cores.hairline,
+    backgroundColor: cores.surface,
   },
-  cartaoTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 15, lineHeight: 20, color: Horizonte.text },
+  cartaoTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 15, lineHeight: 20, color: cores.text },
   pilula: {
     minHeight: 36,
     paddingHorizontal: 14,
     justifyContent: 'center',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: Horizonte.fieldBorder,
+    borderColor: cores.fieldBorder,
   },
-  pilulaDestaque: { backgroundColor: Horizonte.action, borderColor: Horizonte.action },
-  pilulaTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, color: Horizonte.text },
-  pilulaTextoDestaque: { color: Horizonte.onAction },
+  pilulaDestaque: { backgroundColor: cores.action, borderColor: cores.action },
+  pilulaTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, color: cores.text },
+  pilulaTextoDestaque: { color: cores.onAction },
   pressionado: { opacity: 0.7 },
   linha: {
     flexDirection: 'row',
@@ -160,10 +164,10 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: Horizonte.hairline,
+    borderTopColor: cores.hairline,
   },
   linhaTexto: { flex: 1, minWidth: 160 },
-  linhaTitulo: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 20, color: Horizonte.text },
-  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
-  vazio: { paddingVertical: 8, fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  linhaTitulo: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 20, color: cores.text },
+  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
+  vazio: { paddingVertical: 8, fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
 });

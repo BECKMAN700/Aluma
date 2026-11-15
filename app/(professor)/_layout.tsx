@@ -7,12 +7,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { MenuDoProfessor } from '@/components/menu-do-professor';
 import { useTelaDeSistema } from '@/constants/auth-theme';
-import { Horizonte } from '@/constants/theme';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // Recarregar a página numa turma ainda deixa o "voltar" levando para a lista.
 export const unstable_settings = { initialRouteName: 'turmas' };
 
 export default function ProfessorLayout() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const sistema = useTelaDeSistema();
 
   // Mesma árvore com e sem menu: redimensionar a janela não remonta a pilha de telas.
@@ -24,7 +26,7 @@ export default function ProfessorLayout() {
           screenOptions={{
             headerShown: false,
             animation: 'none',
-            contentStyle: { backgroundColor: Horizonte.bg },
+            contentStyle: { backgroundColor: cores.bg },
           }}
         >
           <Stack.Screen name="turmas" />
@@ -38,7 +40,7 @@ export default function ProfessorLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tela: { flex: 1, flexDirection: 'row', backgroundColor: Horizonte.bg },
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  tela: { flex: 1, flexDirection: 'row', backgroundColor: cores.bg },
   conteudo: { flex: 1, minWidth: 0 },
 });

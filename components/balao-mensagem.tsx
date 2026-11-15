@@ -8,11 +8,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import type { ChatApiAuthor } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // A Luma fala direto no céu: o espaço e a cor já mostram quem fala, e cada linha ganha largura em 320px.
 export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: string }) {
+  const styles = useEstilos(criarEstilos);
   if (author !== 'aluno') return <Text style={styles.falaLuma}>{text}</Text>;
   return (
     <View style={styles.balaoAluno}>
@@ -23,6 +25,8 @@ export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: s
 
 /** A resposta leva de 2 a 7 segundos: sem este aviso a tela parece travada. */
 export function LumaPensando() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const giro = useSharedValue(0);
 
   // withTiming respeita o movimento reduzido do aparelho: a órbita fica parada e o texto continua.
@@ -36,8 +40,8 @@ export function LumaPensando() {
     <View style={styles.pensando} accessibilityLiveRegion="polite">
       <Animated.View style={estilo}>
         <Svg width={26} height={26} viewBox="0 0 26 26" fill="none">
-          <Circle cx="13" cy="13" r="10" stroke={Horizonte.luma} strokeOpacity={0.45} strokeWidth={1.5} />
-          <Circle cx="13" cy="3" r="3" fill={Horizonte.luma} />
+          <Circle cx="13" cy="13" r="10" stroke={cores.luma} strokeOpacity={0.45} strokeWidth={1.5} />
+          <Circle cx="13" cy="3" r="3" fill={cores.luma} />
         </Svg>
       </Animated.View>
       <Text style={styles.pensandoTexto}>Luma está pensando…</Text>
@@ -45,13 +49,13 @@ export function LumaPensando() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   falaLuma: {
     paddingRight: 20,
     fontFamily: FontesHorizonte.corpo,
     fontSize: 15,
     lineHeight: 22,
-    color: Horizonte.lumaText,
+    color: cores.lumaText,
   },
   balaoAluno: {
     // A lista é uma coluna: o horizontal é o eixo cruzado, então alignSelf move um balão só.
@@ -60,10 +64,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderWidth: 1,
-    borderColor: Horizonte.action,
+    borderColor: cores.action,
     borderRadius: 18,
     borderBottomRightRadius: 4,
-    backgroundColor: Horizonte.studentBubble,
+    backgroundColor: cores.studentBubble,
   },
   textoAluno: {
     // Sem flexShrink o texto longo vaza da tela em vez de quebrar a linha.
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.corpo,
     fontSize: 15,
     lineHeight: 22,
-    color: Horizonte.studentText,
+    color: cores.studentText,
   },
   pensando: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
   pensandoTexto: {
@@ -79,6 +83,6 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.corpoMedio,
     fontSize: 15,
     lineHeight: 22,
-    color: Horizonte.luma,
+    color: cores.luma,
   },
 });

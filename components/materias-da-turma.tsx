@@ -9,11 +9,14 @@ import Svg, { Path } from 'react-native-svg';
 
 import { CriarPorNome } from '@/components/horizonte/criar-por-nome';
 import { AvisoCarregando, AvisoErro, LinkTexto } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { criarMateria, listarMaterias } from '@/services/materias';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 export function MateriasDaTurma({ turmaId }: { turmaId: string }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const buscar = useCallback(() => listarMaterias(turmaId), [turmaId]);
   const [materias, tentarDeNovo] = useDadosDaTela(buscar);
   const criar = useCallback((nome: string) => criarMateria(turmaId, nome), [turmaId]);
@@ -49,7 +52,7 @@ export function MateriasDaTurma({ turmaId }: { turmaId: string }) {
               <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
                 <Path
                   d="M9 5l7 7-7 7"
-                  stroke={Horizonte.textMuted}
+                  stroke={cores.textMuted}
                   strokeWidth={2.2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -73,14 +76,14 @@ export function MateriasDaTurma({ turmaId }: { turmaId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   titulo: {
     marginTop: 24,
     marginBottom: 4,
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   linha: {
     flexDirection: 'row',
@@ -88,9 +91,9 @@ const styles = StyleSheet.create({
     gap: 12,
     minHeight: 64,
     borderBottomWidth: 1,
-    borderBottomColor: Horizonte.hairline,
+    borderBottomColor: cores.hairline,
   },
   linhaTexto: { flex: 1, minWidth: 0, gap: 2 },
-  linhaNome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 22, color: Horizonte.text },
-  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  linhaNome: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 22, color: cores.text },
+  linhaDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
 });

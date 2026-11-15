@@ -16,14 +16,16 @@ import {
   TituloTela,
 } from '@/components/horizonte/formulario';
 import { LinhaDaTrilha } from '@/components/linha-da-trilha';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import type { ResultadoApi } from '@/services/api';
 import { listarMaterias } from '@/services/materias';
 import type { ListaDeMaterias } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function TrilhaScreen() {
+  const styles = useEstilos(criarEstilos);
   const { sessao } = useSessao();
   const turmaId = sessao.estado === 'pronto' ? sessao.usuario.turma?.id : undefined;
 
@@ -86,7 +88,7 @@ export default function TrilhaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 10 },
   estrela: { marginTop: 41, marginBottom: 18 },
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   vazio: {
     paddingVertical: 16,
@@ -104,6 +106,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

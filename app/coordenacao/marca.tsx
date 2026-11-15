@@ -17,12 +17,13 @@ import {
   textoSobre,
   tons,
 } from '@/constants/marca';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import { buscarEscola, enviarLogo, salvarMarca } from '@/services/coordenacao';
 import { enderecoDaLogo } from '@/services/convites';
 import type { EscolaDoCoordenador } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 const FORMATOS: { valor: FormatoDaLogo; nome: string }[] = [
   { valor: 'redondo', nome: 'Redonda' },
@@ -47,6 +48,8 @@ export default function MarcaScreen() {
 }
 
 function Editor({ inicial }: { inicial: EscolaDoCoordenador }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const { recarregar } = useSessao();
   const [sistema, setSistema] = useState(inicial.nome_do_sistema);
   const [ia, setIa] = useState(inicial.nome_da_ia);
@@ -102,7 +105,7 @@ function Editor({ inicial }: { inicial: EscolaDoCoordenador }) {
         <Cartao titulo="Logo">
           <View style={styles.logoLinha}>
             <View style={formato === 'livre' && styles.molduraSemFundo}>
-              <LogoDaEscola endereco={endereco} formato={formato} cor={cor} nome={sistema || 'Escola'} tamanho={72} corSemFundo={Horizonte.text} />
+              <LogoDaEscola endereco={endereco} formato={formato} cor={cor} nome={sistema || 'Escola'} tamanho={72} corSemFundo={cores.text} />
             </View>
             <Pilula texto={enviandoLogo ? 'Enviando…' : 'Enviar imagem (PNG ou JPG, até 200 KB)'} ocupado={enviandoLogo} aoTocar={escolherLogo} />
           </View>
@@ -170,10 +173,12 @@ function Editor({ inicial }: { inicial: EscolaDoCoordenador }) {
 function Previa({ sistema, ia, cor, sec, formato, endereco }: {
   sistema: string; ia: string; cor: string; sec: string; formato: FormatoDaLogo; endereco: string | null;
 }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const claro = ehClara(sec);
-  const fundo = claro ? '#f7f8fa' : Horizonte.bg;
-  const texto = claro ? '#111318' : Horizonte.text;
-  const apoio = claro ? '#3b4252' : Horizonte.textMuted;
+  const fundo = claro ? '#f7f8fa' : cores.bg;
+  const texto = claro ? '#111318' : cores.text;
+  const apoio = claro ? '#3b4252' : cores.textMuted;
   return (
     <View style={styles.previaColuna} accessibilityLabel="Prévia no celular do aluno">
       <Text style={styles.rotulo}>Prévia no celular do aluno</Text>
@@ -188,7 +193,7 @@ function Previa({ sistema, ia, cor, sec, formato, endereco }: {
           <Text style={[styles.pergunta, { color: apoio }]}>Qual dúvida você quer pensar comigo hoje?</Text>
         </View>
         <View style={styles.rodapeCelular}>
-          <View style={[styles.caixaChat, { borderColor: claro ? '#8a94a6' : Horizonte.fieldBorder }]}>
+          <View style={[styles.caixaChat, { borderColor: claro ? '#8a94a6' : cores.fieldBorder }]}>
             <Text style={{ color: apoio, fontFamily: FontesHorizonte.corpo }}>Fale com a {ia}</Text>
           </View>
           <View style={[styles.botaoPrevia, { backgroundColor: cor }]}>
@@ -200,28 +205,28 @@ function Previa({ sistema, ia, cor, sec, formato, endereco }: {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   linha: { flexDirection: 'row', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' },
   editor: { flexGrow: 1, flexBasis: 420, minWidth: 0, gap: 16 },
   logoLinha: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 16 },
-  molduraSemFundo: { padding: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: Horizonte.fieldBorder, borderRadius: 12 },
-  rotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, color: Horizonte.textMuted },
-  ajuda: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
+  molduraSemFundo: { padding: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.fieldBorder, borderRadius: 12 },
+  rotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, color: cores.textMuted },
+  ajuda: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   paleta: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   amostra: { width: 44, height: 44, borderRadius: 12 },
-  amostraEscolhida: { borderWidth: 3, borderColor: Horizonte.action },
+  amostraEscolhida: { borderWidth: 3, borderColor: cores.action },
   tons: { flexDirection: 'row', gap: 8 },
   tom: { flex: 1, height: 56, borderRadius: 12, justifyContent: 'flex-end', padding: 8 },
   tomTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 13 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingLeft: 8, paddingRight: 14,
-    borderRadius: 999, borderWidth: 1, borderColor: Horizonte.fieldBorder,
+    borderRadius: 999, borderWidth: 1, borderColor: cores.fieldBorder,
   },
-  chipEscolhido: { borderColor: Horizonte.action, backgroundColor: Horizonte.fieldBg },
-  bolinha: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: Horizonte.fieldBorder },
-  chipTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, color: Horizonte.text },
+  chipEscolhido: { borderColor: cores.action, backgroundColor: cores.fieldBg },
+  bolinha: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: cores.fieldBorder },
+  chipTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, color: cores.text },
   previaColuna: { flexGrow: 0, flexBasis: 320, gap: 10, alignItems: 'center' },
-  celular: { width: 300, height: 580, borderRadius: 34, borderWidth: 1, borderColor: Horizonte.hairline, overflow: 'hidden' },
+  celular: { width: 300, height: 580, borderRadius: 34, borderWidth: 1, borderColor: cores.hairline, overflow: 'hidden' },
   barra: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 16 },
   barraTexto: { flex: 1, fontFamily: FontesHorizonte.display, fontSize: 16 },
   meio: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 20 },

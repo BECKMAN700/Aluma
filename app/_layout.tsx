@@ -23,10 +23,11 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { Horizonte } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessaoProvider, useSessao } from '@/hooks/use-sessao';
+import { TemaProvider } from '@/hooks/use-tema';
 import { sair } from '@/services/auth';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 // Caminho de cada arquivo, e não o pacote inteiro: assim só estes pesos entram no app.
 const FONTES = {
@@ -48,7 +49,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <SessaoProvider>
-        <Navegacao />
+        <TemaProvider>
+          <Navegacao />
+        </TemaProvider>
       </SessaoProvider>
       <StatusBar style="light" />
     </ThemeProvider>
@@ -107,17 +110,19 @@ function Navegacao() {
 }
 
 function TelaEspera() {
+  const cores = useCores();
   return (
     <TelaSessao
       titulo="Carregando…"
       subtitulo="Se o servidor estiver dormindo, isso leva até um minuto."
     >
-      <ActivityIndicator size="large" color={Horizonte.textMuted} accessibilityLabel="Carregando" />
+      <ActivityIndicator size="large" color={cores.textMuted} accessibilityLabel="Carregando" />
     </TelaSessao>
   );
 }
 
 function TelaErro({ erro }: { erro: string }) {
+  const styles = useEstilos(criarEstilos);
   const { recarregar } = useSessao();
   const [tentando, setTentando] = useState(false);
 
@@ -150,6 +155,7 @@ function TelaSessao({
   subtitulo?: string;
   children: React.ReactNode;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <TelaFormulario topo={20}>
       <Surgir style={styles.camada}>
@@ -164,7 +170,7 @@ function TelaSessao({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 16, gap: 6 },
   estrela: { marginTop: 47, marginBottom: 30 },

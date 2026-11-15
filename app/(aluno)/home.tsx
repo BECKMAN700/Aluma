@@ -14,13 +14,14 @@ import {
   TituloTela,
 } from '@/components/horizonte/formulario';
 import { PARTIDAS, type Partida } from '@/constants/partidas';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { useSessao } from '@/hooks/use-sessao';
 import type { ResultadoApi } from '@/services/api';
 import { listarMaterias } from '@/services/materias';
 import type { ListaDeMaterias, Topico } from '@/types/api';
 import { sair } from '@/services/auth';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 const PILARES = [
   { titulo: 'Método Socrático', apoio: 'Aprenda por questionamento' },
@@ -29,6 +30,7 @@ const PILARES = [
 ];
 
 export default function HomeScreen() {
+  const styles = useEstilos(criarEstilos);
   const router = useRouter();
   const { sessao } = useSessao();
   const usuario = sessao.estado === 'pronto' ? sessao.usuario : null;
@@ -106,7 +108,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   trilha: { marginTop: 12, gap: 10 },
   camada: { zIndex: 1 },
   textos: { marginTop: 6, gap: 4 },
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.displayMedio,
     fontSize: 16,
     lineHeight: 22,
-    color: Horizonte.text,
+    color: cores.text,
   },
   partidas: { gap: 8 },
 
@@ -128,14 +130,14 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 20,
     lineHeight: 26,
-    color: Horizonte.text,
+    color: cores.text,
   },
-  descricao: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  descricao: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
 
   pilares: { marginTop: 12 },
-  pilar: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: Horizonte.hairline },
-  pilarTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 15, lineHeight: 20, color: Horizonte.text },
-  descricaoCurta: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
+  pilar: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: cores.hairline },
+  pilarTitulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 15, lineHeight: 20, color: cores.text },
+  descricaoCurta: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
 });
 
 function ultimoEmAndamento(dados: ListaDeMaterias): Topico | undefined {

@@ -8,10 +8,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { CartaoDoTopico } from '@/components/cartao-do-topico';
 import { AvisoCarregando, AvisoErro, LinkTexto } from '@/components/horizonte/formulario';
 import { MateriasDaTurma } from '@/components/materias-da-turma';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { buscarPainel } from '@/services/painel';
 import type { AlunoDaTurma, TopicoNoPainel, Turma } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 /** Números do topo, tirados do painel. */
 export function numerosDaTurma(topicos: TopicoNoPainel[], alunos: number) {
@@ -35,6 +36,8 @@ export function VisaoGeralDaTurma({
   /** Botões de copiar/compartilhar o código, os mesmos da tela do celular. */
   acoesDoCodigo: React.ReactNode;
 }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const buscar = useCallback(() => buscarPainel(turma.id), [turma.id]);
   const [painel, tentarDeNovo] = useDadosDaTela(buscar);
 
@@ -73,8 +76,8 @@ export function VisaoGeralDaTurma({
       {/* Traço enquanto o painel carrega: um zero falso pareceria turma parada. */}
       <View style={styles.numeros}>
         <Numero rotulo="Alunos na turma" valor={String(alunos.length)} />
-        <Numero rotulo="Tópicos dominados" valor={pronto ? `${numeros.dominadoPorcento}%` : '–'} cor={Horizonte.luma} />
-        <Numero rotulo="Alunos tentando agora" valor={pronto ? String(numeros.tentando) : '–'} cor={Horizonte.action} />
+        <Numero rotulo="Tópicos dominados" valor={pronto ? `${numeros.dominadoPorcento}%` : '–'} cor={cores.luma} />
+        <Numero rotulo="Alunos tentando agora" valor={pronto ? String(numeros.tentando) : '–'} cor={cores.action} />
         <Numero rotulo="Tópicos na trilha" valor={pronto ? String(numeros.topicos) : '–'} />
       </View>
 
@@ -122,7 +125,10 @@ export function VisaoGeralDaTurma({
   );
 }
 
-function Numero({ rotulo, valor, cor = Horizonte.text }: { rotulo: string; valor: string; cor?: string }) {
+function Numero({ rotulo, valor, cor }: { rotulo: string; valor: string; cor?: string }) {
+  const styles = useEstilos(criarEstilos);
+  const cores = useCores();
+  cor ??= cores.text;
   return (
     <View style={styles.numero} accessible accessibilityLabel={`${rotulo}: ${valor}`}>
       <Text style={styles.numeroRotulo}>{rotulo}</Text>
@@ -131,23 +137,23 @@ function Numero({ rotulo, valor, cor = Horizonte.text }: { rotulo: string; valor
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   tela: { gap: 24, zIndex: 1 },
   cabecalho: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24 },
   cabecalhoTexto: { flex: 1, minWidth: 0, paddingTop: 8 },
-  nome: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, color: Horizonte.text },
-  detalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  nome: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, color: cores.text },
+  detalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
   codigoCaixa: {
     width: 300,
     gap: 6,
     padding: 16,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
+    borderColor: cores.hairline,
     borderRadius: 20,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  codigoRotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
-  codigo: { fontFamily: FontesHorizonte.display, fontSize: 30, lineHeight: 36, letterSpacing: 3, color: Horizonte.action },
+  codigoRotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, lineHeight: 18, color: cores.textMuted },
+  codigo: { fontFamily: FontesHorizonte.display, fontSize: 30, lineHeight: 36, letterSpacing: 3, color: cores.action },
 
   numeros: { flexDirection: 'row', gap: 12 },
   numero: {
@@ -156,11 +162,11 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 16,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
+    borderColor: cores.hairline,
     borderRadius: 16,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
-  numeroRotulo: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: Horizonte.textMuted },
+  numeroRotulo: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.textMuted },
   numeroValor: { fontFamily: FontesHorizonte.display, fontSize: 30, lineHeight: 36 },
 
   colunas: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
@@ -170,9 +176,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
+    borderColor: cores.hairline,
     borderRadius: 20,
-    backgroundColor: Horizonte.surface,
+    backgroundColor: cores.surface,
   },
   titulo: {
     marginTop: 16,
@@ -180,10 +186,10 @@ const styles = StyleSheet.create({
     fontFamily: FontesHorizonte.display,
     fontSize: 18,
     lineHeight: 24,
-    color: Horizonte.text,
+    color: cores.text,
   },
   aluno: { minHeight: 44, justifyContent: 'center' },
-  alunoComLinha: { borderBottomWidth: 1, borderBottomColor: Horizonte.hairline },
-  alunoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.text },
-  vazio: { paddingVertical: 12, fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  alunoComLinha: { borderBottomWidth: 1, borderBottomColor: cores.hairline },
+  alunoNome: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.text },
+  vazio: { paddingVertical: 12, fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
 });

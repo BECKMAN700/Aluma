@@ -8,9 +8,10 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 type Icone = React.ComponentProps<typeof MaterialIcons>['name'];
 
@@ -27,6 +28,8 @@ function ativo(caminhoAtual: string, destino: string): boolean {
 }
 
 export function MenuLateralDoCoordenador() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const caminho = usePathname();
   const { sessao } = useSessao();
   const escola = sessao.estado === 'pronto' ? sessao.usuario.escola?.nome : undefined;
@@ -34,7 +37,7 @@ export function MenuLateralDoCoordenador() {
   return (
     <View style={styles.menu} role="navigation" aria-label="Menu da coordenação">
       <View style={styles.marca}>
-        <MaterialIcons name="school" size={26} color={Horizonte.action} />
+        <MaterialIcons name="school" size={26} color={cores.action} />
         <Text style={styles.marcaTexto} numberOfLines={2}>
           {escola ?? 'Coordenação'}
         </Text>
@@ -55,6 +58,8 @@ export function MenuLateralDoCoordenador() {
 }
 
 function ItemDoMenu({ texto, icone, ativo: aceso, aoTocar }: { texto: string; icone: Icone; ativo: boolean; aoTocar: () => void }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.item, aceso && styles.itemAtivo, pressed && styles.pressionado]}
@@ -62,13 +67,15 @@ function ItemDoMenu({ texto, icone, ativo: aceso, aoTocar }: { texto: string; ic
       accessibilityRole="link"
       accessibilityState={{ selected: aceso }}
     >
-      <MaterialIcons name={icone} size={20} color={aceso ? Horizonte.action : Horizonte.textMuted} />
+      <MaterialIcons name={icone} size={20} color={aceso ? cores.action : cores.textMuted} />
       <Text style={[styles.itemTexto, aceso && styles.itemTextoAtivo]}>{texto}</Text>
     </Pressable>
   );
 }
 
 export function BarraDeBaixoDoCoordenador() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const caminho = usePathname();
   const margens = useSafeAreaInsets();
 
@@ -85,20 +92,20 @@ export function BarraDeBaixoDoCoordenador() {
             accessibilityLabel={d.texto}
             accessibilityState={{ selected: aceso }}
           >
-            <MaterialIcons name={d.icone} size={24} color={aceso ? Horizonte.action : Horizonte.textMuted} />
+            <MaterialIcons name={d.icone} size={24} color={aceso ? cores.action : cores.textMuted} />
             <Text style={[styles.legendaBarra, aceso && styles.itemTextoAtivo]}>{d.texto}</Text>
           </Pressable>
         );
       })}
       <Pressable style={({ pressed }) => [styles.botaoBarra, pressed && styles.pressionado]} onPress={sair} accessibilityRole="button" accessibilityLabel="Sair">
-        <MaterialIcons name="logout" size={24} color={Horizonte.textMuted} />
+        <MaterialIcons name="logout" size={24} color={cores.textMuted} />
         <Text style={styles.legendaBarra}>Sair</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   pressionado: { opacity: 0.75 },
   menu: {
     width: 232,
@@ -106,17 +113,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 4,
     borderRightWidth: 1,
-    borderRightColor: Horizonte.hairline,
-    backgroundColor: Horizonte.surface,
+    borderRightColor: cores.hairline,
+    backgroundColor: cores.surface,
   },
   marca: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 8, marginBottom: 20 },
-  marcaTexto: { flex: 1, fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 21, color: Horizonte.text },
+  marcaTexto: { flex: 1, fontFamily: FontesHorizonte.displayMedio, fontSize: 16, lineHeight: 21, color: cores.text },
   item: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44, paddingHorizontal: 12, borderRadius: 10 },
-  itemAtivo: { backgroundColor: Horizonte.fieldBg },
-  itemTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, color: Horizonte.textMuted },
-  itemTextoAtivo: { color: Horizonte.text },
-  rodape: { marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderTopColor: Horizonte.hairline },
-  usuario: { paddingHorizontal: 12, paddingBottom: 4, fontFamily: FontesHorizonte.corpo, fontSize: 13, color: Horizonte.textMuted },
+  itemAtivo: { backgroundColor: cores.fieldBg },
+  itemTexto: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, color: cores.textMuted },
+  itemTextoAtivo: { color: cores.text },
+  rodape: { marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.hairline },
+  usuario: { paddingHorizontal: 12, paddingBottom: 4, fontFamily: FontesHorizonte.corpo, fontSize: 13, color: cores.textMuted },
   barra: {
     position: 'absolute',
     left: 16,
@@ -126,9 +133,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: Horizonte.hairline,
-    backgroundColor: Horizonte.surface,
+    borderColor: cores.hairline,
+    backgroundColor: cores.surface,
   },
   botaoBarra: { minWidth: 72, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 999 },
-  legendaBarra: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 12, color: Horizonte.textMuted },
+  legendaBarra: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 12, color: cores.textMuted },
 });

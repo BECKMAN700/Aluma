@@ -6,15 +6,17 @@ import React, { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useGlobalSearchParams, usePathname } from 'expo-router';
 
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useSessao } from '@/hooks/use-sessao';
 import { sair } from '@/services/auth';
 import { listarTurmas } from '@/services/turmas';
 import type { Turma } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export const LARGURA_DO_MENU = 248;
 
 export function MenuDoProfessor() {
+  const styles = useEstilos(criarEstilos);
   const caminho = usePathname();
   const { id, turma } = useGlobalSearchParams<{ id?: string; turma?: string }>();
   const { sessao } = useSessao();
@@ -78,6 +80,7 @@ function Item({
   ativo: boolean;
   aoTocar: () => void;
 }) {
+  const styles = useEstilos(criarEstilos);
   return (
     <Pressable
       style={({ pressed }) => [styles.item, ativo && styles.itemAtivo, pressed && styles.pressionado]}
@@ -101,19 +104,19 @@ function Item({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   menu: {
     width: LARGURA_DO_MENU,
     paddingVertical: 20,
     paddingHorizontal: 12,
     gap: 2,
     borderRightWidth: 1,
-    borderRightColor: Horizonte.hairline,
-    backgroundColor: Horizonte.surface,
+    borderRightColor: cores.hairline,
+    backgroundColor: cores.surface,
   },
   marca: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 8, marginBottom: 20 },
   logo: { width: 36, height: 36, borderRadius: 18 },
-  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: Horizonte.text },
+  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: cores.text },
   secao: {
     marginTop: 18,
     marginBottom: 4,
@@ -123,24 +126,24 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
   item: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, paddingRight: 10, borderRadius: 10 },
-  itemAtivo: { backgroundColor: Horizonte.fieldBg },
+  itemAtivo: { backgroundColor: cores.fieldBg },
   pressionado: { opacity: 0.85 },
   marcador: { width: 3, alignSelf: 'stretch', marginVertical: 8, borderRadius: 2 },
-  marcadorAtivo: { backgroundColor: Horizonte.action },
+  marcadorAtivo: { backgroundColor: cores.action },
   itemTexto: { flex: 1, minWidth: 0, paddingVertical: 6 },
-  itemNome: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 20, color: Horizonte.textMuted },
-  itemNomeAtivo: { color: Horizonte.text },
-  itemDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 12, lineHeight: 16, color: Horizonte.textMuted },
-  rodape: { marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderTopColor: Horizonte.hairline },
+  itemNome: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 20, color: cores.textMuted },
+  itemNomeAtivo: { color: cores.text },
+  itemDetalhe: { fontFamily: FontesHorizonte.corpo, fontSize: 12, lineHeight: 16, color: cores.textMuted },
+  rodape: { marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.hairline },
   usuario: {
     paddingHorizontal: 12,
     paddingBottom: 4,
     fontFamily: FontesHorizonte.corpo,
     fontSize: 13,
     lineHeight: 18,
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

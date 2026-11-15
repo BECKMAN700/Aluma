@@ -17,11 +17,13 @@ import {
   TelaFormulario,
   TituloTela,
 } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { buscarPainel } from '@/services/painel';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function PainelScreen() {
+  const styles = useEstilos(criarEstilos);
   const { id } = useLocalSearchParams<{ id: string }>();
   const buscar = useCallback(() => buscarPainel(id), [id]);
   const [dados, tentarDeNovo] = useDadosDaTela(buscar);
@@ -72,7 +74,7 @@ export default function PainelScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   camada: { zIndex: 1 },
   textos: { marginTop: 10 },
   estrela: { marginTop: 41, marginBottom: 18 },
@@ -82,6 +84,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    color: Horizonte.textMuted,
+    color: cores.textMuted,
   },
 });

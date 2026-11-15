@@ -9,9 +9,10 @@ import { router } from 'expo-router';
 
 import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/coordenacao/sistema';
 import { AvisoCarregando, AvisoErro, CampoTexto, LinkTexto } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { buscarEscola, criarTurmaDaEscola, listarTurmasDaEscola } from '@/services/coordenacao';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function TurmasDaEscolaScreen() {
   const [turmas, tentarDeNovo] = useDadosDaTela(listarTurmasDaEscola);
@@ -54,6 +55,7 @@ export default function TurmasDaEscolaScreen() {
 }
 
 function CartaoDoConvite() {
+  const styles = useEstilos(criarEstilos);
   const [escola] = useDadosDaTela(buscarEscola);
   const [aviso, setAviso] = useState<string | null>(null);
   if (escola.estado !== 'pronto') return null;
@@ -117,7 +119,7 @@ function NovaTurma({ aoFechar, aoCriar }: { aoFechar: () => void; aoCriar: () =>
   );
 }
 
-const styles = StyleSheet.create({
-  explicacao: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
-  link: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, lineHeight: 20, color: Horizonte.luma },
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  explicacao: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
+  link: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 14, lineHeight: 20, color: cores.luma },
 });

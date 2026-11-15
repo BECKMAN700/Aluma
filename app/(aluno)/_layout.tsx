@@ -5,10 +5,12 @@ import { Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Horizonte } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCores } from '@/hooks/use-tema';
 
 export default function TabLayout() {
+  const cores = useCores();
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
 
@@ -20,7 +22,7 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         // Só existe uma aba: a barra ocuparia espaço no celular pequeno sem levar a lugar nenhum.
         tabBarStyle: { display: 'none' },
-        sceneStyle: { backgroundColor: Horizonte.bg },
+        sceneStyle: { backgroundColor: cores.bg },
       }}>
       {/* arquivo renomeado: index.tsx -> home.tsx (a rota "/" agora é a escolha de perfil) */}
       <Tabs.Screen

@@ -8,15 +8,18 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AvisoErro, CampoTexto, LinkTexto, TelaFormulario } from '@/components/horizonte/formulario';
 import { LogoDaEscola } from '@/components/logo-da-escola';
 import { textoSobre } from '@/constants/marca';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useSessao } from '@/hooks/use-sessao';
 import { sair, trocarSenha } from '@/services/auth';
 import { enderecoDaLogo } from '@/services/convites';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
 export default function TrocarSenhaScreen() {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
   const { sessao, recarregar } = useSessao();
   const escola = sessao.estado === 'pronto' ? sessao.usuario.escola : null;
-  const cor = escola?.cor ?? Horizonte.action;
+  const cor = escola?.cor ?? cores.action;
   const [nova, setNova] = useState('');
   const [repetida, setRepetida] = useState('');
   const [erro, setErro] = useState<string | null>(null);
@@ -50,7 +53,7 @@ export default function TrocarSenhaScreen() {
             cor={escola.cor}
             nome={escola.nome_do_sistema}
             tamanho={36}
-            corSemFundo={Horizonte.text}
+            corSemFundo={cores.text}
           />
           <Text style={styles.sistema}>{escola.nome_do_sistema}</Text>
         </View>
@@ -84,7 +87,7 @@ export default function TrocarSenhaScreen() {
         accessibilityRole="button"
         accessibilityState={{ disabled: !valida || salvando, busy: salvando }}
       >
-        <Text style={[styles.botaoTexto, { color: valida ? textoSobre(cor) : Horizonte.textMuted }]}>
+        <Text style={[styles.botaoTexto, { color: valida ? textoSobre(cor) : cores.textMuted }]}>
           {salvando ? 'Salvando…' : 'Salvar e entrar'}
         </Text>
       </Pressable>
@@ -93,21 +96,21 @@ export default function TrocarSenhaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores: Cores) => StyleSheet.create({
   cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
-  sistema: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, color: Horizonte.text },
+  sistema: { fontFamily: FontesHorizonte.displayMedio, fontSize: 16, color: cores.text },
   corpo: { flex: 1, gap: 16, paddingTop: 40 },
-  titulo: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4, color: Horizonte.text },
-  apoio: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: Horizonte.textMuted },
+  titulo: { fontFamily: FontesHorizonte.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4, color: cores.text },
+  apoio: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
   regras: { gap: 8 },
   regra: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  marca: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: Horizonte.fieldBg },
+  marca: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.fieldBg },
   marcaOk: { backgroundColor: '#123824' },
-  marcaTexto: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, color: Horizonte.textMuted },
-  regraTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, color: Horizonte.textMuted },
+  marcaTexto: { fontFamily: FontesHorizonte.corpoForte, fontSize: 13, color: cores.textMuted },
+  regraTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, color: cores.textMuted },
   ok: { color: '#9fe6bd' },
   botao: { minHeight: 56, borderRadius: 999, alignItems: 'center', justifyContent: 'center', marginTop: 24, marginBottom: 8 },
-  botaoApagado: { backgroundColor: Horizonte.fieldBg, borderWidth: 1, borderColor: Horizonte.hairline },
+  botaoApagado: { backgroundColor: cores.fieldBg, borderWidth: 1, borderColor: cores.hairline },
   botaoTexto: { fontFamily: FontesHorizonte.display, fontSize: 17 },
   pressionado: { opacity: 0.85 },
 });

@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
 import { useTelaDividida } from '@/constants/auth-theme';
-import { Horizonte } from '@/constants/theme';
+import { useCores } from '@/hooks/use-tema';
 
 type Estrela = readonly [cx: number, cy: number, r: number, opacidade: number];
 
@@ -104,6 +104,7 @@ function useIdGradiente() {
 }
 
 function CurvaCelular({ escala }: { escala: number }) {
+  const cores = useCores();
   const id = useIdGradiente();
 
   return (
@@ -122,8 +123,8 @@ function CurvaCelular({ escala }: { escala: number }) {
         </RadialGradient>
         <LinearGradient id={`chao${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="220" x2="0" y2="620">
           <Stop offset="0" stopColor="#0B2236" />
-          <Stop offset="0.45" stopColor={Horizonte.surface} />
-          <Stop offset="1" stopColor={Horizonte.bg} />
+          <Stop offset="0.45" stopColor={cores.surface} />
+          <Stop offset="1" stopColor={cores.bg} />
         </LinearGradient>
         <LinearGradient id={`borda${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0">
           <Stop offset="0" stopColor="#3CCBFF" />
@@ -141,6 +142,7 @@ function CurvaCelular({ escala }: { escala: number }) {
 }
 
 function CurvaLarga() {
+  const cores = useCores();
   const id = useIdGradiente();
 
   return (
@@ -158,7 +160,7 @@ function CurvaLarga() {
         </RadialGradient>
         <LinearGradient id={`chao${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="470" x2="0" y2="760">
           <Stop offset="0" stopColor="#0B2236" />
-          <Stop offset="1" stopColor={Horizonte.bg} />
+          <Stop offset="1" stopColor={cores.bg} />
         </LinearGradient>
         <LinearGradient id={`borda${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0">
           <Stop offset="0" stopColor="#3CCBFF" />
@@ -180,6 +182,7 @@ function CurvaLarga() {
  * Com tamanho 0, só a curva aparece; a estrela renasce pequena ao voltar para uma tela que a tem.
  */
 export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
+  const cores = useCores();
   const { width, height } = useWindowDimensions();
   const largo = useTelaDividida();
   const semMovimento = useReducedMotion();
@@ -242,7 +245,7 @@ export function EstrelaNoHorizonte({ tamanho }: { tamanho: number }) {
         {tamanho > 0 && (
           <Animated.View style={estiloEstrela}>
             <Svg width={tamanho} height={tamanho} viewBox="0 0 56 56">
-              <Path d={CAMINHO_ESTRELA} fill={Horizonte.star} />
+              <Path d={CAMINHO_ESTRELA} fill={cores.star} />
             </Svg>
           </Animated.View>
         )}

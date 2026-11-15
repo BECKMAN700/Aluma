@@ -8,10 +8,11 @@ import * as Clipboard from 'expo-clipboard';
 
 import { Cartao, Linha, Pilula, TelaSistema, Vazio, estilosSistema } from '@/components/coordenacao/sistema';
 import { AvisoCarregando, AvisoErro, CampoTexto, LinkTexto } from '@/components/horizonte/formulario';
-import { FontesHorizonte, Horizonte } from '@/constants/theme';
+import { FontesHorizonte } from '@/constants/theme';
 import { useDadosDaTela } from '@/hooks/use-dados-da-tela';
 import { criarProfessor, listarProfessores } from '@/services/coordenacao';
 import type { ProfessorCriado } from '@/types/api';
+import { type Cores, useEstilos } from '@/hooks/use-tema';
 
 export default function ProfessoresScreen() {
   const [professores, recarregar] = useDadosDaTela(listarProfessores);
@@ -97,6 +98,7 @@ function NovoProfessor({ aoCriar }: { aoCriar: (p: ProfessorCriado) => void }) {
 }
 
 function SenhaProvisoria({ professor, aoFechar }: { professor: ProfessorCriado; aoFechar: () => void }) {
+  const styles = useEstilos(criarEstilos);
   const [copiou, setCopiou] = useState(false);
   const texto = `Sua conta no sistema da escola: ${professor.email}, senha provisória ${professor.senha_provisoria}. Troque no primeiro acesso.`;
 
@@ -121,8 +123,8 @@ function SenhaProvisoria({ professor, aoFechar }: { professor: ProfessorCriado; 
   );
 }
 
-const styles = StyleSheet.create({
-  texto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: Horizonte.textMuted },
-  dado: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, color: Horizonte.text },
-  senha: { fontFamily: FontesHorizonte.display, fontSize: 26, letterSpacing: 2, color: Horizonte.action },
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  texto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
+  dado: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, color: cores.text },
+  senha: { fontFamily: FontesHorizonte.display, fontSize: 26, letterSpacing: 2, color: cores.action },
 });
