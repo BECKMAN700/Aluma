@@ -13,6 +13,7 @@ from nucleo import supabase_admin
 from nucleo.auth import Usuario
 from nucleo.db import conexao
 from nucleo.permissoes import exige_coordenador
+from nucleo.rate_limit import check_rate_limit
 from turmas.consultas import criar_turma
 from turmas.esquemas import CriarTurma
 
@@ -145,7 +146,8 @@ def listar_professores(
     return {"professores": consultas.professores_da_escola(db, usuario.escola_id)}
 
 
-@router.post("/professores", status_code=status.HTTP_201_CREATED)
+# Cada professor criado dispara um e-mail do Supabase: o limite protege a cota do SMTP.
+@router.post("/professores", status_code=status.HTTP_201_CREATED, dependencies=[Depends(check_rate_limit)])
 def criar_professor(
     dados: CriarProfessor,
     usuario: Usuario = Depends(exige_coordenador),

@@ -14,6 +14,7 @@ from chat import consultas as chat
 from nucleo.auth import Usuario
 from nucleo.db import conexao
 from nucleo.permissoes import exige_usuario_do_chat
+from nucleo.rate_limit import check_rate_limit
 
 from . import consultas
 
@@ -66,7 +67,9 @@ def apagar(id: UUID, usuario: Usuario = Depends(exige_aluno_com_turma), db: psyc
         raise HTTPException(status_code=404, detail="projeto não encontrado")
 
 
-@router.post("/projetos/{id}/conversas", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/projetos/{id}/conversas", status_code=status.HTTP_201_CREATED, dependencies=[Depends(check_rate_limit)]
+)
 def nova_conversa(id: UUID, usuario: Usuario = Depends(exige_aluno_com_turma), db: psycopg.Connection = Depends(conexao)):
     conversa = consultas.nova_conversa(db, id, usuario.id)
     if conversa is None:
