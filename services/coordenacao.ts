@@ -72,7 +72,7 @@ export function salvarMarca(
   return enviar('/escola', marca, 'PATCH');
 }
 
-/** PNG ou JPG até 200 KB; quem confere o tipo de verdade é o servidor, pelo conteúdo. */
+/** PNG ou JPG até 5 MB; quem confere o tipo de verdade é o servidor, pelo conteúdo. */
 export async function enviarLogo(uri: string, tipo: string): Promise<ResultadoApi<undefined>> {
   let arquivo: Blob;
   try {

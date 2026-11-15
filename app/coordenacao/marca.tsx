@@ -71,7 +71,7 @@ function Editor({ inicial }: { inicial: EscolaDoCoordenador }) {
     const escolha = await DocumentPicker.getDocumentAsync({ type: ['image/png', 'image/jpeg'], copyToCacheDirectory: true });
     if (escolha.canceled) return;
     const arquivo = escolha.assets[0];
-    if ((arquivo.size ?? 0) > 200 * 1024) return setAviso({ erro: true, texto: 'A logo deve ter no máximo 200 KB.' });
+    if ((arquivo.size ?? 0) > 5 * 1024 * 1024) return setAviso({ erro: true, texto: 'A logo deve ter no máximo 5 MB.' });
     setEnviandoLogo(true);
     const r = await enviarLogo(arquivo.uri, arquivo.mimeType ?? 'image/png');
     setEnviandoLogo(false);
@@ -107,7 +107,7 @@ function Editor({ inicial }: { inicial: EscolaDoCoordenador }) {
             <View style={formato === 'livre' && styles.molduraSemFundo}>
               <LogoDaEscola endereco={endereco} formato={formato} cor={cor} nome={sistema || 'Escola'} tamanho={72} corSemFundo={cores.text} />
             </View>
-            <Pilula texto={enviandoLogo ? 'Enviando…' : 'Enviar imagem (PNG ou JPG, até 200 KB)'} ocupado={enviandoLogo} aoTocar={escolherLogo} />
+            <Pilula texto={enviandoLogo ? 'Enviando…' : 'Enviar imagem (PNG ou JPG, até 5 MB)'} ocupado={enviandoLogo} aoTocar={escolherLogo} />
           </View>
           <Text style={styles.rotulo}>Formato da logo</Text>
           <View style={estilosSistema.acoes}>
