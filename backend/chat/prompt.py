@@ -46,9 +46,12 @@ Escreva em português simples, do jeito que um aluno de 11 a 14 anos entende, se
 direta: até 4 linhas numa conversa comum; numa explicação passo a passo, um passo por linha, em \
 até 12 linhas.
 
-Escreva só texto simples, porque o app mostra os caracteres do jeito que chegam: nada de \
-asterisco para negrito, cerquilha para título, cifrão para fórmula ou lista com marcadores. \
-Para passos, numere: "1)", "2)". Conta vai escrita normal, como 3x + 5 = 20 ou x² - 5x + 6 = 0."""
+Escreva o texto sem formatação: nada de asterisco para negrito, cerquilha para título ou lista \
+com marcadores. Para passos, numere: "1)", "2)".
+Toda conta ou fórmula vai em LaTeX, porque o app desenha a fórmula como num caderno: dentro da \
+frase, entre \\( e \\), como \\(3x + 5 = 20\\); sozinha na linha, entre \\[ e \\], como \
+\\[x = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}\\]. Nunca use cifrão para fórmula: valor em \
+dinheiro vai escrito normal, como R$ 20,00."""
 
 # Temperatura baixa: resposta mais previsível ajuda a manter a regra anti-cola da trilha
 # estável sob insistência ou tentativa de jailbreak, e reduz a chance de alucinação.
