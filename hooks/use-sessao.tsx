@@ -30,7 +30,7 @@ export function SessaoProvider({ children }: { children: React.ReactNode }) {
 
   const carregar = useCallback(async () => {
     const r = await buscarMe();
-    if (r.ok && (r.dados.papel === 'aluno' || r.dados.papel === 'professor')) {
+    if (r.ok && ['aluno', 'professor', 'coordenador'].includes(r.dados.papel)) {
       setSessao({ estado: 'pronto', usuario: r.dados });
     } else if (r.ok) {
       // Papel desconhecido: na dúvida, nega (regra inviolável 4).

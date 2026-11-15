@@ -33,7 +33,7 @@ export interface ChatErrorResponse {
 }
 
 /** Contrato de GET /api/me (backend/turmas/rotas_matriculas.py). */
-export type Papel = 'aluno' | 'professor';
+export type Papel = 'aluno' | 'professor' | 'coordenador';
 
 export interface Me {
   id: string;
@@ -130,4 +130,44 @@ export interface PainelDaTurma {
 export interface ResumoDeDuvidas {
   resumo: string;
   resumo_em: string;
+}
+
+/** Contrato de /api/coordenacao (backend/coordenacao/rotas.py). */
+export interface EscolaDoCoordenador {
+  id: string;
+  nome: string;
+  nome_da_ia: string;
+  cor: string;
+  /** Uuid do link de entrada dos alunos: /convite/<convite>. */
+  convite: string;
+  tem_logo: boolean;
+}
+
+export interface TurmaDaEscola {
+  id: string;
+  nome: string;
+  serie: string;
+  alunos: number;
+  materias: { id: string; nome: string; professor: string }[];
+}
+
+/** A data de nascimento nunca volta do servidor: só serve para o aluno provar que é ele. */
+export interface AlunoPreCadastrado {
+  id: string;
+  nome: string;
+  matricula: string;
+  /** Já entrou pelo convite. */
+  entrou: boolean;
+}
+
+export interface ProfessorDaEscola {
+  id: string;
+  nome: string;
+  materias: number;
+}
+
+export interface ProfessorCriado extends ProfessorDaEscola {
+  email: string;
+  /** Só aparece nesta resposta: o coordenador repassa e o professor troca no primeiro acesso. */
+  senha_provisoria: string;
 }

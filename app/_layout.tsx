@@ -1,7 +1,7 @@
 /**
  * Layout raiz do app: decide quais telas existem para quem está usando.
  * Sem login: (auth). Aluno sem turma: codigo-da-turma. Aluno com turma: (aluno) e chat.
- * Professor: (professor). Uma tela fora da guarda é tratada como inexistente e a pessoa
+ * Professor: (professor). Coordenador: coordenacao. Uma tela fora da guarda é tratada como inexistente e a pessoa
  * volta para a primeira tela que pode ver — é assim que o aluno não abre tela de professor.
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
  */
@@ -86,6 +86,10 @@ function Navegacao() {
 
       <Stack.Protected guard={usuario?.papel === 'professor'}>
         <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={usuario?.papel === 'coordenador'}>
+        <Stack.Screen name="coordenacao" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
     </Stack>
   );

@@ -127,6 +127,8 @@ export async function chamar<T>(caminho: string, init: RequestInit = {}): Promis
       headers: { ...(await cabecalhos()), ...(init.headers as Record<string, string> | undefined) },
       signal: controller.signal,
     });
+    // 204 (apagar) não tem corpo para ler.
+    if (response.status === 204) return { ok: true, dados: undefined as T };
     if (response.ok) return { ok: true, dados: (await response.json()) as T };
     const data: Partial<ChatErrorResponse> = await response.json().catch(() => ({}));
     return { ok: false, status: response.status, erro: data.erro || ERRO_SERVIDOR };
