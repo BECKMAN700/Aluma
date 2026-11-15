@@ -42,17 +42,26 @@ backend/
     rate_limit.py      limite de requisições
   chat/              rotas.py, esquemas.py, consultas.py, prompt.py, claude.py, gemini.py, testes/
   turmas/            rotas.py, esquemas.py, consultas.py, testes/
+  coordenacao/       rotas.py, esquemas.py, consultas.py, testes/ (turmas, alunos, professores, marca)
+  convites/          rotas.py, esquemas.py, consultas.py, testes/ (aluno entra pelo link da escola)
+  projetos/          rotas.py, consultas.py, testes/ (pastas privadas do aluno, fora do painel)
   painel/            rotas.py, consultas.py, testes/ (onde a turma trava)
   materiais/         rotas.py, esquemas.py, consultas.py, pdf.py, testes/ (matéria, tópico e PDF)
-  migrations/        001_inicial.sql, 002_materias.sql — o banco, em ordem
-  scripts/           criar_professor.py, seed_demo.py — administração, roda só na máquina da equipe
+  migrations/        001_inicial.sql … 005_projetos.sql — o banco, em ordem
+  scripts/           criar_professor.py (também cria coordenador), seed_demo.py — roda só na máquina da equipe
 app/
   _layout.tsx        lê a sessão e manda cada papel para o seu grupo
-  (auth)/            entrar, criar conta
-  (aluno)/           código da turma, início, chat, trilha
-  (professor)/       turmas, turma, materiais, painel
+  (auth)/            entrar; criar conta só depois do convite
+  convite/           link único da escola: matrícula + nascimento
+  coordenacao/       turmas, alunos, professores, marca
+  (aluno)/           início (chat limpo), trilha, projetos
+  (professor)/       turmas, turma (trilha, painel, alunos), matéria
+  chat.tsx           conversa com a IA (nome dado pela escola)
+  trocar-senha.tsx   professor troca a senha provisória
+  sem-escola.tsx     conta que ainda não está numa escola
 components/          peças de tela reaproveitadas
-services/            api.ts (endereço + token), auth.ts, turmas.ts, materias.ts
+services/            api.ts (endereço + token), auth.ts, turmas.ts, materias.ts, painel.ts,
+                     coordenacao.ts, convites.ts, projetos.ts
 types/api.ts         os formatos que a API devolve
 docs/                este mapa, decisões, sprints
 ```
@@ -153,13 +162,19 @@ um arquivo que já foi aplicado.
    vencido: `401`.
 4. Com o id que está no token, o backend busca o `perfil`. Se não existe, cria como **aluno**.
 
-**O papel nunca vem do app.** Quem cria conta pelo app é sempre aluno.
+**O papel nunca vem do app.** Conta nova pelo app é sempre aluno sem escola, e só ganha
+escola e turma pelo convite (decisão de 15/11; não existe mais cadastro aberto nem código de turma).
 
-**Conta de professor é criada pela equipe**, por um script de administração que roda só na
-máquina de quem tem a chave secreta: cria o login no Supabase e a linha em `perfis` com o papel
-`professor` e a escola. O professor recebe o e-mail e a senha e troca a senha no primeiro
-acesso. Não existe tabela de convite por e-mail: sem e-mail de confirmação, qualquer pessoa
-poderia criar conta com o e-mail de um professor convidado e virar professor.
+**Quem cria quem:**
+
+- A equipe cria só o **coordenador**, com `scripts/criar_professor.py` na máquina de quem tem a
+  chave secreta.
+- O **coordenador** cria o professor pela API (`POST /api/coordenacao/professores`): o backend usa
+  a `SUPABASE_SECRET_KEY` do Render, cria o login com senha provisória e marca `trocar_senha`; no
+  primeiro acesso o app manda para `trocar-senha`.
+- O **aluno** é pré-cadastrado pelo coordenador (matrícula + nascimento). Pelo link da escola ele
+  confere os dois dados, cria a conta e o servidor liga o perfil ao pré-cadastro uma vez só. O
+  erro é genérico e há limite de tentativas, para não revelar quem existe.
 
 O formato que as rotas recebem, e contra o qual todo mundo programa:
 
@@ -167,7 +182,7 @@ O formato que as rotas recebem, e contra o qual todo mundo programa:
 @dataclass
 class Usuario:
     id: str            # uuid do login
-    papel: str         # "aluno" | "professor" | "admin"
+    papel: str         # "aluno" | "professor" | "coordenador" | "admin"
     escola_id: str | None
 ```
 
@@ -305,7 +320,7 @@ vendo alunos de turma de outro professor; professor de outra escola; aluno sem t
 | Render | `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` | **Sim** |
 | Render | `SUPABASE_URL`, `CORS_ORIGINS` | Não |
 | Render e `.env` de quem roda script | `SUPABASE_SECRET_KEY` (o coordenador cria o login do professor) | **Sim** |
-| App (`.env`, Netlify) | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Não |
+| App (`.env`, Netlify) | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Não |
 
 Tudo que começa com `EXPO_PUBLIC_` vai dentro do app e qualquer pessoa consegue ler. Por isso
 a chave secreta do Supabase **nunca** recebe esse prefixo nem entra no app. Desde 15/11 ela vai
