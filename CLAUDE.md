@@ -39,7 +39,8 @@ O contexto completo — problema, escopo, decisões, riscos e calendário — es
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: negue e pare. Nunca "deixa passar por enquanto".
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
-6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
+6. Na trilha do professor, a IA nunca entrega a resposta final de um exercício: ensina o método,
+   passo a passo, e guia o aluno. Na conversa livre, ela responde e explica (decisão de 15/11/2026).
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
 8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD para menores,
    consentimento dos pais e exclusão sob pedido. Não trate como bloqueio. A demonstração usa
