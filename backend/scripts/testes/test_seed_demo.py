@@ -5,6 +5,7 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
+from materiais.consultas import materias_da_turma
 from scripts import seed_demo
 
 # Só no CI: na máquina da equipe o main.py carrega o .env, e o DATABASE_URL seria o Supabase real.
@@ -18,26 +19,27 @@ def db(monkeypatch):
     # Login falso: o teste não fala com o Supabase, só com o Postgres do CI.
     monkeypatch.setattr(seed_demo, "criar_login", lambda email, senha: str(uuid.uuid4()))
     conn = psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row, prepare_threshold=None)
+    seed_demo.limpar(conn)  # outra execução no mesmo banco não atrapalha
     yield conn
     conn.rollback()  # nada do teste fica no banco
     conn.close()
 
 
-def test_cria_aluno_matriculado_na_turma_da_escola_ficticia(db):
-    turma = seed_demo.semear(db, "senha-de-teste")
+def test_cria_duas_escolas_com_marca_e_papeis(db):
+    criadas = seed_demo.semear(db, "senha-de-teste")
 
-    linha = db.execute(
+    assert [c["escola"] for c in criadas] == [e["nome"] for e in seed_demo.ESCOLAS]
+    linhas = db.execute(
         """
-        select p.papel, e.nome
-        from matriculas m
-        join turmas t on t.id = m.turma_id
-        join perfis p on p.id = m.aluno_id
-        join escolas e on e.id = t.escola_id
-        where t.id = %s
+        select e.nome_da_ia, p.papel, count(*) as n, count(*) filter (where p.entrou_em is null) as pre
+        from perfis p join escolas e on e.id = p.escola_id
+        where e.nome like %s group by e.nome_da_ia, p.papel order by 1, 2
         """,
-        (turma,),
-    ).fetchone()
-    assert linha == {"papel": "aluno", "nome": seed_demo.ESCOLA}
+        (f"%{seed_demo.SINAL}",),
+    ).fetchall()
+    for ia in ("Iara", "Luma"):
+        por_papel = {r["papel"]: (r["n"], r["pre"]) for r in linhas if r["nome_da_ia"] == ia}
+        assert por_papel == {"aluno": (4, 3), "coordenador": (1, 0), "professor": (2, 0)}
 
 
 def test_segunda_vez_nao_cria_nada(db):
@@ -46,14 +48,19 @@ def test_segunda_vez_nao_cria_nada(db):
         seed_demo.semear(db, "senha-de-teste")
 
 
-def test_trilha_vem_com_tres_topicos_em_ordem_e_material(db):
-    from materiais.consultas import materias_da_turma
+def test_trilha_de_matematica_com_material_e_limpar_apaga_tudo(db):
+    seed_demo.semear(db, "senha-de-teste")
+    turma = db.execute(
+        "select t.id from turmas t join escolas e on e.id = t.escola_id where e.nome = %s",
+        (seed_demo.ESCOLAS[0]["nome"],),
+    ).fetchone()["id"]
 
-    turma = seed_demo.semear(db, "senha-de-teste")
+    materias = {m["nome"]: m for m in materias_da_turma(db, turma)}
+    assert sorted(materias) == ["Matemática", "Português"]
+    topicos = materias[seed_demo.MATERIA]["topicos"]
+    assert [t["nome"] for t in topicos] == [nome for nome, _ in seed_demo.TOPICOS]
+    assert all(t["material"] for t in topicos)
 
-    [materia] = materias_da_turma(db, turma)
-    assert materia["nome"] == seed_demo.MATERIA
-    assert [t["nome"] for t in materia["topicos"]] == [nome for nome, _ in seed_demo.TOPICOS]
-    assert all(t["material"] for t in materia["topicos"])
-    with pytest.raises(SystemExit):  # rodar --trilha de novo não duplica
-        seed_demo.semear_trilha(db)
+    logins = seed_demo.limpar(db)
+    assert len(logins) == 8  # 4 contas com login por escola; pré-cadastro não tem login
+    assert db.execute("select 1 from escolas where nome like %s", (f"%{seed_demo.SINAL}",)).fetchone() is None

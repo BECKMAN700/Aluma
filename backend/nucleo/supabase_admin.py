@@ -47,3 +47,21 @@ def criar_login(email: str, senha: str) -> str:
         raise AdminIndisponivel(f"o Supabase recusou criar o login ({e.code})") from None
     except (urllib.error.URLError, TimeoutError):
         raise AdminIndisponivel("nao foi possivel falar com o Supabase") from None
+
+
+def apagar_login(login_id: str) -> bool:
+    """Apaga o login no Supabase. Devolve False se não conseguiu, e quem chama avisa."""
+    chave = os.getenv("SUPABASE_SECRET_KEY")
+    url = os.getenv("SUPABASE_URL", "").rstrip("/")
+    if not chave or not url:
+        return False
+    pedido = urllib.request.Request(
+        f"{url}/auth/v1/admin/users/{login_id}",
+        method="DELETE",
+        headers={"apikey": chave, "Authorization": f"Bearer {chave}"},
+    )
+    try:
+        with urllib.request.urlopen(pedido, timeout=20):
+            return True
+    except (urllib.error.URLError, TimeoutError):  # HTTPError é filha de URLError
+        return False
