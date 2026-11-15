@@ -56,11 +56,6 @@ export interface Me {
   trocar_senha: boolean;
 }
 
-/** Contrato de POST /api/matriculas. */
-export interface MatriculaResponse {
-  turma: { id: string; nome: string };
-}
-
 /** Contrato de /api/turmas (backend/turmas/rotas.py). */
 export interface Turma {
   id: string;

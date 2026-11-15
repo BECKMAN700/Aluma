@@ -5,7 +5,6 @@ import type {
   ChatRequestBody,
   ChatResponse,
   ConversaAtual,
-  MatriculaResponse,
   Me,
 } from '@/types/api';
 
@@ -148,12 +147,4 @@ export function buscarMe(): Promise<ResultadoApi<Me>> {
 export function buscarConversaAtual(topicoId?: string): Promise<ResultadoApi<ConversaAtual>> {
   const filtro = topicoId ? `?topico_id=${encodeURIComponent(topicoId)}` : '';
   return chamar<ConversaAtual>(`/api/conversas/atual${filtro}`);
-}
-
-/** Aluno entra na turma pelo código. 404 = código não existe; 409 = já tem turma. */
-export function entrarNaTurma(codigo: string): Promise<ResultadoApi<MatriculaResponse>> {
-  return chamar<MatriculaResponse>('/api/matriculas', {
-    method: 'POST',
-    body: JSON.stringify({ codigo }),
-  });
 }

@@ -1,5 +1,6 @@
 // Autenticação via Supabase Auth. O backend (nucleo/auth.py) só valida o JWT recebido
 // em "Authorization: Bearer <token>" e cria o perfil como 'aluno' no primeiro acesso.
+import { chamar } from '@/services/api';
 import { supabase } from '@/services/supabase';
 
 export type Perfil = 'aluno' | 'professor';
@@ -87,6 +88,21 @@ export async function criarConta(nome: string, email: string, senha: string): Pr
   } catch (e) {
     return traduzirErro(e);
   }
+}
+
+/**
+ * Troca a senha provisória: primeiro no Supabase (a senha nunca passa pelo nosso servidor),
+ * depois avisa o backend para parar de pedir a troca.
+ */
+export async function trocarSenha(senha: string): Promise<ResultadoAuth> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: senha });
+    if (error) return traduzirErro(error);
+  } catch (e) {
+    return traduzirErro(e);
+  }
+  const r = await chamar('/api/me/senha-trocada', { method: 'POST' });
+  return r.ok ? { ok: true } : { ok: false, erro: r.erro };
 }
 
 /** Encerra a sessão e apaga o token guardado no aparelho. */

@@ -1,6 +1,7 @@
 /**
  * Layout raiz do app: decide quais telas existem para quem está usando.
- * Sem login: (auth). Aluno sem turma: codigo-da-turma. Aluno com turma: (aluno) e chat.
+ * Sem login: (auth) e o convite da escola. Aluno sem turma: sem-escola e o convite. Aluno com
+ * turma: (aluno) e chat. Professor com senha provisória: trocar-senha antes de tudo.
  * Professor: (professor). Coordenador: coordenacao. Uma tela fora da guarda é tratada como inexistente e a pessoa
  * volta para a primeira tela que pode ver — é assim que o aluno não abre tela de professor.
  * Quem garante a permissão de verdade é o servidor; aqui é só a navegação.
@@ -63,6 +64,7 @@ function Navegacao() {
 
   const usuario = sessao.estado === 'pronto' ? sessao.usuario : null;
   const aluno = usuario?.papel === 'aluno';
+  const professor = usuario?.papel === 'professor' && !usuario.trocar_senha;
 
   return (
     <Stack>
@@ -72,7 +74,16 @@ function Navegacao() {
 
       <Stack.Protected guard={aluno && !usuario.turma}>
         {/* Sem animação do Stack: quem se move é o horizonte (components/horizonte/ceu.tsx). */}
-        <Stack.Screen name="codigo-da-turma" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="sem-escola" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      {/* Depois da sem-escola: entrar logado sem o convite na mão cai lá, não aqui sem parâmetro. */}
+      <Stack.Protected guard={!usuario || (aluno && !usuario.turma)}>
+        <Stack.Screen name="convite/[convite]" options={{ headerShown: false, animation: 'none' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={usuario?.papel === 'professor' && usuario.trocar_senha}>
+        <Stack.Screen name="trocar-senha" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={aluno && !!usuario.turma}>
@@ -80,11 +91,11 @@ function Navegacao() {
       </Stack.Protected>
 
       {/* O professor abre o chat para testar a Luma num tópico dele; nada é gravado. */}
-      <Stack.Protected guard={(aluno && !!usuario.turma) || usuario?.papel === 'professor'}>
+      <Stack.Protected guard={(aluno && !!usuario.turma) || professor}>
         <Stack.Screen name="chat" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 
-      <Stack.Protected guard={usuario?.papel === 'professor'}>
+      <Stack.Protected guard={professor}>
         <Stack.Screen name="(professor)" options={{ headerShown: false, animation: 'none' }} />
       </Stack.Protected>
 

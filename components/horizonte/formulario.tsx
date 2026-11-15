@@ -231,73 +231,6 @@ export function CampoTexto({ rotulo, erro, senha = false, inputRef, onFocus, onB
   );
 }
 
-const CELULAS_DO_CODIGO = [0, 1, 2, 3, 4, 5];
-
-/**
- * Seis células para o código da turma. Um único campo invisível fica por cima e recebe a digitação:
- * o teclado e o leitor de tela enxergam um campo só, e o toque vale para o grupo inteiro.
- */
-export function CodigoTurma({
-  rotulo,
-  valor,
-  erro,
-  aoMudar,
-  aoEnviar,
-  editavel,
-}: {
-  rotulo: string;
-  valor: string;
-  erro?: string | null;
-  aoMudar: (texto: string) => void;
-  aoEnviar: () => void;
-  editavel: boolean;
-}) {
-  const [emFoco, setEmFoco] = useState(false);
-  const atual = Math.min(valor.length, CELULAS_DO_CODIGO.length - 1);
-
-  return (
-    <View style={styles.campoCodigo}>
-      <Text style={styles.rotulo}>{rotulo}</Text>
-      <View style={styles.celulas}>
-        {CELULAS_DO_CODIGO.map((i) => {
-          const naVez = emFoco && i === atual;
-          return (
-            <View
-              key={i}
-              style={[styles.celula, naVez && styles.celulaFoco, !!erro && styles.celulaErro]}
-            >
-              <Text style={[styles.celulaTexto, naVez && !valor[i] && styles.celulaCursor]}>
-                {valor[i]?.toUpperCase() ?? (naVez ? '|' : '')}
-              </Text>
-            </View>
-          );
-        })}
-        <TextInput
-          style={[styles.codigoInvisivel, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
-          value={valor}
-          onChangeText={aoMudar}
-          onFocus={() => setEmFoco(true)}
-          onBlur={() => setEmFoco(false)}
-          onSubmitEditing={aoEnviar}
-          accessibilityLabel={rotulo}
-          accessibilityHint={erro ?? undefined}
-          maxLength={CELULAS_DO_CODIGO.length}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          autoComplete="off"
-          returnKeyType="send"
-          editable={editavel}
-        />
-      </View>
-      {!!erro && (
-        <Text style={styles.erro} accessibilityRole="alert" accessibilityLiveRegion="polite">
-          {erro}
-        </Text>
-      )}
-    </View>
-  );
-}
-
 export function BotaoPrincipal({
   texto,
   textoOcupado = texto,
@@ -430,25 +363,8 @@ const styles = StyleSheet.create({
   marcaLogo: { width: 40, height: 40, borderRadius: 20 },
   marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: Horizonte.text },
 
-  campoCodigo: { gap: 8 },
-  celulas: { flexDirection: 'row', gap: 6, height: 60 },
-  celula: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: Horizonte.fieldBorder,
-    borderRadius: 14,
-    backgroundColor: Horizonte.fieldBg,
-  },
   // Só a cor muda: uma borda mais grossa empurraria as células vizinhas a cada letra digitada.
-  celulaFoco: { borderColor: Horizonte.action },
-  celulaErro: { borderColor: Horizonte.error },
-  celulaTexto: { fontFamily: FontesHorizonte.display, fontSize: 22, color: Horizonte.text },
-  celulaCursor: { color: Horizonte.action },
   // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
-  codigoInvisivel: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, fontSize: 16 },
 
   cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   voltar: { flexDirection: 'row', flexShrink: 1, alignItems: 'center', gap: 4, minHeight: 44, marginLeft: -8, paddingRight: 8 },
