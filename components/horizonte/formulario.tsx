@@ -1,0 +1,476 @@
+/**
+ * Peças do Design System para as telas do app: moldura, título, cabeçalhos, campos, botão,
+ * link e avisos.
+ */
+
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import { IconeOlho } from '@/components/auth/icone-olho';
+import { CeuEstrelado, Surgir } from '@/components/horizonte/ceu';
+import { FontesHorizonte } from '@/constants/theme';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
+
+// O foco já é mostrado na caixa: sem isto, a web desenha um retângulo em volta do input.
+// O tipo do React Native não aceita 'none', mas a web aceita.
+export const SEM_CONTORNO_WEB ={ outlineStyle: 'none' } as object;
+
+/** Moldura das telas de formulário: área segura, teclado e coluna de até 480px. */
+export function TelaFormulario({
+  topo = 12,
+  rodape = 36,
+  largura = 480,
+  comCeu = false,
+  children,
+}: {
+  topo?: number;
+  rodape?: number;
+  /** Largura máxima da coluna. */
+  largura?: number;
+  /** Céu estrelado da Luma: só nas telas do Aluma, antes de a pessoa estar dentro de uma escola. */
+  comCeu?: boolean;
+  children: React.ReactNode;
+}) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  const margens = useSafeAreaInsets();
+
+  return (
+    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style={cores.claro ? 'dark' : 'light'} />
+      {/* O céu é do tema escuro e da marca Luma: tela da escola fica com o fundo liso. */}
+      {comCeu && !cores.claro && <CeuEstrelado />}
+
+      <ScrollView
+        style={styles.rolagem}
+        contentContainerStyle={[
+          styles.conteudo,
+          {
+            paddingTop: margens.top + topo,
+            paddingBottom: margens.bottom + rodape,
+            paddingHorizontal: 20,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Centra pela largura do próprio conteúdo: com o menu lateral do professor, a tela é mais estreita que a janela. */}
+        <View style={[styles.coluna, { maxWidth: largura }]}>{children}</View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+export function TituloTela({
+  titulo,
+  subtitulo,
+  falaDaLuma = false,
+  style,
+}: {
+  titulo: string;
+  subtitulo?: string;
+  /** O subtítulo é uma fala da Luma: ganha a cor dela. */
+  falaDaLuma?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <Surgir style={[styles.camada, style]}>
+      <Text style={styles.titulo} accessibilityRole="header">
+        {titulo}
+      </Text>
+      {!!subtitulo && <Text style={falaDaLuma ? styles.falaDaLuma : styles.subtitulo}>{subtitulo}</Text>}
+    </Surgir>
+  );
+}
+
+export function CabecalhoSair({
+  legenda,
+  comMarca = false,
+  aoSair,
+}: {
+  legenda?: string;
+  /** Mostra "Aluma" ao lado do logo, em vez da legenda. */
+  comMarca?: boolean;
+  aoSair: () => void;
+}) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={styles.cabecalhoSair}>
+      <Image
+        source={require('../../assets/images/aluma_logo.jpg')}
+        style={styles.logo}
+        accessibilityLabel="Logo do Aluma"
+      />
+      <Text style={comMarca ? styles.marcaPequena : styles.legenda} numberOfLines={1}>
+        {comMarca ? 'Aluma' : legenda}
+      </Text>
+      <Pressable
+        style={({ pressed }) => [styles.sair, pressed && styles.pressionado]}
+        onPress={aoSair}
+        accessibilityRole="button"
+        accessibilityLabel="Sair da conta"
+      >
+        <Text style={styles.legenda}>Sair</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+export function BotaoPartida({ texto, aoTocar }: { texto: string; aoTocar: () => void }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.partida, pressed && styles.pressionado]}
+      onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={texto}
+    >
+      <Text style={styles.partidaTexto}>{texto}</Text>
+      <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+        <Path d="M9 5l7 7-7 7" stroke={cores.luma} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </Pressable>
+  );
+}
+
+export function CabecalhoMarca() {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={styles.marca}>
+      <Image
+        source={require('../../assets/images/aluma_logo.jpg')}
+        style={styles.marcaLogo}
+        accessibilityLabel="Logo do Aluma"
+      />
+      <Text style={styles.marcaTexto}>Aluma</Text>
+    </View>
+  );
+}
+
+export function CabecalhoVoltar({
+  texto,
+  aoVoltar,
+  comLogo = false,
+}: {
+  texto: string;
+  aoVoltar: () => void;
+  /** Logo do Aluma: só nas telas do Aluma; tela da escola não mostra nada da marca. */
+  comLogo?: boolean;
+}) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={styles.cabecalho}>
+      <Pressable
+        style={({ pressed }) => [styles.voltar, pressed && styles.pressionado]}
+        onPress={aoVoltar}
+        accessibilityRole="button"
+        accessibilityLabel={texto}
+      >
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M15 5l-7 7 7 7"
+            stroke={cores.textMuted}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+        <Text style={styles.voltarTexto}>{texto}</Text>
+      </Pressable>
+      {comLogo && (
+        <Image
+          source={require('../../assets/images/aluma_logo.jpg')}
+          style={styles.logo}
+          accessibilityLabel="Logo do Aluma"
+        />
+      )}
+    </View>
+  );
+}
+
+interface CampoTextoProps extends Omit<TextInputProps, 'style'> {
+  rotulo: string;
+  erro?: string | null;
+  /** Mostra o olho para exibir/ocultar a senha e controla secureTextEntry. */
+  senha?: boolean;
+  inputRef?: React.Ref<TextInput>;
+}
+
+export function CampoTexto({ rotulo, erro, senha = false, inputRef, onFocus, onBlur, ...props }: CampoTextoProps) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  const [visivel, setVisivel] = useState(false);
+  const [emFoco, setEmFoco] = useState(false);
+
+  return (
+    <View style={styles.campo}>
+      <Text style={styles.rotulo}>{rotulo}</Text>
+      <View style={[styles.caixa, emFoco && styles.caixaFoco, !!erro && styles.caixaErro]}>
+        <TextInput
+          ref={inputRef}
+          style={[styles.input, senha && styles.inputSenha, Platform.OS === 'web' && SEM_CONTORNO_WEB]}
+          placeholderTextColor="#A9B6CC"
+          accessibilityLabel={rotulo}
+          accessibilityHint={erro ?? undefined}
+          secureTextEntry={senha && !visivel}
+          autoCapitalize="none"
+          onFocus={(e) => { setEmFoco(true); onFocus?.(e); }}
+          onBlur={(e) => { setEmFoco(false); onBlur?.(e); }}
+          {...props}
+        />
+        {senha && (
+          <Pressable
+            style={styles.olho}
+            onPress={() => setVisivel((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={visivel ? 'Ocultar senha' : 'Mostrar senha'}
+            accessibilityState={{ checked: visivel }}
+          >
+            <IconeOlho aberto={visivel} cor={cores.textMuted} />
+          </Pressable>
+        )}
+      </View>
+      {!!erro && (
+        <Text style={styles.erro} accessibilityRole="alert" accessibilityLiveRegion="polite">
+          {erro}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+export function BotaoPrincipal({
+  texto,
+  textoOcupado = texto,
+  rotulo,
+  ocupado = false,
+  alto = false,
+  compacto = false,
+  aoTocar,
+}: {
+  texto: string;
+  textoOcupado?: string;
+  /** Para o leitor de tela, quando o texto sozinho não diz o que o botão faz. */
+  rotulo?: string;
+  ocupado?: boolean;
+  /** 60px em vez de 56px: só em "Conversar com o tutor". */
+  alto?: boolean;
+  /** 52px, para ficar ao lado de outro botão. */
+  compacto?: boolean;
+  aoTocar: () => void;
+}) {
+  const styles = useEstilos(criarEstilos);
+  const atual = ocupado ? textoOcupado : texto;
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.botao,
+        alto && styles.botaoAlto,
+        compacto && styles.botaoCompacto,
+        pressed && styles.pressionado,
+        ocupado && styles.botaoOcupado,
+      ]}
+      onPress={aoTocar}
+      disabled={ocupado}
+      accessibilityRole="button"
+      accessibilityLabel={rotulo ?? atual}
+      accessibilityState={{ disabled: ocupado, busy: ocupado }}
+    >
+      <Text style={[styles.botaoTexto, compacto && styles.botaoCompactoTexto]}>{atual}</Text>
+    </Pressable>
+  );
+}
+
+export function LinkTexto({ texto, rotulo, aoTocar }: { texto: string; rotulo: string; aoTocar: () => void }) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.link, pressed && styles.pressionado]}
+      onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+    >
+      <Text style={styles.linkTexto}>{texto}</Text>
+    </Pressable>
+  );
+}
+
+export function AvisoCarregando({ texto }: { texto: string }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={styles.carregando} accessibilityLiveRegion="polite">
+      <ActivityIndicator color={cores.textMuted} />
+      <Text style={styles.carregandoTexto}>{texto}</Text>
+    </View>
+  );
+}
+
+export function AvisoErro({ mensagem }: { mensagem: string }) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={styles.aviso}>
+      <Text style={styles.avisoTexto} accessibilityRole="alert" accessibilityLiveRegion="polite">
+        {mensagem}
+      </Text>
+    </View>
+  );
+}
+
+/** Aviso que não é erro, como "Conta criada!": sem a cor de erro. */
+export function AvisoInfo({ mensagem }: { mensagem: string }) {
+  const styles = useEstilos(criarEstilos);
+  return (
+    <View style={[styles.aviso, styles.avisoInfo]}>
+      <Text style={[styles.avisoTexto, styles.avisoInfoTexto]} accessibilityRole="alert" accessibilityLiveRegion="polite">
+        {mensagem}
+      </Text>
+    </View>
+  );
+}
+
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  pressionado: { opacity: 0.85 },
+
+  tela: { flex: 1, overflow: 'hidden', backgroundColor: cores.bg },
+  rolagem: { flex: 1 },
+  // overflow: a curva do planeta passa do fim da tela e não pode criar rolagem vazia na web.
+  conteudo: { flexGrow: 1, overflow: 'hidden' },
+  coluna: { flexGrow: 1, width: '100%', alignSelf: 'center' },
+  camada: { zIndex: 1 },
+
+  titulo: {
+    fontFamily: FontesHorizonte.display,
+    fontSize: 31,
+    lineHeight: 37,
+    letterSpacing: -0.5,
+    color: cores.text,
+  },
+  subtitulo: { fontFamily: FontesHorizonte.corpo, fontSize: 15, lineHeight: 22, color: cores.textMuted },
+
+  falaDaLuma: { fontFamily: FontesHorizonte.corpoMedio, fontSize: 16, lineHeight: 23, color: cores.luma },
+
+  cabecalhoSair: { flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: -8 },
+  legenda: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.textMuted, flexShrink: 1 },
+  marcaPequena: { flexShrink: 1, fontFamily: FontesHorizonte.display, fontSize: 18, lineHeight: 24, color: cores.text },
+  carregando: { alignItems: 'center', gap: 10, paddingVertical: 24 },
+  carregandoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, textAlign: 'center', color: cores.textMuted },
+  sair: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
+
+  partida: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingLeft: 20,
+    paddingRight: 16,
+    borderWidth: 1.5,
+    borderColor: cores.luma,
+    borderRadius: 24,
+    backgroundColor: cores.surface,
+  },
+  partidaTexto: { flex: 1, minWidth: 0, fontFamily: FontesHorizonte.corpoMedio, fontSize: 15, lineHeight: 22, color: cores.text },
+
+  marca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 44 },
+  marcaLogo: { width: 40, height: 40, borderRadius: 20 },
+  marcaTexto: { fontFamily: FontesHorizonte.display, fontSize: 19, color: cores.text },
+
+  // Só a cor muda: uma borda mais grossa empurraria as células vizinhas a cada letra digitada.
+  // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
+
+  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  voltar: { flexDirection: 'row', flexShrink: 1, alignItems: 'center', gap: 4, minHeight: 44, marginLeft: -8, paddingRight: 8 },
+  voltarTexto: { flexShrink: 1, fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.textMuted },
+  logo: { width: 36, height: 36, borderRadius: 18 },
+
+  campo: { gap: 6 },
+  rotulo: { fontFamily: FontesHorizonte.corpoForte, fontSize: 14, lineHeight: 20, color: cores.text },
+  caixa: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: cores.fieldBorder,
+    borderRadius: 26,
+    backgroundColor: cores.fieldBg,
+  },
+  caixaFoco: { borderWidth: 2, borderColor: cores.action },
+  caixaErro: { borderColor: cores.error },
+  // Fonte de 16px: abaixo disso, o iPhone dá zoom na tela ao tocar no campo.
+  input: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    paddingHorizontal: 20,
+    fontFamily: FontesHorizonte.corpo,
+    fontSize: 16,
+    color: cores.text,
+  },
+  inputSenha: { paddingRight: 0 },
+  olho: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  erro: { fontFamily: FontesHorizonte.corpo, fontSize: 13, lineHeight: 18, color: cores.error },
+
+  botao: {
+    minHeight: 56,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.action,
+  },
+  botaoAlto: { minHeight: 60, borderRadius: 30 },
+  botaoCompacto: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 26 },
+  botaoCompactoTexto: { fontSize: 15, lineHeight: 22 },
+  botaoOcupado: { opacity: 0.6 },
+  botaoTexto: {
+    fontFamily: FontesHorizonte.display,
+    fontSize: 17,
+    lineHeight: 24,
+    textAlign: 'center',
+    color: cores.onAction,
+  },
+
+  link: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  linkTexto: {
+    fontFamily: FontesHorizonte.corpoForte,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    color: cores.action,
+  },
+
+  aviso: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: cores.error,
+    borderRadius: 18,
+    backgroundColor: cores.fieldBg,
+  },
+  avisoTexto: { fontFamily: FontesHorizonte.corpo, fontSize: 14, lineHeight: 20, color: cores.error },
+  avisoInfo: { borderColor: cores.fieldBorder },
+  avisoInfoTexto: { color: cores.text },
+});

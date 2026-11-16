@@ -75,3 +75,79 @@ def exige_usuario_do_chat(
     if not matriculado:
         raise HTTPException(status_code=403, detail="voce precisa estar em uma turma")
     return usuario
+
+def exige_membro_da_turma(
+    id: UUID,
+    usuario: Usuario = Depends(usuario_atual),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    """Professor dono ou aluno matriculado. Os dois casos reaproveitam as regras de cima."""
+    if usuario.papel == "professor":
+        return exige_dono_da_turma(id, usuario, db)
+    return exige_aluno_da_turma(id, exige_aluno(usuario), db)
+
+
+def _exige_dono(consulta, id: UUID, usuario: Usuario, db, erro: str) -> Usuario:
+    """Dono pela turma de cima. De outro professor: 404, como a turma."""
+    if not usuario.escola_id:
+        raise HTTPException(status_code=404, detail=erro)
+    try:
+        autorizado = consulta(db, id, usuario.id, usuario.escola_id)
+    except Exception:
+        raise HTTPException(
+            status_code=503, detail="nao foi possivel verificar a permissao"
+        ) from None
+    if not autorizado:
+        raise HTTPException(status_code=404, detail=erro)
+    return usuario
+
+
+def exige_dono_da_materia(
+    id: UUID,
+    usuario: Usuario = Depends(exige_professor),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    return _exige_dono(
+        consultas.professor_dono_da_materia, id, usuario, db, "materia nao encontrada"
+    )
+
+
+def exige_dono_do_topico(
+    id: UUID,
+    usuario: Usuario = Depends(exige_professor),
+    db: psycopg.Connection = Depends(conexao),
+) -> Usuario:
+    return _exige_dono(
+        consultas.professor_dono_do_topico, id, usuario, db, "topico nao encontrado"
+    )
+
+
+def confere_topico_do_aluno(db: psycopg.Connection, topico_id: UUID, usuario: Usuario) -> None:
+    """O tópico vem no corpo ou na query, não no caminho: por isso a rota chama, não declara."""
+    if usuario.papel != "aluno":
+        raise HTTPException(status_code=403, detail="so o aluno conversa sobre um topico")
+    try:
+        autorizado = consultas.aluno_da_turma_do_topico(db, topico_id, usuario.id)
+    except Exception:
+        raise HTTPException(
+            status_code=503, detail="nao foi possivel verificar a permissao"
+        ) from None
+    if not autorizado:
+        raise HTTPException(status_code=404, detail="topico nao encontrado")
+
+
+def confere_topico_do_chat(db: psycopg.Connection, topico_id: UUID, usuario: Usuario) -> None:
+    """Aluno da turma do tópico ou o professor dono (testando a Luma, sem gravar nada)."""
+    if usuario.papel == "professor":
+        _exige_dono(
+            consultas.professor_dono_do_topico, topico_id, usuario, db, "topico nao encontrado"
+        )
+        return
+    confere_topico_do_aluno(db, topico_id, usuario)
+
+
+def exige_coordenador(usuario: Usuario = Depends(usuario_atual)) -> Usuario:
+    """Coordenador de uma escola. Toda consulta dele filtra pela escola_id daqui."""
+    if usuario.papel != "coordenador" or not usuario.escola_id:
+        raise HTTPException(status_code=403, detail="voce nao tem acesso a isso")
+    return usuario

@@ -1,52 +1,108 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { Night } from '@/constants/theme';
+import { useEffect } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
+import Svg, { Circle } from 'react-native-svg';
+import { Formula } from '@/components/formula';
+import { separarFormulas } from '@/components/formulas';
+import { FontesHorizonte } from '@/constants/theme';
 import type { ChatApiAuthor } from '@/types/api';
+import { type Cores, useCores, useEstilos } from '@/hooks/use-tema';
 
-export function MessageBubble({ author, text }: { author: ChatApiAuthor; text: string }) {
-  const isStudent = author === 'aluno';
+// A Luma fala direto no céu: o espaço e a cor já mostram quem fala, e cada linha ganha largura em 320px.
+export function MessageBubble({ author, text, foto }: { author: ChatApiAuthor; text: string; foto?: string }) {
+  const styles = useEstilos(criarEstilos);
+  if (author !== 'aluno') {
+    return (
+      <Text style={styles.falaLuma}>
+        {separarFormulas(text).map((peca, i) =>
+          peca.formula ? <Formula key={i} latex={peca.latex} bloco={peca.bloco} /> : peca.texto,
+        )}
+      </Text>
+    );
+  }
+  const balao = (
+    <View style={styles.balaoAluno}>
+      <Text style={styles.textoAluno}>{text}</Text>
+    </View>
+  );
+  if (!foto) return balao;
   return (
-    <View style={[styles.bubble, isStudent ? styles.studentBubble : styles.tutorBubble]}>
-      <Text style={[styles.text, isStudent && styles.studentText]}>{text}</Text>
+    <View style={styles.comFoto}>
+      <Image source={{ uri: foto }} style={styles.foto} accessibilityLabel="Foto da questão enviada" resizeMode="cover" />
+      {balao}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  bubble: {
-    // A lista é uma coluna: o horizontal é o eixo cruzado, então alignSelf move um balão só.
-    // justifyContent moveria todos juntos.
-    maxWidth: '80%',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 18,
-  },
-  tutorBubble: {
-    // Ciano: a voz do tutor.
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 6,
-    backgroundColor: 'rgba(56, 189, 248, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
-    shadowColor: Night.guide,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-  },
-  studentBubble: {
-    // Âmbar: a ação do aluno.
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 6,
-    backgroundColor: Night.spark,
-  },
-  text: {
-    // Sem flexShrink o texto longo vaza da tela em vez de quebrar a linha.
-    flexShrink: 1,
+/** A resposta leva de 2 a 7 segundos: sem este aviso a tela parece travada. */
+export function LumaPensando({ ia }: { ia: string }) {
+  const cores = useCores();
+  const styles = useEstilos(criarEstilos);
+  const giro = useSharedValue(0);
+
+  // withTiming respeita o movimento reduzido do aparelho: a órbita fica parada e o texto continua.
+  useEffect(() => {
+    giro.set(withRepeat(withTiming(360, { duration: 1600, easing: Easing.linear }), -1));
+  }, [giro]);
+
+  const estilo = useAnimatedStyle(() => ({ transform: [{ rotate: `${giro.get()}deg` }] }));
+
+  return (
+    <View style={styles.pensando} accessibilityLiveRegion="polite">
+      <Animated.View style={estilo}>
+        <Svg width={26} height={26} viewBox="0 0 26 26" fill="none">
+          <Circle cx="13" cy="13" r="10" stroke={cores.luma} strokeOpacity={0.45} strokeWidth={1.5} />
+          <Circle cx="13" cy="3" r="3" fill={cores.luma} />
+        </Svg>
+      </Animated.View>
+      <Text style={styles.pensandoTexto}>{ia} está pensando…</Text>
+    </View>
+  );
+}
+
+const criarEstilos = (cores: Cores) => StyleSheet.create({
+  falaLuma: {
+    paddingRight: 20,
+    fontFamily: FontesHorizonte.corpo,
     fontSize: 15,
     lineHeight: 22,
-    color: Night.starlight,
+    color: cores.lumaText,
   },
-  studentText: {
-    color: Night.sky,
-    fontWeight: '500',
+  balaoAluno: {
+    // A lista é uma coluna: o horizontal é o eixo cruzado, então alignSelf move um balão só.
+    alignSelf: 'flex-end',
+    maxWidth: '84%',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: cores.action,
+    borderRadius: 18,
+    borderBottomRightRadius: 4,
+    backgroundColor: cores.studentBubble,
+  },
+  textoAluno: {
+    // Sem flexShrink o texto longo vaza da tela em vez de quebrar a linha.
+    flexShrink: 1,
+    fontFamily: FontesHorizonte.corpo,
+    fontSize: 15,
+    lineHeight: 22,
+    color: cores.studentText,
+  },
+  // A foto só existe nesta tela: o servidor não guarda, então some ao recarregar a conversa.
+  comFoto: { alignSelf: 'stretch', alignItems: 'flex-end', gap: 6 },
+  foto: { width: 220, height: 150, borderRadius: 16, borderWidth: 1, borderColor: cores.hairline },
+  pensando: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
+  pensandoTexto: {
+    flexShrink: 1,
+    fontFamily: FontesHorizonte.corpoMedio,
+    fontSize: 15,
+    lineHeight: 22,
+    color: cores.luma,
   },
 });

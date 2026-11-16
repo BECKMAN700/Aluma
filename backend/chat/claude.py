@@ -20,7 +20,9 @@ def _log_indisponivel(motivo: str) -> None:
     print(f"[claude] tutor indisponivel: {motivo}")
 
 
-def chat_com_claude(mensagem: str, historico: list) -> str:
+def chat_com_claude(
+    mensagem: str, historico: list, system: str = SYSTEM_PROMPT, foto: tuple[str, str] | None = None
+) -> str:
     """
     Pede a resposta do tutor ao Claude.
 
@@ -37,7 +39,16 @@ def chat_com_claude(mensagem: str, historico: list) -> str:
         {"role": "user" if msg["autor"] == "aluno" else "assistant", "content": msg["texto"]}
         for msg in historico
     ]
-    messages.append({"role": "user", "content": mensagem})
+    if foto:
+        tipo, dados = foto
+        # A imagem antes do texto: é o formato que a Anthropic recomenda para perguntas sobre ela.
+        conteudo = [
+            {"type": "image", "source": {"type": "base64", "media_type": tipo, "data": dados}},
+            {"type": "text", "text": mensagem},
+        ]
+        messages.append({"role": "user", "content": conteudo})
+    else:
+        messages.append({"role": "user", "content": mensagem})
     # A conversa na API do Claude começa pelo usuário: sai a saudação do tutor (app/chat.tsx).
     while messages[0]["role"] == "assistant":
         messages.pop(0)
@@ -48,7 +59,9 @@ def chat_com_claude(mensagem: str, historico: list) -> str:
         # Quem segura o tutor socrático é o SYSTEM_PROMPT, validado na bateria anti-cola.
         response = client.messages.create(
             model=MODELO,
-            system=SYSTEM_PROMPT,
+            # Cache do prompt: com o material do PDF, cada mensagem reenviaria milhares de tokens.
+            # Abaixo do mínimo de cache do modelo, a API só ignora a marca.
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             max_tokens=MAX_OUTPUT_TOKENS,
             messages=messages,
         )

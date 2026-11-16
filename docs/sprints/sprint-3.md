@@ -1,6 +1,6 @@
 # Sprint #3 (28/set–18/out) — Release 3: entrar
 
-> Sprint atual. Índice em [`../sprints.md`](../sprints.md). O desenho técnico (tabelas, rotas,
+> Concluída em 31/10/2026 (prazo era 18/10): Release [`v0.3.0`](https://github.com/BECKMAN700/Aluma/releases/tag/v0.3.0). Índice em [`../sprints.md`](../sprints.md). O desenho técnico (tabelas, rotas,
 > permissões) está em [`../arquitetura.md`](../arquitetura.md): **leia antes de codar**.
 
 Até a Release 2 o Aluma era um chat aberto: sem conta, sem turma, sem professor. A Sprint #3

@@ -1,20 +1,30 @@
+from uuid import UUID
+
 import psycopg
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from chat import consultas
 from chat.claude import chat_com_claude
 from chat.esquemas import HISTORICO_MAX_ITENS, ChatRequest
 from chat.gemini import TutorIndisponivel, chat_com_gemini
+from chat.prompt import PROMPT_JUIZ, montar_pedido_ao_juiz, montar_prompt
 from nucleo.auth import Usuario
 from nucleo.db import conexao
-from nucleo.permissoes import exige_aluno, exige_usuario_do_chat
+from nucleo.permissoes import (
+    confere_topico_do_aluno,
+    confere_topico_do_chat,
+    exige_aluno,
+    exige_usuario_do_chat,
+)
 from nucleo.rate_limit import check_rate_limit
+from projetos import consultas as projetos
 
 router = APIRouter()
 
 # A tela do chat abre com as últimas mensagens; a conversa inteira pesaria no celular fraco.
 MENSAGENS_NA_TELA = 50
+MARCA_DA_FOTO = "[Foto da questão]"
 
 
 # A permissão vem antes do limite: conta sem turma é barrada sem gastar cota nem crédito de IA.
@@ -35,11 +45,27 @@ def chat(
     é gravada; o `historico` do corpo é ignorado, senão quem chama a API inventaria falas do tutor.
     Retorna a resposta do Claude (ou do Gemini, de reserva) ou erro se os dois falharem.
     """
+    topico_id = payload.topico_id
+    # Fora do try: o 403/404 da permissão não pode virar "erro interno".
+    if topico_id:
+        confere_topico_do_chat(db, topico_id, usuario)
+    if payload.conversa_id and (
+        usuario.papel != "aluno"
+        or not projetos.conversa_de_projeto_do_aluno(db, payload.conversa_id, usuario.id)
+    ):
+        raise HTTPException(status_code=404, detail="conversa nao encontrada")
     try:
-        if usuario.papel == "aluno":
-            conversa_id = consultas.conversa_do_aluno(db, usuario.id) or consultas.criar_conversa(
-                db, usuario.id
-            )
+        system = montar_prompt(
+            consultas.topico_do_chat(db, topico_id) if topico_id else None,
+            consultas.nome_da_ia(db, usuario.escola_id),
+        )
+        if payload.conversa_id:
+            conversa_id = payload.conversa_id
+            historico = consultas.ultimas_mensagens(db, conversa_id, HISTORICO_MAX_ITENS)
+        elif usuario.papel == "aluno":
+            conversa_id = consultas.conversa_do_aluno(
+                db, usuario.id, topico_id
+            ) or consultas.criar_conversa(db, usuario.id, topico_id)
             historico = consultas.ultimas_mensagens(db, conversa_id, HISTORICO_MAX_ITENS)
         else:
             # Professor testando o tutor: o histórico vem do app e nada é gravado.
@@ -47,14 +73,19 @@ def chat(
             historico = [{"autor": msg.autor, "texto": msg.texto} for msg in payload.historico]
 
         # Claude primeiro; sem chave, sem crédito ou fora do ar, o Gemini assume.
+        foto = payload.foto()
         try:
-            resposta = chat_com_claude(payload.mensagem, historico)
+            resposta = chat_com_claude(payload.mensagem, historico, system=system, foto=foto)
         except TutorIndisponivel:
-            resposta = chat_com_gemini(payload.mensagem, historico)
+            resposta = chat_com_gemini(payload.mensagem, historico, system=system, foto=foto)
 
         # Só grava a troca que deu certo: se o tutor caiu, o aluno manda de novo.
+        # A foto não é gravada; a marca no texto avisa a IA, nas próximas falas, que houve uma.
         if conversa_id:
-            consultas.gravar_troca(db, conversa_id, payload.mensagem, resposta)
+            texto = f"{MARCA_DA_FOTO} {payload.mensagem}" if foto else payload.mensagem
+            consultas.gravar_troca(db, conversa_id, texto, resposta)
+        if payload.conversa_id:
+            projetos.dar_titulo(db, payload.conversa_id, payload.mensagem)
         return {"resposta": resposta}
 
     except TutorIndisponivel:
@@ -70,9 +101,53 @@ def chat(
 
 @router.get("/api/conversas/atual")
 def conversa_atual(
+    topico_id: UUID | None = None,
     usuario: Usuario = Depends(exige_aluno),
     db: psycopg.Connection = Depends(conexao),
 ):
-    conversa_id = consultas.conversa_do_aluno(db, usuario.id)
+    if topico_id:
+        confere_topico_do_aluno(db, topico_id, usuario)
+    conversa_id = consultas.conversa_do_aluno(db, usuario.id, topico_id)
     mensagens = consultas.ultimas_mensagens(db, conversa_id, MENSAGENS_NA_TELA) if conversa_id else []
     return {"mensagens": mensagens}
+
+
+# A IA julga o desafio numa chamada à parte, com outro prompt: a tutora não decide o próprio
+# placar, e o aluno não marca "dominado" só apertando um botão.
+MENSAGENS_PARA_O_JUIZ = 12
+
+
+@router.post(
+    "/api/topicos/{id}/dominar",
+    dependencies=[Depends(exige_aluno), Depends(check_rate_limit)],
+)
+def dominar_topico(
+    id: UUID,
+    usuario: Usuario = Depends(exige_aluno),
+    db: psycopg.Connection = Depends(conexao),
+):
+    confere_topico_do_aluno(db, id, usuario)
+    conversa_id = consultas.conversa_do_aluno(db, usuario.id, id)
+    historico = (
+        consultas.ultimas_mensagens(db, conversa_id, MENSAGENS_PARA_O_JUIZ) if conversa_id else []
+    )
+    if sum(1 for m in historico if m["autor"] == "aluno") < 2:
+        return {
+            "dominado": False,
+            "mensagem": f"Primeiro peça um desafio à {consultas.nome_da_ia(db, usuario.escola_id)} e resolva os exercícios com ela.",
+        }
+    pedido = montar_pedido_ao_juiz(historico)
+    try:
+        try:
+            veredito = chat_com_claude(pedido, [], system=PROMPT_JUIZ)
+        except TutorIndisponivel:
+            veredito = chat_com_gemini(pedido, [], system=PROMPT_JUIZ)
+    except TutorIndisponivel:
+        return JSONResponse(status_code=503, content={"erro": "tutor indisponivel"})
+    if not veredito.strip().upper().startswith("SIM"):
+        return {
+            "dominado": False,
+            "mensagem": f"Ainda não deu. Resolva mais um exercício com a {consultas.nome_da_ia(db, usuario.escola_id)} e tente de novo.",
+        }
+    consultas.marcar_dominado(db, usuario.id, id)
+    return {"dominado": True, "mensagem": "Parabéns! Você dominou este tópico."}

@@ -107,3 +107,35 @@ def test_historico_com_mais_de_10_itens_corta_os_mais_antigos():
     assert len(historico_enviado) == 10
     assert historico_enviado[0]["texto"] == "pergunta 5"
     assert historico_enviado[-1]["texto"] == "pergunta 14"
+
+
+PNG_PEQUENO = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+
+def test_foto_valida_vai_para_a_ia_e_nao_e_gravada():
+    with patch("chat.rotas.chat_com_gemini", return_value="Li assim: ...") as gemini, \
+            patch("chat.consultas.gravar_troca") as gravar:
+        response = client.post("/api/chat", json={"mensagem": "não entendi", "imagem": PNG_PEQUENO})
+
+    assert response.status_code == 200
+    assert gemini.call_args.kwargs["foto"] == ("image/png", PNG_PEQUENO)
+    texto_gravado = gravar.call_args.args[2]
+    assert texto_gravado == "[Foto da questão] não entendi"
+
+
+@pytest.mark.parametrize(
+    "imagem, trecho",
+    [
+        ("não é base64!", "corrompida"),
+        ("R0lGODlhAQABAAAAACw=", "JPG, PNG ou WebP"),  # GIF: a IA não precisa, o servidor recusa
+        ("A" * 2_100_000, "1,5 MB"),
+    ],
+    ids=["corrompida", "gif", "grande"],
+)
+def test_foto_invalida_retorna_422(imagem, trecho):
+    with patch("chat.rotas.chat_com_gemini") as gemini:
+        response = client.post("/api/chat", json={"mensagem": "oi", "imagem": imagem})
+
+    assert response.status_code == 422
+    assert trecho in response.json()["erro"]
+    gemini.assert_not_called()

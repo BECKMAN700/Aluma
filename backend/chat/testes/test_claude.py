@@ -75,7 +75,7 @@ def test_envia_o_tutor_socratico_e_descarta_a_saudacao():
 
     enviado = pedidos[0]
     assert enviado["model"] == MODELO
-    assert enviado["system"] == SYSTEM_PROMPT
+    assert enviado["system"][0]["text"] == SYSTEM_PROMPT
     assert enviado["max_tokens"] == MAX_OUTPUT_TOKENS
     assert [m["role"] for m in enviado["messages"]] == ["user", "assistant", "user"]
     assert enviado["messages"][-1]["content"] == "tirar dos dois lados?"
@@ -103,3 +103,14 @@ def test_rota_cai_no_gemini_quando_o_claude_falha(claude, gemini):
     assert response.json() == {"resposta": "resposta do gemini"}
     claude.assert_called_once()
     gemini.assert_called_once()
+
+
+@patch.dict(os.environ, {"ANTHROPIC_API_KEY": "chave-de-teste"})
+def test_foto_vai_antes_do_texto_na_ultima_mensagem():
+    pedidos = []
+    with patch("chat.claude.anthropic.Anthropic", anthropic_falso(200, RESPOSTA_OK, pedidos)):
+        chat_com_claude("não entendi", [], foto=("image/jpeg", "/9j/AAAA"))
+
+    imagem, texto = pedidos[0]["messages"][-1]["content"]
+    assert imagem == {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": "/9j/AAAA"}}
+    assert texto == {"type": "text", "text": "não entendi"}

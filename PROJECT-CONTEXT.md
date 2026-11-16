@@ -29,7 +29,7 @@ escola (TIC Educação 2024).
 
 ## 2. Proposta de valor
 
-Para o **aluno**: um tutor que nunca entrega a resposta. Ele mostra o que estudar, como estudar, dá exemplos e obriga o aluno a pensar até chegar sozinho.
+Para o **aluno**: uma tutora que ensina com método (diagnóstico, exemplo resolvido, passo a passo, conferência do entendimento) e ajuda a organizar o estudo. Na trilha do professor, ela não entrega a resposta dos exercícios: guia até o aluno resolver. Na conversa livre, responde como um assistente de estudos e ensina o aluno a usar IA do jeito certo (decisão de 15/11/2026).
 
 Para o **professor**: ele cria a turma e alimenta o conteúdo da matéria. Com o painel (ainda
 não construído), vai ver um **resumo** de onde a turma trava e o que reforçar em aula, sem ler a
@@ -44,7 +44,7 @@ escola, anti-cola testada, simplicidade, preço e suporte local.
 **Honestidade no pitch:** o que não existe no app se diz no futuro ("vai acompanhar", nunca
 "acompanha"). O regulamento do Supernova desclassifica por informação falsa.
 
-**A frase do pitch (rascunho a lapidar):** *"Seus alunos já usam IA para copiar resposta. O Aluma é a IA que a escola controla — e que se recusa a dar a resposta."*
+**A frase do pitch (desde 15/11/2026):** *"Seus alunos já usam IA, mas ninguém ensinou a usar. O Aluma é a IA da escola: com a marca dela, o material dos professores e os dados da turma."*
 
 ## 3. Escopo
 
@@ -56,7 +56,7 @@ escola, anti-cola testada, simplicidade, preço e suporte local.
 | 2 | Professor cria turma; aluno entra por código | Sprint 3 |
 | 3 | Chat de tutoria socrática, com a conversa salva | Feito na Sprint 2; salvo na Sprint 3 |
 | 4 | Professor cadastra matéria, tópicos e o material (PDF) de cada tópico | Sprint 4 |
-| 5 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | Sprint 4 |
+| 5 | Trilha do aluno: tópicos com status (não iniciado / em andamento / dominado) | Sprint 4; *dominado* no refinamento |
 | 6 | Chat ligado ao tópico, usando o material do professor | Sprint 4 |
 | 7 | Painel do professor: onde a turma está travando | Refinamento |
 | 8 | Aluno pede questões e o tutor corrige guiando | Refinamento |
@@ -116,7 +116,7 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 
 | Decisão | Escolha |
 |---|---|
-| Tutoria | **Nunca entrega a resposta pronta.** Guia, exemplifica, pergunta de volta. É o diferencial e a defesa anti-cola |
+| Tutoria | **Ensina com método.** Na trilha do professor, nunca entrega a resposta final do exercício (defesa anti-cola); na conversa livre, responde e explica. Decisão de 15/11/2026 |
 | Escopo de assunto | Só assunto educacional; fora disso, recusa |
 | Login | E-mail e senha, pelo Supabase. Sem e-mail de confirmação e sem "esqueci a senha" na fase de apresentação |
 | Papéis | Quem cria conta pelo app é aluno. Conta de professor e escola são criadas pela equipe |
@@ -154,7 +154,8 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 3. Toda entrada do usuário é hostil até prova em contrário: valide no servidor.
 4. Em erro ou dúvida sobre permissão: **negue e pare**. Nunca "deixa passar por enquanto".
 5. Nada de dado falso ou mock no caminho de produção. Seed é isolado e sinalizado.
-6. A IA nunca entrega a resposta do exercício. É requisito de produto, não preferência.
+6. Na trilha do professor, a IA nunca entrega a resposta final de um exercício: ensina o método,
+   passo a passo, e guia o aluno. Na conversa livre, ela responde e explica (decisão de 15/11/2026).
 7. Nenhum dado de aluno cruza a fronteira da turma/escola.
 8. **Suspensa na fase de apresentação (decisão do João, 07/10/2026):** LGPD com regra dura para
    menores, consentimento dos pais e exclusão sob pedido. A demonstração usa contas fictícias.
@@ -172,7 +173,7 @@ em [`docs/decisoes.md`](docs/decisoes.md).
 | Custo de IA por aluno não medido (estimativa de R$ 2 a 9/mês, com 25 mil tokens por conversa) | Média | A margem do preço depende disso; medir no painel da Anthropic com conversas reais |
 | Painel do professor prometido no pitch ainda não existe | **Alta** | Sempre falar no futuro; construir antes do Demo Day |
 | Cold start do Render (cerca de 1 min) | Média | O app avisa que o tutor está acordando; ping agendado das 7h às 23h |
-| Supabase pausa o projeto após 7 dias sem uso | Média | O mesmo ping toca o banco |
+| Supabase pausa o projeto após 7 dias sem uso | Média | O ping não toca o banco; quem mantém o banco ativo é o uso do app. Conferir no checklist de véspera |
 | Sem recuperação de senha | Baixa na demo | Contas de demonstração; ligar exige domínio próprio |
 | IA alucinar em conteúdo escolar | Média | Restringir ao material do professor; bateria anti-cola a cada mudança de prompt |
 | Material do professor tentar dar ordens à IA | Média | O material entra como conteúdo, não como instrução; caso de teste na bateria |
@@ -254,7 +255,7 @@ Ferramentas: GitHub (código, Issues, PR) + Trello (cronograma).
 | Encontro 13 | Integração com API real (alinha com a Sprint #3, ver `docs/sprints.md`) |
 | 28/set–18/out | Sprint #3 → Release 3 |
 | 19/out–01/nov | Sprint #4 → Release 4 |
-| 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais |
+| 09/11 e 16/11 | Refinamento do produto e preparação das apresentações finais. Em 16/11, apresentação de treino que vale ponto: a Release 4 precisa estar publicada |
 | 23/11 e 30/11 | Banca de apresentação final — parte técnica |
 | Encontro 16 | Entrega final: demo, distribuição, documentação, retrospectiva |
 | 07/12 | Startup-SE Demo Day — banca final de pitch, banca externa (da disciplina, não do Supernova) |

@@ -3,25 +3,28 @@ from uuid import UUID
 import psycopg
 
 
-def conversa_do_aluno(db: psycopg.Connection, aluno_id: str) -> UUID | None:
-    """A conversa em andamento do aluno: a mais recente sem tópico (os tópicos chegam na Sprint 4)."""
+def conversa_do_aluno(
+    db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None
+) -> UUID | None:
+    """A conversa em andamento do aluno naquele tópico; sem tópico, a do chat geral."""
+    # projeto_id is null: conversa de projeto também não tem tópico e não é o chat geral.
     linha = db.execute(
         """
         select id
         from conversas
-        where aluno_id = %s and topico_id is null
+        where aluno_id = %s and topico_id is not distinct from %s::uuid and projeto_id is null
         order by criado_em desc
         limit 1
         """,
-        (aluno_id,),
+        (aluno_id, topico_id),
     ).fetchone()
     return linha["id"] if linha else None
 
 
-def criar_conversa(db: psycopg.Connection, aluno_id: str) -> UUID:
+def criar_conversa(db: psycopg.Connection, aluno_id: str, topico_id: UUID | None = None) -> UUID:
     return db.execute(
-        "insert into conversas (aluno_id) values (%s) returning id",
-        (aluno_id,),
+        "insert into conversas (aluno_id, topico_id) values (%s, %s) returning id",
+        (aluno_id, topico_id),
     ).fetchone()["id"]
 
 
@@ -56,3 +59,34 @@ def gravar_troca(
             """,
             (conversa_id, autor, texto),
         )
+
+
+def topico_do_chat(db: psycopg.Connection, topico_id: UUID) -> dict:
+    """Nome do tópico e o texto do PDF (None se o professor ainda não enviou)."""
+    return db.execute(
+        """
+        select tp.nome, mat.texto as material
+        from topicos as tp
+        left join materiais as mat on mat.topico_id = tp.id
+        where tp.id = %s
+        """,
+        (topico_id,),
+    ).fetchone()
+
+
+def marcar_dominado(db: psycopg.Connection, aluno_id: str, topico_id: UUID) -> None:
+    db.execute(
+        """
+        insert into progresso (aluno_id, topico_id, status) values (%s, %s, 'dominado')
+        on conflict (aluno_id, topico_id) do nothing
+        """,
+        (aluno_id, topico_id),
+    )
+
+
+def nome_da_ia(db: psycopg.Connection, escola_id: str | None) -> str:
+    """O nome que a escola deu à IA; sem escola, o do Aluma."""
+    if not escola_id:
+        return "Luma"
+    linha = db.execute("select nome_da_ia from escolas where id = %s", (escola_id,)).fetchone()
+    return linha["nome_da_ia"] if linha else "Luma"
